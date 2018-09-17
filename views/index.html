@@ -17,14 +17,18 @@
     <!- ########## Heat section ############### ->
     <section class="machine-parts" id="The-Machine">
       <section id="heat">
-        <button type="button" id="heat+">+</button>
-        <button type="button" id="heat-">-</button>
-        <!- add hammer and wrentch logo ->
-        
-        <div class="resource-bar" id="heat-bar">
-          <div id="heat-text">Heat</div>
-          <div id="heat-counter"></div>
-        </div>
+        <in-line-group>
+          <button type="button" id="heat+">+</button>
+          <button type="button" id="heat-">-</button>
+          <!- add hammer and wrentch logo ->
+
+          <div class="resource-bar" id="heat-bar">
+            <div id="heat-text">Heat</div>
+            <div id="heat-counter"></div>
+          </div>
+        </in-line-group>
+        <div id="heat-rate"><b>Rate:</b> unknown</div>
+        <div id="heat-time"><b>Time remaining:</b> unknown</div>
       </section>
     </section>
     

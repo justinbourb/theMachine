@@ -25,7 +25,9 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 		formattingFn: formatNumber, // optional custom formatting function, default is formatNumber above
 		prefix: '', // optional text before the result
 		suffix: '', // optional text after the result
-		numerals: [] // optionally pass an array of custom numerals for 0-9
+		numerals: [], // optionally pass an array of custom numerals for 0-9
+    gradientColors: false, // optionally pass an array of colors to use for progress bar linear-gradient css property
+    ratePerSecond: false // optionally provide a numerical value for rate per second. (eg. 1)  
 	};
 
 	// extend default options with passed options object
@@ -151,10 +153,27 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       // current value / max value * 100 = percentage
       // this code only works for my use case
       // universal version would have to strip off prefix and suffix and divide by endVal
-      var redGradientPercent = result.split("/")[0].trim() / result.split("/")[1].trim() * 100
-      //adds color to the progress bar as countUp.js counts up!
-      document.getElementById('heat-bar').style.backgroundImage="linear-gradient(to right, white, white "+redGradientPercent+"%, #F5F5F5 1%)";
-		}
+      if (self.options.gradientColors){
+        var currentValue = result.split("/")[0].trim()
+        var GradientPercent = currentValue / endVal * 100
+
+        //adds color to the progress bar as countUp.js counts up using self.options.gradientColors!
+        document.getElementById('heat-bar').style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+GradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
+        }
+      //displays rate / second if options.ratePerSecond is defined
+      if (self.options.ratePerSecond){
+
+        if(currentValue<endVal){
+          var remainingTime = duration - currentValue
+          document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+self.options.ratePerSecond + " / second"
+          document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> "+remainingTime+ " seconds remaining."
+        }else{
+        document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> 0 / second"
+        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> 0.00"
+
+        }
+      }
+    }
 	};
 
 	self.count = function(timestamp) {
