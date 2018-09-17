@@ -1,1 +1,1 @@
-# theMachine
+This is a clone of the Armory & Machine mobile app, recreated as a javascript web app
