@@ -19,9 +19,10 @@
   //I don't remember why this is here?
   var heatRate = document.getElementById("heat-rate");
 
-fhttps://stackoverflow.com/questions/13218472/calling-a-function-defined-inside-another-function-in-javascriptunction pause(){
-  numAnim.reset();
+function pause(){
+  numAnim.pauseResume();
 };
+
 
 //TODO: combine increaseCapacity and increaseEfficiency into one function that takes parameters from the button clicked
 // since these two functions have so much in common, it's likely possible to combine into one function for all use cases?
@@ -42,6 +43,8 @@ fhttps://stackoverflow.com/questions/13218472/calling-a-function-defined-inside-
 //example:
 //if options object is not defined nothing happens
 //if options.endVal is defined old endVal is deleted and new endVal is used in it's place.
+//
+//Solution C: call numAnim from global scope instead of creating a new CountUp object inside local scope
 
 function increaseCapacity(){
   //this function will increase the heat capacity by +10 each time it is called
@@ -49,19 +52,17 @@ function increaseCapacity(){
   //gather current state information from the DOM
   var startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
   var endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
-  var ratePerSecond = 1;
+  var ratePerSecond = parseInt(document.getElementById("heat-rate").innerHTML.split(" ")[1].trim());
   var duration = endValue / ratePerSecond;
   //reset previous animation, because it will continue to run in the background otherwise
-    numAnim.reset();
-  try{
-    newAnim.reset();
-    }catch{};
+ numAnim.reset();
+
   //call a new animation with updated values
-  var newAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
-  if (!newAnim.error) {
-      window.onload=newAnim.start();
+  numAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
+  if (!numAnim.error) {
+      window.onload=numAnim.start();
   } else {
-      console.error(newAnim.error);
+      console.error(numAnim.error);
   }
 };
 
@@ -75,14 +76,11 @@ function increaseEfficiency(){
   var duration = (endValue-startValue) / ratePerSecond;
   //reset previous animation, because it will continue to run in the background otherwise
     numAnim.reset();
-  try{
-    newAnim.reset();
-    }catch{};
   //call a new animation with updated values
-  var newAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
-  if (!newAnim.error) {
-      window.onload=newAnim.start();
+  numAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
+  if (!numAnim.error) {
+      window.onload=numAnim.start();
   } else {
-      console.error(newAnim.error);
+      console.error(numAnim.error);
   }
 }
