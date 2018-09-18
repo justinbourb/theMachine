@@ -17,23 +17,49 @@ body {
 	font-smoothing: antialiased;
 	font-weight: 300;
 }
-#heat-bar{
-  background-color:white;
-}
-
-#heat-text{
-  display: table-cell;
-  left: 0px;
-  width: 25%;
-
-
-}
 #heat-counter{
   display: table-cell;
   right: 0px;
   width: 50%;
   text-align: right;
 }
+
+#heat-counter{
+  display: table-cell;
+  right: 0px;
+  width: 50%;
+  text-align: right;
+}
+#heat-bar{
+  background-color:white;
+}
+#heat-seconds-remaining{
+  display:table-cell;
+  text-align: left;
+  padding: 0;
+  width: 32%;
+  
+}
+#heat-text{
+  display: table-cell;
+  left: 0px;
+  width: 25%;
+}
+#heat-time{
+  width: 32%;
+  text-align: left;
+  display: table-cell;
+  padding-left: 12%;
+  }
+#heat-rate{
+  display: table-cell;
+  width: 32%;
+  text-align: center;
+  padding-left: 12%;
+}
+
+
+
 
 
 #title{
