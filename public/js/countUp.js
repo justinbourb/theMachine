@@ -164,7 +164,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       if (self.options.ratePerSecond){
 
         if(currentValue<endVal){
-          var remainingTime = duration - currentValue
+          var remainingTime = parseFloat((endVal - currentValue)/self.options.ratePerSecond);
           document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+self.options.ratePerSecond + " / second"
           document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> "+remainingTime+ " seconds remaining."
         }else{

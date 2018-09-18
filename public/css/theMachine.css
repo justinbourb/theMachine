@@ -17,6 +17,19 @@ body {
 	font-smoothing: antialiased;
 	font-weight: 300;
 }
+#heat-counter{
+  display: table-cell;
+  right: 0px;
+  width: 50%;
+  text-align: right;
+}
+
+#heat-counter{
+  display: table-cell;
+  right: 0px;
+  width: 50%;
+  text-align: right;
+}
 #heat-bar{
   background-color:white;
 }
@@ -25,15 +38,20 @@ body {
   display: table-cell;
   left: 0px;
   width: 25%;
-
-
 }
-#heat-counter{
+#heat-time{
+  width: 20%;
+  text-align: left;
   display: table-cell;
-  right: 0px;
-  width: 50%;
-  text-align: right;
+  }
+#heat-rate{
+  display: table-cell;
+  width: 12%;
+  text-align: center;
 }
+
+
+
 
 
 #title{
