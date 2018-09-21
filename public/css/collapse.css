@@ -1,0 +1,35 @@
+.collapsible{
+width:103%;
+margin-left:-19px;
+margin-right:0;
+padding-right:0;
+text-align:center; 
+border: 1px;
+background-color: white;
+
+}
+.content{
+  width: 103%;
+  margin-left: -20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color:black;
+  min-height: 30px;
+}
+
+#heat-pause{
+ margin-left: 30%;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+.modify-buttons{
+ background-color: black; 
+ color: white;
+  border: 1px solid;
+  border-color:white;
+  width: 15%;
+  padding-top: 1%;
+  padding-bottom: 1%;
+  margin-bottom: 10px;
+}

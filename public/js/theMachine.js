@@ -46,7 +46,7 @@ function pause(){
 //
 //Solution C: call numAnim from global scope instead of creating a new CountUp object inside local scope
 
-function increaseCapacity(){
+function itemCapacity(){
   //this function will increase the heat capacity by +10 each time it is called
   
   //gather current state information from the DOM
@@ -58,7 +58,7 @@ function increaseCapacity(){
  numAnim.reset();
 
   //call a new animation with updated values
-  numAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
+  numAnim = new CountUp(heatCounter, startValue, endValue,0,duration,{useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#BEBEBE"], ratePerSecond: ratePerSecond});
   if (!numAnim.error) {
       window.onload=numAnim.start();
   } else {
@@ -66,7 +66,7 @@ function increaseCapacity(){
   }
 };
 
-function increaseEfficiency(){
+function jobSpeed(){
   //this function will increase the ratePerSecond by +1 each time it is called
   
   //gather current state information from the DOM
