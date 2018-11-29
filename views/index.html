@@ -4,9 +4,10 @@
 		<meta charset="utf-8">
 		<title>Armory and Machine clone</title>
 		<link rel="stylesheet" href="css/theMachine.css">
+    <link rel="stylesheet" href="css/collapse.css">
 	</head>
    <!- ########## title section ############### ->
-	<body>
+	<body id="body">
     <section id="title">
     	<header id="header">
 			  <h1>The Machine</h1>
@@ -29,25 +30,31 @@
         </in-line-group>
         
         <in-line-group>
-          <div id="heat-rate"><b>Rate:</b> unknown</div>
-          <div id="heat-time"><b>Time remaining:</b> unknown</div>
-          <div id="heat-seconds-remaining">seconds</div>
-        </in-line-group>
+            <div id="heat-rate"><b>Rate:</b> unknown</div>
+            <div id="heat-time"><b>Time remaining:</b> unknown</div>
+        </in-line-group>  
+        
         
         <br>
-        
-        <in-line-group>
-          <button type="button" onclick="pause()">Pause</button>
-          <button type="button" onclick="increaseEfficiency()">Increase Efficiency</button>
-          <button type="button" onclick="increaseCapacity()">Increase Capacity</button>
-        </in-line-group>
       </section>
+      <!- css handled by collapse.css ->
+           <button class="collapsible">+/-</button>
+        <div class="content" style="display: none">
+          <button class="modify-buttons" type="button" id="heat-pause" onclick="pause()">Pause</button>
+          <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Job Speed</button>
+          <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Item Capacity</button>
+        </div>
+    
+      
     </section>
     
+
     <!- ########## end Heat section ########### ->
  
     <script src="js/countUp.js"></script>
     <script src="js/theMachine.js"></script>
-
+    <script src="js/collapse.js"></script>
+    <script src="js/templates.js"></script>
+    
 	</body>
 </html>
