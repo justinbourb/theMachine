@@ -17,6 +17,7 @@ body {
 	font-smoothing: antialiased;
 	font-weight: 300;
 }
+
 #heat-counter{
   display: table-cell;
   right: 0px;
@@ -50,12 +51,14 @@ body {
   text-align: left;
   display: table-cell;
   padding-left: 12%;
+  font-size: 90%;
   }
 #heat-rate{
   display: table-cell;
   width: 32%;
   text-align: center;
   padding-left: 12%;
+  font-size: 90%;
 }
 
 
@@ -87,9 +90,11 @@ body {
   border: solid;
   border-width: 1px;
   border-color: black;
-  padding: 20px;
-  margin: 20px;
-  background-color: white;
+  padding: 20px 0px 0px 20px;
+  margin: 20px 0px 0px 20px;
+  margin-bottom:0px;
+  background-color: #BEBEBE;
+  min-width: 50%;
 }
 
 .resource-bar{
