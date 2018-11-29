@@ -32,7 +32,6 @@
         <in-line-group>
             <div id="heat-rate"><b>Rate:</b> unknown</div>
             <div id="heat-time"><b>Time remaining:</b> unknown</div>
-            <div id="heat-seconds-remaining">seconds</div>
         </in-line-group>  
         
         
@@ -42,8 +41,8 @@
            <button class="collapsible">+/-</button>
         <div class="content" style="display: none">
           <button class="modify-buttons" type="button" id="heat-pause" onclick="pause()">Pause</button>
-          <button class="modify-buttons" type="button" onclick="jobSpeed()">Job Speed</button>
-          <button class="modify-buttons" type="button" onclick="itemCapacity()">Item Capacity</button>
+          <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Job Speed</button>
+          <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Item Capacity</button>
         </div>
     
       

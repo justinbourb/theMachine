@@ -10,6 +10,11 @@
 // duration = duration of animation in seconds, default 2
 // options = optional object of options (see below)
 
+/**Notes to self (J. Bourbonniere), possibly useful in the future or not... it's whatever
+*1) learn to use npm and submit a pull request, with optional 
+*   self.gradientColors variable to make counterUp also a progress bar.
+**/
+
 var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 
 	var self = this;
@@ -26,7 +31,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 		prefix: '', // optional text before the result
 		suffix: '', // optional text after the result
 		numerals: [], // optionally pass an array of custom numerals for 0-9
-    gradientColors: false, // optionally pass an array of colors to use for progress bar linear-gradient css property
+    gradientColors: false, // optionally pass an array of two colors to use for progress bar linear-gradient css property
     ratePerSecond: false // optionally provide a numerical value for rate per second. (eg. 1)  
 	};
 
@@ -146,34 +151,25 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			this.d.textContent = result;
 		}
 		else {
-			this.d.innerHTML = result;
-      //redgradientPercent calculates the percent completed by malipulating the result string
-      // the result string format is as follows: result = prefix + current value + suffix
-      // in my use case the result is then: result = current value / max value
-      // current value / max value * 100 = percentage
-      // this code only works for my use case
-      // universal version would have to strip off prefix and suffix and divide by endVal
-      if (self.options.gradientColors){
-        var currentValue = result.split("/")[0].trim()
-        var GradientPercent = currentValue / endVal * 100
-
-        //adds color to the progress bar as countUp.js counts up using self.options.gradientColors!
-        document.getElementById('heat-bar').style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+GradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
-        }
-      //displays rate / second if options.ratePerSecond is defined
-      if (self.options.ratePerSecond){
-
-        if(currentValue<endVal){
-          var remainingTime = parseFloat((endVal - currentValue)/self.options.ratePerSecond).toFixed(2);
-          document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+self.options.ratePerSecond + " / second"
-          document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> "+remainingTime
-        }else{
+			this.d.innerHTML = result;     
+    }
+   if (self.options.gradientColors) {
+      var GradientPercent = value / endVal * 100
+      //adds color to the progress bar as countUp.js counts up using self.options.gradientColors!
+      document.getElementById(target.id).style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+GradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
+    }
+    
+    //displays rate / second if options.ratePerSecond is defined
+    if (self.options.ratePerSecond) {
+      document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
+      if(value<endVal){
+        var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
+        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> "+ remainingTime + " seconds"
+      } else {
         //need to implement better logic, currently storing updated / increased rate information in DOM  
         //which means it cannot be set to 0 when full as shown below
-          //document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> 0 / second"
-        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> 0.00"
-
-        }
+        //document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> 0 / second"
+        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> 0.00 seconds"
       }
     }
 	};
@@ -185,7 +181,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 		self.timestamp = timestamp;
 		var progress = timestamp - self.startTime;
 		self.remaining = self.duration - progress;
-
+   
 		// to ease or not to ease
 		if (self.options.useEasing) {
 			if (self.countDown) {
