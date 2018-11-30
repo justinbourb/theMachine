@@ -162,15 +162,8 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
       document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
-      if(value<endVal){
-        var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
-        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> "+ remainingTime + " seconds"
-      } else {
-        //need to implement better logic, currently storing updated / increased rate information in DOM  
-        //which means it cannot be set to 0 when full as shown below
-        //document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> 0 / second"
-        document.getElementById('heat-time').innerHTML = "<b>Time to full:</b> 0.00 seconds"
-      }
+      var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
+      document.getElementById('heat-time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
     }
 	};
 

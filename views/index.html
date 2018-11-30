@@ -30,17 +30,19 @@
         </in-line-group>
         
         <in-line-group>
+          <div>
             <div id="heat-rate"><b>Rate:</b> unknown</div>
             <div id="heat-time"><b>Time remaining:</b> unknown</div>
+          </div>
         </in-line-group>  
         
         
         <br>
       </section>
       <!- css handled by collapse.css ->
-           <button class="collapsible">+/-</button>
+        <button class="collapsible">+/-</button>
         <div class="content" style="display: none">
-          <button class="modify-buttons" type="button" id="heat-pause" onclick="pause()">Pause</button>
+          <button class="modify-buttons" type="button" id="heat-pause" onclick="theMachine.pause()">Pause</button>
           <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Job Speed</button>
           <button class="modify-buttons" type="button" onclick="theMachine.updateCounter(event)">Item Capacity</button>
         </div>
