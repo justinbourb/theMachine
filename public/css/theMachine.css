@@ -18,6 +18,9 @@ body {
 	font-weight: 300;
 }
 
+#heat{
+  padding-left: 10%;
+}
 #heat-counter{
   display: table-cell;
   right: 0px;
@@ -47,17 +50,15 @@ body {
   width: 25%;
 }
 #heat-time{
-  width: 32%;
+  width: 20%;
   text-align: left;
   display: table-cell;
-  padding-left: 12%;
   font-size: 90%;
   }
 #heat-rate{
   display: table-cell;
-  width: 32%;
+  width: 12%;
   text-align: center;
-  padding-left: 12%;
   font-size: 90%;
 }
 

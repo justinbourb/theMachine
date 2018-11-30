@@ -1,32 +1,50 @@
-var theMachine = {
+let conditions;
+let rateCost;
+let duration;
+let endValue;
+let heatCounter;
+let numAnim;
+let ratePerSecond;
+let startValue;
+let store;
+
+
+let theMachine = {
+  
   init:function() {
-    if (!this.conditions) {
-      this.conditions = theMachine.store('todos-jquery');
-      this.heatCounter = document.getElementById("heat-counter");
+    
+    //this function will initialize the counter using numAnim
+    if (!conditions) {
+      //TODO: create a system to store data in conditions variable instead of accessing data from DOM
+      conditions = theMachine.store('theMachcine');
+      heatCounter = document.getElementById("heat-counter");
+      rateCost = 6;
       //CountUp params element,start value, end value, number of decimals, duration, options object
-      this.startValue = 0;
-      this.endValue = 10;
-      this.ratePerSecond = 1;
-      this.duration = this.endValue / this.ratePerSecond;
-      this.numAnim = new CountUp(this.heatCounter, this.startValue, this.endValue,0,this.duration,{useEasing:false, suffix: ' / '+ this.endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: this.ratePerSecond});
-      if (!this.numAnim.error) {
-          window.onload = this.numAnim.start();
+      startValue = 0;
+      endValue = 10;
+      ratePerSecond = 0.5;
+      duration = endValue / ratePerSecond;
+      numAnim = new CountUp(heatCounter, startValue, endValue, 0, duration, {useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
+      if (!numAnim.error) {
+          window.onload = numAnim.start();
       } else {
-          console.error(this.numAnim.error);
+          console.error(numAnim.error);
       }
     }
   },
 
   store: function (namespace, data) {
+    //this function stores data to the local storage
     if (arguments.length > 1) {
       return localStorage.setItem(namespace, JSON.stringify(data));
     } else {
-      var store = localStorage.getItem(namespace);
+      let store = localStorage.getItem(namespace);
       return (store && JSON.parse(store)) || [];
     }
   },
 
   pause: function() {
+    //this function pauses or resume's the countUp animation
     numAnim.pauseResume();
   },
 
@@ -37,30 +55,38 @@ var theMachine = {
     **/
 
     //gather current state information from the DOM
-    this.startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
+    startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
     if (event.target.innerHTML === 'Item Capacity') {
-      this.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
+      endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
     } else {
-    this.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
+      endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
     }
-    if (event.target.innerHTML === 'Job Speed') {
-     this.ratePerSecond = parseInt(document.getElementById("heat-rate").innerHTML.split(" ")[1].trim())+1; 
+    //check if enough heat to upgrade speed
+    if (event.target.innerHTML === 'Job Speed' && startValue > rateCost) {
+      //current rate
+      ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
+      //increase 10%
+      ratePerSecond += (ratePerSecond * 0.1);
+      ratePerSecond = parseFloat(ratePerSecond.toFixed(4));
+      startValue -= rateCost;
+      rateCost += (rateCost * 0.1);
+      console.log(rateCost);
+      //do nothing if not enough heat
     } else {
-      this.ratePerSecond = parseInt(document.getElementById("heat-rate").innerHTML.split(" ")[1].trim());
+      return
     }
-    this.duration = (this.endValue - this.startValue) / this.ratePerSecond;
+    duration = (endValue - startValue) / ratePerSecond;
     //reset previous animation, because it will continue to run in the background otherwise
-    this.numAnim.reset();
+    numAnim.reset();
 
     //call a new animation with updated values
-    this.numAnim = new CountUp(this.heatCounter, this.startValue, this.endValue,0,this.duration,{useEasing:false, suffix: ' / '+ this.endValue, gradientColors: ["white", "#BEBEBE"], ratePerSecond:this.ratePerSecond});
-    if (!this.numAnim.error) {
-        window.onload = this.numAnim.start();
+    numAnim = new CountUp(heatCounter, startValue, endValue, 0, duration, {useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#BEBEBE"], ratePerSecond:ratePerSecond});
+    if (!numAnim.error) {
+        window.onload = numAnim.start();
     } else {
-        console.error(this.numAnim.error);
+        console.error(numAnim.error);
     }
   }
 }
 
 theMachine.init();
-
