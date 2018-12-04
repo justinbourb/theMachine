@@ -1,38 +1,79 @@
-let conditions;
-let rateCost;
-let duration;
-let endValue;
-let heatCounter;
-let numAnim;
-let ratePerSecond;
-let startValue;
-let store;
+/**
+*TODO: 
+*1) add workers to automate processes
+*  1a) add a variable activeHeatWorkers = 0
+*    1a1) if zero ratePerSecond = 0 // only add heat by clicking button
+*    1a2) if (activeHeatWokers >= 1) { ratePerSecond = ratePerSecond * activeHeatWorkers } // or some such
+*  1b) if no workers => stop countUp and add a button to increase heat by one unit
+*    1b1) determine what this unit would be (heat/second to heat/click converstion???)
+*      1b1a) something based on rateCost / level?  
+        1b1a1) rateCost level 1 = 1 heat, rateCost level 100 = 5,000,000 heat // or some such
+*2) add containers (requirement to increase capacity)
+*  2a) reduce heatRatePerSecond by containerPerSecondHeatCost
+*    2a1) somehow balance both counters
+*      2a1a) if (containerPerSecondHeatCost > 0) {
+*               heatRatePerSecond -= containerPerSecondHeatCost
+*               }
+*               numAnim = new Countup //etc, etc
+*3) what to store in local storage??
+*  3a) I want to be able to continue the game each time browser is opened
+*    3a1) save data on close?  Save any other times or irrelevant? 
+*      3a1a) Save data on close completed.  Is this best practice?
+*    3b) save timestamp to calculate how much progress has been made (or lost)
+*        since last login.  (timestampeCurrentTime - timestampBrowserClosed = timeDifference)
+*    3c) each button / attribute should have a level associated with it.
+*        ratePerSecond = {rate: 1, level: 1)
+*     
+**/
+
+
+
+let conditions = (
+  {heat: {ratePerSecond: 0.5, rateCost: 6, startValue: 0, endValue: 10, duration: "", gradientColors: ["white", "#F5F5F5"], heatCounterElement: ""}}
+  );
+let heatAnim; //heat CountUp animation
+
 
 
 let theMachine = {
   
-  init:function() {
+  bindEvents: function() {
+    /** this event listener creates a local storage item every time the page is left
+    *   while this is good in theory for production, it's bad for testing.
+    *  Currently disabled.
+    **/
     
-    //this function will initialize the counter using numAnim
-    if (!conditions) {
-      //TODO: create a system to store data in conditions variable instead of accessing data from DOM
-      conditions = theMachine.store('theMachcine');
-      heatCounter = document.getElementById("heat-counter");
-      rateCost = 6;
-      //CountUp params element,start value, end value, number of decimals, duration, options object
-      startValue = 0;
-      endValue = 10;
-      ratePerSecond = 0.5;
-      duration = endValue / ratePerSecond;
-      numAnim = new CountUp(heatCounter, startValue, endValue, 0, duration, {useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#F5F5F5"], ratePerSecond: ratePerSecond});
-      if (!numAnim.error) {
-          window.onload = numAnim.start();
-      } else {
-          console.error(numAnim.error);
-      }
+    /** window.addEventListener('beforeunload', function() {
+    *   theMachine.store('theMachine', conditions);
+    * });  
+    **/
+  },
+  
+  init:function() {
+    theMachine.bindEvents();
+    
+    //check if any data is stored from a previous session
+    if (theMachine.store('theMachine').length !== 0){
+      conditions = theMachine.store('theMachine');  
     }
+    
+    //add calculated values (cannot be assigned during object creation, it causes an error)
+    conditions.heat.heatCounterElement = document.getElementById("heat-counter");
+    conditions.heat.duration = conditions.heat.endValue / conditions.heat.ratePerSecond;
+    
+    heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
+    if (!heatAnim.error) {
+        window.onload = heatAnim.start();
+    } else {
+        console.error(heatAnim.error);
+    }
+    
   },
 
+  pause: function() {
+    heatAnim.pauseResume();
+  },
+  
   store: function (namespace, data) {
     //this function stores data to the local storage
     if (arguments.length > 1) {
@@ -42,12 +83,7 @@ let theMachine = {
       return (store && JSON.parse(store)) || [];
     }
   },
-
-  pause: function() {
-    //this function pauses or resume's the countUp animation
-    numAnim.pauseResume();
-  },
-
+  
   updateCounter: function(event) {
     /**
     * this function will increase the heat capacity by +10  or rate/second by 1 each time it is called
@@ -55,38 +91,36 @@ let theMachine = {
     **/
 
     //gather current state information from the DOM
-    startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
+    conditions.heat.startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
     if (event.target.innerHTML === 'Item Capacity') {
-      endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
+      conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
     } else {
-      endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
+      conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
     }
     //check if enough heat to upgrade speed
-    if (event.target.innerHTML === 'Job Speed' && startValue > rateCost) {
+    if (event.target.innerHTML === 'Job Speed' && conditions.heat.startValue > conditions.heat.rateCost) {
       //current rate
-      ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
+      conditions.heat.ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
       //increase 10%
-      ratePerSecond += (ratePerSecond * 0.1);
-      ratePerSecond = parseFloat(ratePerSecond.toFixed(4));
-      startValue -= rateCost;
-      rateCost += (rateCost * 0.1);
-      console.log(rateCost);
-      //do nothing if not enough heat
-    } else {
-      return
-    }
-    duration = (endValue - startValue) / ratePerSecond;
+      conditions.heat.ratePerSecond += (conditions.heat.ratePerSecond * 0.1);
+      conditions.heat.ratePerSecond = parseFloat(conditions.heat.ratePerSecond.toFixed(4));
+      conditions.heat.startValue -= conditions.heat.rateCost;
+      conditions.heat.rateCost += (conditions.heat.rateCost * 0.1);
+      
+    } 
+    conditions.heat.duration = (conditions.heat.endValue - conditions.heat.startValue) / conditions.heat.ratePerSecond;
     //reset previous animation, because it will continue to run in the background otherwise
-    numAnim.reset();
+    heatAnim.reset();
 
     //call a new animation with updated values
-    numAnim = new CountUp(heatCounter, startValue, endValue, 0, duration, {useEasing:false, suffix: ' / '+ endValue, gradientColors: ["white", "#BEBEBE"], ratePerSecond:ratePerSecond});
-    if (!numAnim.error) {
-        window.onload = numAnim.start();
+    heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
+    if (!heatAnim.error) {
+        window.onload = heatAnim.start();
     } else {
-        console.error(numAnim.error);
+        console.error(heatAnim.error);
     }
   }
 }
 
 theMachine.init();
+
