@@ -91,9 +91,7 @@ body {
   border: solid;
   border-width: 1px;
   border-color: black;
-  padding: 20px 0px 0px 20px;
-  margin: 20px 0px 0px 20px;
-  margin-bottom:0px;
+  padding-top: 20px;
   background-color: #BEBEBE;
   min-width: 50%;
 }

@@ -1,16 +1,12 @@
 .collapsible{
-  width:103%;
-  margin-left:-19px;
-  margin-right:0;
-  padding-right:0;
+  width:100%;
   text-align:center; 
   border: 1px;
   background-color: white;
 
 }
 .content{
-  width: 103%;
-  margin-left: -20px;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
