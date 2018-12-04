@@ -18,6 +18,10 @@ body {
 	font-weight: 300;
 }
 
+.enableAutomation{
+  width: 12%;
+}
+
 #heat{
   padding-left: 10%;
 }

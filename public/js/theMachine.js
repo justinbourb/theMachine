@@ -34,8 +34,37 @@ let conditions = (
 let heatAnim; //heat CountUp animation
 
 
+/**TODO:
+* 1) continue to build out functionality of automationButton() to match theMachine android app
+* 2) manualHeat button should be on top of + - button
+* 3) + - buttons should have functionality (add or remove workers)
+*  3a) for that matter, I need to add workers...
+* 4) create a loop to toggle visibilty from an array or Id's, less lines of code
+* 5) make automationButton() work for any automate button pushed, not with hard coded Id names
+**/
 
 let theMachine = {
+  automationButton: function(event) {
+    //case 1: stopping automation
+    if (event.toElement.innerText === "Disable Automation"){
+      event.toElement.innerText = "Enable Automation";
+      document.getElementById('heat+').style.visibility = 'hidden';
+      document.getElementById('heat-').style.visibility = 'hidden';
+      document.getElementById('heat-rate').style.visibility = 'hidden';
+      document.getElementById('heat-time').style.visibility = 'hidden';
+      document.getElementById('manualHeat').style.visibility = 'visible';
+      theMachine.pause();
+    //case 2: starting automation
+    } else {
+      event.toElement.innerText = "Disable Automation";
+      document.getElementById('heat+').style.visibility = 'visible';
+      document.getElementById('heat-').style.visibility = 'visible';
+      document.getElementById('heat-rate').style.visibility = 'visible';
+      document.getElementById('heat-time').style.visibility = 'visible';
+      document.getElementById('manualHeat').style.visibility = 'hidden';
+      theMachine.pause();
+    }
+  },
   
   bindEvents: function() {
     /** this event listener creates a local storage item every time the page is left
