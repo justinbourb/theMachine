@@ -161,9 +161,9 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
-      document.getElementById('heat-rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
+      document.getElementById('heatRate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
       var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
-      document.getElementById('heat-time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
+      document.getElementById('heatTime').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
     }
 	};
 

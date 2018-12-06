@@ -37,7 +37,7 @@ let heatAnimManual; //manual heat CountUp animation
 
 /**TODO:
 * 1) continue to build out functionality of automationButton() to match theMachine android app
-* 2) manualHeat button should be on top of + - button
+* 2) heatManual button should be on top of + - button
 * 3) + - buttons should have functionality (add or remove workers)
 *  3a) for that matter, I need to add workers...
 * 4) create a loop to toggle visibilty from an array or Id's, less lines of code
@@ -45,34 +45,34 @@ let heatAnimManual; //manual heat CountUp animation
 **/
 
 let theMachine = {
-  automationButton: function(event) {
+  automationButton(event) {
     //case 1: stopping automation
+    let resource = event.target.dataset.resource; //heat or tanks or fuel, etc
     if (event.toElement.innerText === "Disable Automation"){
       event.toElement.innerText = "Enable Automation";
-      document.getElementById('heat+').style.display = 'none';
-      document.getElementById('heat-').style.display = 'none';
-      document.getElementById('heat-rate').style.visibility = 'hidden';
-      document.getElementById('heat-time').style.visibility = 'hidden';
-      document.getElementById('manualHeat').style.display = 'inline';
-      document.getElementById('manualHeat').style.visibility = 'visible';
-      document.getElementById('manualHeat').style.width = '48px';
-      document.getElementById('manualHeat').style.marginLeft = "12.5%";
+      document.getElementById(resource + '+').style.display = 'none';
+      document.getElementById(resource + '-').style.display = 'none';
+      document.getElementById(resource + 'Rate').style.visibility = 'hidden';
+      document.getElementById(resource + 'Time').style.visibility = 'hidden';
+      document.getElementById(resource + 'Manual').style.display = 'inline';
+      document.getElementById(resource + 'Manual').style.visibility = 'visible';
+      document.getElementById(resource + 'Manual').style.width = '48px';
+      document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
       theMachine.pauseResume();
     //case 2: starting automation
     } else {
       event.toElement.innerText = "Disable Automation";
-      document.getElementById('heat+').style.display = 'inline-block';
-      document.getElementById('heat+').style.marginLeft = "12.5%";
-      document.getElementById('heat-').style.display = 'inline-block';
-      document.getElementById('heat-rate').style.visibility = 'visible';
-      document.getElementById('heat-time').style.visibility = 'visible';
-      document.getElementById('manualHeat').style.display = 'none';
-      
+      document.getElementById(resource + '+').style.display = 'inline-block';
+      document.getElementById(resource + '+').style.marginLeft = "12.5%";
+      document.getElementById(resource + '-').style.display = 'inline-block';
+      document.getElementById(resource + 'Rate').style.visibility = 'visible';
+      document.getElementById(resource + 'Time').style.visibility = 'visible';
+      document.getElementById(resource + 'Manual').style.display = 'none';
       theMachine.pauseResume();
     }
   },
   
-  bindEvents: function() {
+  bindEvents() {
     /** this event listener creates a local storage item every time the page is left
     *   while this is good in theory for production, it's bad for testing.
     *  Currently disabled.
@@ -84,7 +84,7 @@ let theMachine = {
     **/
   },
   
-  init:function() {
+  init() {
     theMachine.bindEvents();
     
     //check if any data is stored from a previous session
@@ -93,25 +93,23 @@ let theMachine = {
     }
     
     //add calculated values (cannot be assigned during object creation, it causes an error)
-    conditions.heat.heatCounterElement = document.getElementById("heat-counter");
-    conditions.heat.heatCounterElementManual = document.getElementById("heat-counter-manual");
-    conditions.heat.duration = conditions.heat.endValue / conditions.heat.ratePerSecond;
+    Object.getOwnPropertyNames(conditions).forEach(function(resource){
+      conditions[resource][resource + "CounterElement"] = document.getElementById(resource + "Counter");
+      conditions[resource][resource+ "CounterElementManual"] = document.getElementById(resource + "CounterManual");
+      conditions[resource].duration = conditions[resource].endValue / conditions[resource].ratePerSecond;
+    });
     
-    // heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
-    // if (!heatAnim.error) {
-    //     window.onload = heatAnim.start();
-    // } else {
-    //     console.error(heatAnim.error);
-    // }
+    
+    //TODO: what is initiating with more than just heat? Will theMachine.updateCounter still work properly?
     theMachine.updateCounter();
     
   },
 //TODO: refactor / understand better countUp.pauseResume.  I would like to be able to pause a variable submitted to the function call.
-  pauseResume: function() {
+  pauseResume() {
     heatAnim.pauseResume();
   },
   
-  store: function (namespace, data) {
+  store(namespace, data) {
     //this function stores data to the local storage
     if (arguments.length > 1) {
       return localStorage.setItem(namespace, JSON.stringify(data));
@@ -121,44 +119,50 @@ let theMachine = {
     }
   },
   
-  updateCounter: function(event, optionalElement) {
+  updateCounter(event, optionalElement) {
     /**
     * this function will increase the heat capacity by +10  or rate/second by 1 each time it is called
     * depending which element is clicked in the DOM
     **/
-    
+    let resource;
     //allows user defined element to be used
     if (!optionalElement){
      optionalElement = conditions.heat.heatCounterElement;
     }
     
     //skips event logic if called by theMachine.init();
+    //Case 1: called from DOM via a button click
     if (event) {
+      resource = event.target.dataset.resource; //heat or tanks or fuel, etc
       //gather current state information from the DOM
-      conditions.heat.startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
+      conditions[resource].startValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[0].trim());
       if (event.target.innerHTML === 'Item Capacity') {
-        conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
+        conditions[resource].endValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[1].trim())+10;
       } else {
-        conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
+        conditions[resource].endValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[1].trim());
       }
       //check if enough heat to upgrade speed
-      if (event.target.innerHTML === 'Job Speed' && conditions.heat.startValue > conditions.heat.rateCost) {
+      if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue > conditions[resource].rateCost) {
         //current rate
-        conditions.heat.ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
+        conditions[resource].ratePerSecond = parseFloat(document.getElementById(resource + 'Rate').innerHTML.split("/")[1].split(" ")[1]);
         //increase 10%
-        conditions.heat.ratePerSecond += (conditions.heat.ratePerSecond * 0.1);
-        conditions.heat.ratePerSecond = parseFloat(conditions.heat.ratePerSecond.toFixed(4));
-        conditions.heat.startValue -= conditions.heat.rateCost;
-        conditions.heat.rateCost += (conditions.heat.rateCost * 0.1);
+        conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
+        conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
+        conditions[resource].startValue -= conditions[resource].rateCost;
+        conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
 
       } 
-      conditions.heat.duration = (conditions.heat.endValue - conditions.heat.startValue) / conditions.heat.ratePerSecond;
+      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
       //reset previous animation, because it will continue to run in the background otherwise
       heatAnim.reset();
+    //Case 2: called without event, which means it was from init()
+    //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
+    } else {
+      resource = "heat";
     }
 
     //call a new animation with updated values
-    heatAnim = new CountUp(optionalElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
+    heatAnim = new CountUp(optionalElement, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
     if (!heatAnim.error) {
         window.onload = heatAnim.start();
     } else {

@@ -1,94 +1,53 @@
-html{
-}
-
-
-
 body {
-	font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	line-height: 1.4em;
 	background: #f5f5f5;
 	color: #4d4d4d;
-	min-width: 230px;
-	max-width: 100%;
-	margin: 2% 20%;
-	padding: 0;
+	font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
 	-webkit-font-smoothing: antialiased;
 	-moz-font-smoothing: antialiased;
 	font-smoothing: antialiased;
 	font-weight: 300;
+	line-height: 1.4em;
+	margin: 2% 20%;
+	max-width: 100%;
+	min-width: 230px;
+	padding: 0;
 }
-
 .enableAutomation{
   width: 12%;
 }
-
-
-#heat-counter{
+#heatCounter{
   display: table-cell;
   right: 0px;
-  width: 50%;
   text-align: right;
-}
-
-#heat-counter{
-  display: table-cell;
-  right: 0px;
   width: 50%;
-  text-align: right;
 }
-#heat-bar{
+#heatBar{
   background-color:white;
 }
 #heat-seconds-remaining{
   display:table-cell;
-  text-align: left;
   padding: 0;
+  text-align: left;
   width: 32%;
   
 }
-#heat-text{
+#heatText{
   display: table-cell;
   left: 0px;
   width: 25%;
 }
-#heat-time{
-  width: 20%;
+#heatTime{
+  display: table-cell;
+  font-size: 90%;
   text-align: center;
-  display: table-cell;
-  font-size: 90%;
+  width: 20%;
   }
-#heat-rate{
+#heatRate{
   display: table-cell;
-  width: 12%;
-  text-align: right;
   font-size: 90%;
+  text-align: right;
+  width: 12%;
 }
-
-
-
-
-
-#title{
-  background-color: black;
-  width: 100%;
-  height: 50px;
-  position: relative;
-}
-
-#title h1 {
-  position: absolute;
-  top: 15px;
-  bottom: 0;
-  left: 0;
-	font-size: 20px;
-	text-align: left;
-	color: white;
-	-webkit-text-rendering: optimizeLegibility;
-	-moz-text-rendering: optimizeLegibility;
-	text-rendering: optimizeLegibility;
-}
-
-
 .machine-parts{
   border: solid;
   border-width: 1px;
@@ -97,13 +56,30 @@ body {
   background-color: #BEBEBE;
   min-width: 50%;
 }
-
 .resource-bar{
-  display: inline-table;
+  background-color: white;
   border: solid;
   border-width: 1px;
   border-color: black;
+  display: inline-table;
   padding: 10px;
-  background-color: white;
   width: 60%;
+}
+#title{
+  background-color: black;
+  height: 50px;
+  position: relative;
+  width: 100%;
+}
+#title h1 {
+  bottom: 0;
+	color: white;
+	font-size: 20px;
+  left: 0;
+  position: absolute;
+	text-align: left;
+	-webkit-text-rendering: optimizeLegibility;
+	-moz-text-rendering: optimizeLegibility;
+	text-rendering: optimizeLegibility;
+  top: 15px;
 }
