@@ -29,9 +29,10 @@
 
 
 let conditions = (
-  {heat: {ratePerSecond: 0.5, rateCost: 6, startValue: 0, endValue: 10, duration: "", gradientColors: ["white", "#F5F5F5"], heatCounterElement: ""}}
+  {heat: {ratePerSecond: 0.5, rateCost: 6, startValue: 0, endValue: 10, duration: "", gradientColors: ["white", "#F5F5F5"], heatCounterElement: "", heatCounterElementManual: ""}}
   );
 let heatAnim; //heat CountUp animation
+let heatAnimManual; //manual heat CountUp animation
 
 
 /**TODO:
@@ -48,21 +49,26 @@ let theMachine = {
     //case 1: stopping automation
     if (event.toElement.innerText === "Disable Automation"){
       event.toElement.innerText = "Enable Automation";
-      document.getElementById('heat+').style.visibility = 'hidden';
-      document.getElementById('heat-').style.visibility = 'hidden';
+      document.getElementById('heat+').style.display = 'none';
+      document.getElementById('heat-').style.display = 'none';
       document.getElementById('heat-rate').style.visibility = 'hidden';
       document.getElementById('heat-time').style.visibility = 'hidden';
+      document.getElementById('manualHeat').style.display = 'inline';
       document.getElementById('manualHeat').style.visibility = 'visible';
-      theMachine.pause();
+      document.getElementById('manualHeat').style.width = '48px';
+      document.getElementById('manualHeat').style.marginLeft = "12.5%";
+      theMachine.pauseResume();
     //case 2: starting automation
     } else {
       event.toElement.innerText = "Disable Automation";
-      document.getElementById('heat+').style.visibility = 'visible';
-      document.getElementById('heat-').style.visibility = 'visible';
+      document.getElementById('heat+').style.display = 'inline-block';
+      document.getElementById('heat+').style.marginLeft = "12.5%";
+      document.getElementById('heat-').style.display = 'inline-block';
       document.getElementById('heat-rate').style.visibility = 'visible';
       document.getElementById('heat-time').style.visibility = 'visible';
-      document.getElementById('manualHeat').style.visibility = 'hidden';
-      theMachine.pause();
+      document.getElementById('manualHeat').style.display = 'none';
+      
+      theMachine.pauseResume();
     }
   },
   
@@ -88,18 +94,20 @@ let theMachine = {
     
     //add calculated values (cannot be assigned during object creation, it causes an error)
     conditions.heat.heatCounterElement = document.getElementById("heat-counter");
+    conditions.heat.heatCounterElementManual = document.getElementById("heat-counter-manual");
     conditions.heat.duration = conditions.heat.endValue / conditions.heat.ratePerSecond;
     
-    heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
-    if (!heatAnim.error) {
-        window.onload = heatAnim.start();
-    } else {
-        console.error(heatAnim.error);
-    }
+    // heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
+    // if (!heatAnim.error) {
+    //     window.onload = heatAnim.start();
+    // } else {
+    //     console.error(heatAnim.error);
+    // }
+    theMachine.updateCounter();
     
   },
-
-  pause: function() {
+//TODO: refactor / understand better countUp.pauseResume.  I would like to be able to pause a variable submitted to the function call.
+  pauseResume: function() {
     heatAnim.pauseResume();
   },
   
@@ -113,36 +121,44 @@ let theMachine = {
     }
   },
   
-  updateCounter: function(event) {
+  updateCounter: function(event, optionalElement) {
     /**
     * this function will increase the heat capacity by +10  or rate/second by 1 each time it is called
     * depending which element is clicked in the DOM
     **/
-
-    //gather current state information from the DOM
-    conditions.heat.startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
-    if (event.target.innerHTML === 'Item Capacity') {
-      conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
-    } else {
-      conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
+    
+    //allows user defined element to be used
+    if (!optionalElement){
+     optionalElement = conditions.heat.heatCounterElement;
     }
-    //check if enough heat to upgrade speed
-    if (event.target.innerHTML === 'Job Speed' && conditions.heat.startValue > conditions.heat.rateCost) {
-      //current rate
-      conditions.heat.ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
-      //increase 10%
-      conditions.heat.ratePerSecond += (conditions.heat.ratePerSecond * 0.1);
-      conditions.heat.ratePerSecond = parseFloat(conditions.heat.ratePerSecond.toFixed(4));
-      conditions.heat.startValue -= conditions.heat.rateCost;
-      conditions.heat.rateCost += (conditions.heat.rateCost * 0.1);
-      
-    } 
-    conditions.heat.duration = (conditions.heat.endValue - conditions.heat.startValue) / conditions.heat.ratePerSecond;
-    //reset previous animation, because it will continue to run in the background otherwise
-    heatAnim.reset();
+    
+    //skips event logic if called by theMachine.init();
+    if (event) {
+      //gather current state information from the DOM
+      conditions.heat.startValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[0].trim());
+      if (event.target.innerHTML === 'Item Capacity') {
+        conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim())+10;
+      } else {
+        conditions.heat.endValue = parseInt(document.getElementById('heat-counter').innerHTML.split("/")[1].trim());
+      }
+      //check if enough heat to upgrade speed
+      if (event.target.innerHTML === 'Job Speed' && conditions.heat.startValue > conditions.heat.rateCost) {
+        //current rate
+        conditions.heat.ratePerSecond = parseFloat(document.getElementById('heat-rate').innerHTML.split("/")[1].split(" ")[1]);
+        //increase 10%
+        conditions.heat.ratePerSecond += (conditions.heat.ratePerSecond * 0.1);
+        conditions.heat.ratePerSecond = parseFloat(conditions.heat.ratePerSecond.toFixed(4));
+        conditions.heat.startValue -= conditions.heat.rateCost;
+        conditions.heat.rateCost += (conditions.heat.rateCost * 0.1);
+
+      } 
+      conditions.heat.duration = (conditions.heat.endValue - conditions.heat.startValue) / conditions.heat.ratePerSecond;
+      //reset previous animation, because it will continue to run in the background otherwise
+      heatAnim.reset();
+    }
 
     //call a new animation with updated values
-    heatAnim = new CountUp(conditions.heat.heatCounterElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
+    heatAnim = new CountUp(optionalElement, conditions.heat.startValue, conditions.heat.endValue, 0, conditions.heat.duration, {useEasing:false, suffix: ' / '+ conditions.heat.endValue, gradientColors: conditions.heat.gradientColors, ratePerSecond: conditions.heat.ratePerSecond});
     if (!heatAnim.error) {
         window.onload = heatAnim.start();
     } else {
