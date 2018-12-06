@@ -1,31 +1,26 @@
 .collapsible{
-  width:100%;
-  text-align:center; 
-  border: 1px;
   background-color: white;
-
+  border: 1px;
+  text-align:center; 
+  width:100%;
 }
 .content{
-  width: 100%;
-  display: flex;
   align-items: center;
-  justify-content: center;
   background-color:black;
+  display: flex;
+  justify-content: center;
   min-height: 30px;
-}
-
-#heat-pause{
-  margin-left: 30%;
-  margin-top: 10px;
-  margin-bottom: 10px;
+  width: 100%;
 }
 .modify-buttons{
-  background-color: black; 
   color: white;
+  background-color: black; 
   border: 1px solid;
   border-color:white;
-  width: 15%;
   padding-top: 1%;
   padding-bottom: 1%;
   margin-bottom: 10px;
-}
+  margin-top: 10px;
+  margin-right: 10px;
+  width: 15%;
+ }
