@@ -15,6 +15,9 @@ body {
 .enableAutomation{
   width: 12%;
 }
+#heatAutomate{
+ width: 13%; 
+}
 #heatCounter{
   display: table-cell;
   right: 0px;
@@ -24,13 +27,7 @@ body {
 #heatBar{
   background-color:white;
 }
-#heat-seconds-remaining{
-  display:table-cell;
-  padding: 0;
-  text-align: left;
-  width: 32%;
-  
-}
+
 #heatText{
   display: table-cell;
   left: 0px;

@@ -143,6 +143,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	// Print value to target
 	self.printValue = function(value) {
 		var result = self.options.formattingFn(value);
+    var resource = target.dataset.resource;
 
 		if (self.d.tagName === 'INPUT') {
 			this.d.value = result;
@@ -161,9 +162,9 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
-      document.getElementById('heatRate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
+      document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
       var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
-      document.getElementById('heatTime').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
+      document.getElementById(resource + 'Time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
     }
 	};
 
