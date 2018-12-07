@@ -211,12 +211,14 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			if (self.callback) self.callback();
 		}
 	};
+  
 	// start your animation
 	self.start = function(callback) {
 		if (!self.initialize()) return;
 		self.callback = callback;
 		self.rAF = requestAnimationFrame(self.count);
 	};
+  
 	// toggles pause/resume animation
 	self.pauseResume = function() {
 		if (!self.paused) {
@@ -230,6 +232,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			requestAnimationFrame(self.count);
 		}
 	};
+  
 	// reset to startVal so animation can be run again
 	self.reset = function() {
 		self.paused = false;
@@ -240,6 +243,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			self.printValue(self.startVal);
 		}
 	};
+  
 	// pass a new endVal and start animation
 	self.update = function (newEndVal) {
 		if (!self.initialize()) return;
