@@ -29,7 +29,7 @@
 
 
 let conditions = (
-  {heat: {ratePerSecond: 0.5, rateCost: 6, startValue: 0, endValue: 10, duration: "", gradientColors: ["white", "#F5F5F5"], counterElement: "", counterElementManual: ""}}
+  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0 }}
   );
 
 
@@ -59,12 +59,9 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
       theMachine.pauseResume(resource, resource + "CountUpAnim");
-      //User cannot add more resource than maximum (endValue) so disable the manual button.
-      if (conditions[resource][resource + 'CountUpAnim'].frameVal === conditions[resource].endValue){
-        document.getElementById(resource + 'Manual').disabled = true;
-      } else {
-        document.getElementById(resource + 'Manual').disabled = false;
-      }
+      theMachine.manualCounterButtonStatus(resource);
+      conditions[resource].paused = true;
+      
       
     //case 2: starting automation
     } else {
@@ -76,6 +73,7 @@ let theMachine = {
       document.getElementById(resource + 'Time').style.visibility = 'visible';
       document.getElementById(resource + 'Manual').style.display = 'none';
       theMachine.pauseResume(resource, resource + "CountUpAnim");
+      conditions[resource].paused = false;
     }
   },
   
@@ -112,15 +110,15 @@ let theMachine = {
     
   },
   manualCounterButton(event) {
-  /**TODO:
-  * 1) build out heatManual button
-  *   1a) starts another counter in heatManualCounter on each click of the button
-  *    1a1) no effect if counter is in progress (only start new counter after completion)
-  *    1a2) update heatCountUpAnim +1 each time heatManual button is clicked
-  *      1a2a) increase +1 amount based on capacity?? Should level with capacity??
-  *            With 10 capacity +1 is a lot.  With 10,000 cap, +1 is nothing. Needs to scale.
-  *    1a3) fixed speed for manual regardless of amount?
-  */
+    /**TODO:
+    * 1) build out heatManual button
+    *   1a) starts another counter in heatManualCounter on each click of the button
+    *    1a1) no effect if counter is in progress (only start new counter after completion)
+    *    1a2) update heatCountUpAnim +1 each time heatManual button is clicked
+    *      1a2a) increase +1 amount based on capacity?? Should level with capacity??
+    *            With 10 capacity +1 is a lot.  With 10,000 cap, +1 is nothing. Needs to scale.
+    *    1a3) fixed speed for manual regardless of amount?
+    */
     let resource = event.target.dataset.resource;
     let countUpName = resource + 'CountUpAnimManual';
     let targetElement = document.getElementById(countUpName);
@@ -154,6 +152,16 @@ let theMachine = {
       console.log(conditions[resource].startValue);}, duration*1000);
     
   },
+  
+  manualCounterButtonStatus(resource) {
+    //User cannot add more resource than maximum (endValue) so disable the manual button.
+      if (conditions[resource][resource + 'CountUpAnim'].frameVal === conditions[resource].endValue){
+        document.getElementById(resource + 'Manual').disabled = true;
+      } else {
+        document.getElementById(resource + 'Manual').disabled = false;
+      }
+  },
+    
   pauseResume(resource, counter) {
     //This function will pauseResume the desired counter, as stored on the conditions object.
     conditions[resource][counter].pauseResume();
@@ -178,24 +186,13 @@ let theMachine = {
     * 4) Dynamically create a unique CountUp item and store it in the conditions Object
     *
     **/
+    
     let resource;
     let countUpName;
     //allows user defined element to be used
     if (!optionalElement){
      optionalElement = conditions.heat.counterElement;
     }
-    /**dynamically assign a name to the new CountUp (called later in this function)
-    *1) expected result: resource + "CountUpAnim"
-    *2) if called by manualCounterButton() actual result: resource + "CountUpAnimManual"
-    *   which causes an error in line 163
-    *3) manualCou2nterButton() cannot use updateCounter because:
-    *  3a) reason #2 (above)
-    *  3b) it's countUp conditions are different
-    *    3b1) solution 1: repeat code that calls countUp
-    *      3b1a) this seems to break the DRY rule
-    *    3b2) solution 2: break calling countUp into it's own function?
-    *      3b2a) this seems overly complicated (countUp has a long list of options)
-    **/
     countUpName = optionalElement.id;
     
     //skips event logic if called by theMachine.init();
@@ -226,13 +223,29 @@ let theMachine = {
       resource = "heat";
     }
     
-    //call a new animation with updated values for automated resources
-    conditions[resource][countUpName] = new CountUp(optionalElement, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
-    if (!conditions[resource][countUpName].error) {
-        window.onload = conditions[resource][countUpName].start();
-    } else {
-        console.error(conditions[resource][countUpName].error);
+    /**FIXME:
+    *  1) cannot animate the counter while paused...
+    *     but we still need to update the DOM if job speed or item capacity is clicked.
+    *    1a) These both use resources, so the resource bar (counter DOM element) needs
+    *        to reflect the cost.
+    *    1b) Then conditions value needs to be updated for the next time the counter
+    *        is animated.
+    *    1c) Make calling animation it's own function?  This is logic is getting too
+    *        complicated and would be better off on it's own.
+    *      1c1) theMachine.animateCounter(resource, countUpName, element)
+    **/
+    
+    //please do not animate the counter if it's paused!
+    if (conditions[resource].paused === false){
+      //call a new animation with updated values for automated resources
+      conditions[resource][countUpName] = new CountUp(optionalElement, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
+      if (!conditions[resource][countUpName].error) {
+          window.onload = conditions[resource][countUpName].start();
+      } else {
+          console.error(conditions[resource][countUpName].error);
+      }
     }
+    theMachine.manualCounterButtonStatus(resource);
   }
 }
 
