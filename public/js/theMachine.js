@@ -137,8 +137,12 @@ let theMachine = {
   
   updateCounter(event, optionalElement) {
     /**
-    * this function will increase the heat capacity by +10  or rate/second by 1 each time it is called
-    * depending which element is clicked in the DOM
+    * Depending which element is clicked in the DOM this function will dynamically: 
+    * 1) Increase the capacity by +10 or 
+    * 2) Increase rate/second by 1 each time it is called or
+    * 3) Manually increase [resource] by x amount (as calculated).
+    * 4) Dynamically create a unique CountUp item and store it in the conditions Object
+    *
     **/
     let resource;
     let countUpName;
@@ -153,17 +157,13 @@ let theMachine = {
     //Case 1: called from DOM via a button click
     if (event) {
       resource = event.target.dataset.resource; //heat or tanks or fuel, etc
-      //gather current state information from the DOM
-      conditions[resource].startValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[0].trim());
+      //gather current state information from the countUp.js
+      conditions[resource].startValue = conditions[countUpName].frameVal;
       if (event.target.innerHTML === 'Item Capacity') {
-        conditions[resource].endValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[1].trim())+10;
-      } else {
-        conditions[resource].endValue = parseInt(document.getElementById(resource + 'Counter').innerHTML.split("/")[1].trim());
-      }
+        conditions[resource].endValue = conditions[countUpName].endVal+10;
+      } 
       //check if enough heat to upgrade speed
       if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue > conditions[resource].rateCost) {
-        //current rate
-        conditions[resource].ratePerSecond = parseFloat(document.getElementById(resource + 'Rate').innerHTML.split("/")[1].split(" ")[1]);
         //increase 10%
         conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
         conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
