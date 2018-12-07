@@ -19,14 +19,14 @@
     <section class="machine-parts" id="The-Machine">
       <section id="heat">
         <in-line-group>
-          <button type="button" class="enableAutomation" id="heatManual" style="visibility:hidden">Heat</button>
+          <button type="button" data-resource="heat" class="enableAutomation" id="heatManual" style="visibility:hidden" onclick="theMachine.manualCounterButton(event)">Heat</button>
           <button type="button" id="heat+">+</button>
           <button type="button" id="heat-">-</button>
           <!- add hammer and wrentch logo ->
 
           <div class="resource-bar" id="heatBar">
             <div id="heatText">Heat</div>
-            <div id="heatCounter"></div>
+            <div id="heatCounter" data-resource="heat"></div>
           </div>
           
           <button type="button" data-resource="heat" class="enableAutomation" id="heatAutomate" onclick="theMachine.automationButton(event)">Disable Automation</button>
@@ -36,7 +36,7 @@
           <div>
             <div id="heatRate"><b>Rate:</b> unknown</div>
             <div id="heatTime"><b>Time remaining:</b> unknown</div>
-            <div id="heatCounterManual"></div>
+            <div id="heatCounterManual" data-resource="heat"></div>
           </div>
         </in-line-group>  
         
