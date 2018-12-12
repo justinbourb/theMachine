@@ -29,7 +29,7 @@
 
 
 let conditions = (
-  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0 }}
+  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 6 }}
   );
 
 
@@ -44,6 +44,15 @@ let theMachine = {
   *  5a) make this it's own function, since it is used in multiple places.
   *    5a1) used in: automationButton, manualCounterButton and updateCounter
   **/
+   animateCountUp(countUpName, elemnt, resource) {
+    //call a new animation with updated values for automated resources
+    conditions[resource][countUpName] = new CountUp(elemnt, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
+    if (!conditions[resource][countUpName].error) {
+        window.onload = conditions[resource][countUpName].start();
+    } else {
+        console.error(conditions[resource][countUpName].error);
+    }  
+  },
   
   automationButton(event) {
     //case 1: stopping automation
@@ -58,6 +67,7 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.visibility = 'visible';
       document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
+      document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
       theMachine.pauseResume(resource, resource + "CountUpAnim");
       theMachine.manualCounterButtonStatus(resource);
       conditions[resource].paused = true;
@@ -72,7 +82,10 @@ let theMachine = {
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
       document.getElementById(resource + 'Manual').style.display = 'none';
-      theMachine.pauseResume(resource, resource + "CountUpAnim");
+      document.getElementById(resource + 'CountUpAnimManual').style.display = 'none';
+      //check if any resources have been generated manually and start the (updated) counter again
+      // conditions[resource][resource + "CountUpAnim"].update(conditions[resource].startValue);
+      conditions[resource][resource + "CountUpAnim"].pauseResume(resource, resource + "CountUpAnim");
       conditions[resource].paused = false;
     }
   },
@@ -87,6 +100,13 @@ let theMachine = {
     *   theMachine.store('theMachine', conditions);
     * });  
     **/
+  },
+  
+  checkStartValue(resource) {
+    if (conditions[resource][resource + 'CountUpAnim'].frameVal > conditions[resource].startValue) {
+        conditions[resource].startValue = conditions[resource][resource + 'CountUpAnim'].frameVal;
+      }  
+    
   },
   
   init() {
@@ -131,9 +151,7 @@ let theMachine = {
     *  This could cause a discrepancy when the counter is restarted.
     *  Thus we will match startValue to frameVal before doing +1 to startValue
     **/
-    if (conditions[resource][resource + 'CountUpAnim'].frameVal > conditions[resource].startValue) {
-      conditions[resource].startValue = conditions[resource][resource + 'CountUpAnim'].frameVal;
-    }
+    theMachine.checkStartValue(resource);
     //TODO: add +1... add this logic to updateCounter?? (yes I think so, but go through the logic first)
     //parseInt(document.getElementById(resource + "CountUpAnim").innerHTML.split('/')[0])+1;
     conditions[resource][countUpName] = new CountUp(targetElement, startValue, endValue, decimals, duration, {useEasing:false, suffix: ' / '+ '1', gradientColors: conditions[resource].gradientColors});
@@ -177,73 +195,77 @@ let theMachine = {
     }
   },
   
-  updateCounter(event, optionalElement) {
+  updateCounter(event, elemnt) {
     /**
     * Depending which element is clicked in the DOM this function will dynamically: 
     * 1) Increase the capacity by +10 or 
     * 2) Increase rate/second by 1 each time it is called or
-    * 3) Manually increase [resource] by x amount (as calculated).
-    * 4) Dynamically create a unique CountUp item and store it in the conditions Object
     *
     **/
     
     let resource;
     let countUpName;
     //allows user defined element to be used
-    if (!optionalElement){
-     optionalElement = conditions.heat.counterElement;
+    if (!elemnt){
+     elemnt = conditions.heat.counterElement;
     }
-    countUpName = optionalElement.id;
     
     //skips event logic if called by theMachine.init();
     //Case 1: called from DOM via a button click
     if (event) {
       resource = event.target.dataset.resource; //heat or tanks or fuel, etc
       countUpName = resource + 'CountUpAnim';
-      //gather current state information from the countUp.js
-      conditions[resource].startValue = conditions[resource][countUpName].frameVal;
+      theMachine.checkStartValue(resource);
+      
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource].endValue = conditions[resource][countUpName].endVal+10;
+         if (conditions[resource].paused === true){
+          //update DOM when counter is paused;
+          let gradientPercent = conditions[resource].startValue / conditions[resource].endValue * 100;
+          document.getElementById(resource + 'CountUpAnim').innerHTML = conditions[resource].startValue + " / " + conditions[resource].endValue;
+          document.getElementById(resource + 'CountUpAnim').style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
+          conditions[resource][resource + 'CountUpAnim'].endVal = conditions[resource].endValue;
+          conditions[resource][resource + 'CountUpAnim'].options.suffix = ' / '+ conditions[resource].endValue;
+          /*FIXME:
+          *1) update time remaining when paused so it is accurate when resumed.
+          *2) currently does not resume counting if adding capacity after reaching capacity.
+          *  2a) 20/20 resource -> add capacity while paused -> 20/30 resource and not counting.
+          *    2a1) add this logic to pauseResume if startValue = endValue call a new countUp??
+          */
+          
+        }
       } 
       //check if enough heat to upgrade speed
-      if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue > conditions[resource].rateCost) {
+      if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue >= conditions[resource].rateCost) {
         //increase 10%
         conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
         conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
         conditions[resource].startValue -= conditions[resource].rateCost;
         conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
-
+        if (conditions[resource].paused === true){
+          //update DOM when counter is paused;
+          let gradientPercent = conditions[resource].startValue / conditions[resource].endValue * 100;
+          document.getElementById(resource + 'CountUpAnim').innerHTML = conditions[resource].startValue + " / " + conditions[resource].endValue;
+          document.getElementById(resource + 'CountUpAnim').style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
+          conditions[resource][resource + 'CountUpAnim'].options.ratePerSecond = conditions[resource].ratePerSecond;
+        }
       } 
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
       //reset previous animation, because it will continue to run in the background otherwise
-      conditions[resource][countUpName].reset();
+      
     //Case 2: called without event, which means it was from init()
     //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
     } else {
       resource = "heat";
+      countUpName = resource + 'CountUpAnim';
     }
-    
-    /**FIXME:
-    *  1) cannot animate the counter while paused...
-    *     but we still need to update the DOM if job speed or item capacity is clicked.
-    *    1a) These both use resources, so the resource bar (counter DOM element) needs
-    *        to reflect the cost.
-    *    1b) Then conditions value needs to be updated for the next time the counter
-    *        is animated.
-    *    1c) Make calling animation it's own function?  This is logic is getting too
-    *        complicated and would be better off on it's own.
-    *      1c1) theMachine.animateCounter(resource, countUpName, element)
-    **/
     
     //please do not animate the counter if it's paused!
     if (conditions[resource].paused === false){
-      //call a new animation with updated values for automated resources
-      conditions[resource][countUpName] = new CountUp(optionalElement, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
-      if (!conditions[resource][countUpName].error) {
-          window.onload = conditions[resource][countUpName].start();
-      } else {
-          console.error(conditions[resource][countUpName].error);
-      }
+      try{
+      conditions[resource][countUpName].reset();
+      } catch (e) {}
+      theMachine.animateCountUp(countUpName, elemnt, resource);
     }
     theMachine.manualCounterButtonStatus(resource);
   }

@@ -155,9 +155,9 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			this.d.innerHTML = result;     
     }
    if (self.options.gradientColors) {
-      var GradientPercent = value / endVal * 100
+      var gradientPercent = value / endVal * 100
       //adds color to the progress bar as countUp.js counts up using self.options.gradientColors!
-      document.getElementById(target.id).style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+GradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
+      document.getElementById(target.id).style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+gradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
     }
     
     //displays rate / second if options.ratePerSecond is defined
@@ -245,20 +245,19 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	};
   
 	// pass a new endVal and start animation
-	self.update = function (newEndVal) {
+	self.update = function (newStartVal) {
 		if (!self.initialize()) return;
-		newEndVal = Number(newEndVal);
-		if (!ensureNumber(newEndVal)) {
-			self.error = '[CountUp] update() - new endVal is not a number: '+newEndVal;
+		newStartVal = Number(newStartVal);
+		if (!ensureNumber(newStartVal)) {
+			self.error = '[CountUp] update() - new startVal is not a number: '+newStartVal;
 			return;
 		}
 		self.error = '';
-		if (newEndVal === self.frameVal) return;
+		if (newStartVal === self.endVal) return;
 		cancelAnimationFrame(self.rAF);
 		self.paused = false;
 		delete self.startTime;
-		self.startVal = self.frameVal;
-		self.endVal = newEndVal;
+		self.startVal = newStartVal;
 		self.countDown = (self.startVal > self.endVal);
 		self.rAF = requestAnimationFrame(self.count);
 	};
