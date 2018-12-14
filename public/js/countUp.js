@@ -161,7 +161,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			this.d.textContent = result;
 		}
 		else {
-			this.d.innerHTML = result;     
+			this.d.innerHTML = result; 
     }
    if (self.options.gradientColors) {
       var gradientPercent = value / self.endVal * 100

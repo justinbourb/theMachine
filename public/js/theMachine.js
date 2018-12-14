@@ -68,7 +68,7 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
       theMachine.pauseResume(resource, countUpNameAuto);
-      theMachine.manualCounterButtonStatus(resource);
+      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
       conditions[resource].paused = true;
       
       
@@ -156,30 +156,20 @@ let theMachine = {
     //disable button until manual resource generation is finished
     document.getElementById(event.target.id).disabled = true;
     //wait for the manual resource generation to finish
-    /**FIXME:
-    *1) countUpNameAuto.innerHTML is one less than .frameVal even though frameVal console logs to the correct value??
-    *2) running through debugger, everything works fine... using in app without debugger it does not... mysterious!!!!!!!!
-    *  2a) need to see the live callstack somehow.
-    *3) changing the DOM manipulation to a later setTimeout does not appear to be effective.
-    *4) theory, the value is being over written by countUp.js when updating the manual counter bar?????
-    **/
     setTimeout(function() {
       conditions[resource][countUpNameAuto].frameVal += 1;
-      document.getElementById(countUpNameAuto).innerHTML = conditions[resource][countUpNameAuto].frameVal + ' / ' + conditions[resource][countUpNameAuto].endVal;
-      theMachine.updateGradient(countUpNameAuto, resource);    
-      if (conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal) {
-        document.getElementById(event.target.id).disabled = true;
-      } else {
-      document.getElementById(event.target.id).disabled = false;
+      theMachine.updateGradientAndValue(countUpNameAuto, resource);    
+      if (!(conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal)) {
+        document.getElementById(event.target.id).disabled = false;
       }
       }, duration*1000);
-
+    
     
   },
   
   manualCounterButtonStatus(resource, countUpNameAuto) {
     //User cannot add more resource than maximum (endValue) so disable the manual button.
-      if (conditions[resource][countUpNameAuto].frameVal === conditions[resource].endValue){
+      if (conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal){
         document.getElementById(resource + 'Manual').disabled = true;
       } else {
         document.getElementById(resource + 'Manual').disabled = false;
@@ -228,7 +218,7 @@ let theMachine = {
         
          if (conditions[resource].paused === true){
           //update DOM when counter is paused;
-          theMachine.updateGradient(countUpNameAuto, resource);
+          theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
           conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
           
@@ -251,7 +241,7 @@ let theMachine = {
         conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
         if (conditions[resource].paused === true){
           //update DOM when counter is paused;
-          theMachine.updateGradient(countUpNameAuto, resource);
+          theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
         }
       } 
@@ -274,10 +264,10 @@ let theMachine = {
     theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
   },
   
-  updateGradient(countUpName, resource) {
-    let gradientPercent = conditions[resource].startValue / conditions[resource].endValue * 100;
-    document.getElementById(countUpName).innerHTML = conditions[resource].startValue + " / " + conditions[resource].endValue;
-    document.getElementById(countUpName).style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
+  updateGradientAndValue(countUpNameAuto, resource) {
+    let gradientPercent = conditions[resource][countUpNameAuto].frameVal / conditions[resource][countUpNameAuto].endVal * 100;
+    document.getElementById(countUpNameAuto).innerHTML = conditions[resource][countUpNameAuto].frameVal + ' / ' + conditions[resource][countUpNameAuto].endVal;
+    document.getElementById(countUpNameAuto).style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
   }
 }
 
