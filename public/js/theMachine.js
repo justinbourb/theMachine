@@ -54,6 +54,8 @@ let theMachine = {
   automationButton(event) {
     //case 1: stopping automation
     let resource = event.target.dataset.resource; //heat or tanks or fuel, etc
+    let countUpNameAuto = resource + 'CountUpAnim';
+    
     if (event.toElement.innerText === "Disable Automation"){
       event.toElement.innerText = "Enable Automation";
       document.getElementById(resource + '+').style.display = 'none';
@@ -65,7 +67,7 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
-      theMachine.pauseResume(resource, resource + "CountUpAnim");
+      theMachine.pauseResume(resource, countUpNameAuto);
       theMachine.manualCounterButtonStatus(resource);
       conditions[resource].paused = true;
       
@@ -81,8 +83,7 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.display = 'none';
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'none';
       //check if any resources have been generated manually and start the (updated) counter again
-      // conditions[resource][resource + "CountUpAnim"].update(conditions[resource].startValue);
-      conditions[resource][resource + "CountUpAnim"].pauseResume(resource, resource + "CountUpAnim");
+      conditions[resource][countUpNameAuto].pauseResume(resource, countUpNameAuto);
       conditions[resource].paused = false;
     }
   },
@@ -99,10 +100,10 @@ let theMachine = {
     **/
   },
   
-  checkStartValue(resource) {
-    if (conditions[resource][resource + 'CountUpAnim'].frameVal > conditions[resource].startValue) {
-        conditions[resource].startValue = conditions[resource][resource + 'CountUpAnim'].frameVal;
-        conditions[resource][resource + 'CountUpAnim'].startVal = conditions[resource][resource + 'CountUpAnim'].frameVal;
+  checkStartValue(resource, countUpNameAuto) {
+    if (conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue) {
+        conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
+        conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
       }  
     
   },
@@ -128,12 +129,8 @@ let theMachine = {
   manualCounterButton(event) {
     /**TODO:
     * 1) build out heatManual button
-    *   1a) starts another counter in heatManualCounter on each click of the button
-    *    1a1) no effect if counter is in progress (only start new counter after completion)
-    *    1a2) update heatCountUpAnim +1 each time heatManual button is clicked
     *      1a2a) increase +1 amount based on capacity?? Should level with capacity??
     *            With 10 capacity +1 is a lot.  With 10,000 cap, +1 is nothing. Needs to scale.
-    *    1a3) fixed speed for manual regardless of amount?
     */
     let resource = event.target.dataset.resource;
     let countUpName = resource + 'CountUpAnimManual'; 
@@ -148,8 +145,7 @@ let theMachine = {
     *  This could cause a discrepancy when the counter is restarted.
     *  Thus we will match startValue to frameVal before doing +1 to startValue
     **/
-    theMachine.checkStartValue(resource);
-    //TODO: add +1... add this logic to updateCounter?? (yes I think so, but go through the logic first)
+    theMachine.checkStartValue(resource, countUpNameAuto);
     //parseInt(document.getElementById(resource + "CountUpAnim").innerHTML.split('/')[0])+1;
     conditions[resource][countUpName] = new CountUp(targetElement, startValue, endValue, decimals, duration, {useEasing:false, suffix: ' / '+ '1', gradientColors: conditions[resource].gradientColors});
     if (!conditions[resource][countUpName].error) {
@@ -162,25 +158,28 @@ let theMachine = {
     //wait for the manual resource generation to finish
     /**FIXME:
     *1) countUpNameAuto.innerHTML is one less than .frameVal even though frameVal console logs to the correct value??
+    *2) running through debugger, everything works fine... using in app without debugger it does not... mysterious!!!!!!!!
+    *  2a) need to see the live callstack somehow.
+    *3) changing the DOM manipulation to a later setTimeout does not appear to be effective.
+    *4) theory, the value is being over written by countUp.js when updating the manual counter bar?????
     **/
     setTimeout(function() {
       conditions[resource][countUpNameAuto].frameVal += 1;
       document.getElementById(countUpNameAuto).innerHTML = conditions[resource][countUpNameAuto].frameVal + ' / ' + conditions[resource][countUpNameAuto].endVal;
-      theMachine.updateGradient(countUpNameAuto, resource);
+      theMachine.updateGradient(countUpNameAuto, resource);    
       if (conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal) {
         document.getElementById(event.target.id).disabled = true;
       } else {
       document.getElementById(event.target.id).disabled = false;
       }
       }, duration*1000);
-    
 
     
   },
   
-  manualCounterButtonStatus(resource) {
+  manualCounterButtonStatus(resource, countUpNameAuto) {
     //User cannot add more resource than maximum (endValue) so disable the manual button.
-      if (conditions[resource][resource + 'CountUpAnim'].frameVal === conditions[resource].endValue){
+      if (conditions[resource][countUpNameAuto].frameVal === conditions[resource].endValue){
         document.getElementById(resource + 'Manual').disabled = true;
       } else {
         document.getElementById(resource + 'Manual').disabled = false;
@@ -211,7 +210,7 @@ let theMachine = {
     **/
     
     let resource;
-    let countUpName;
+    let countUpNameAuto;
     //allows user defined element to be used
     if (!elemnt){
      elemnt = conditions.heat.counterElement;
@@ -221,18 +220,17 @@ let theMachine = {
     //Case 1: called from DOM via a button click
     if (event) {
       resource = event.target.dataset.resource; //heat or tanks or fuel, etc
-      countUpName = resource + 'CountUpAnim';
+      countUpNameAuto = resource + 'CountUpAnim';
       theMachine.checkStartValue(resource);
       
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource].endValue += 10;
-        // conditions[resource][countUpName].endVal += 10;
         
          if (conditions[resource].paused === true){
           //update DOM when counter is paused;
-          theMachine.updateGradient(countUpName, resource);
-          conditions[resource][countUpName].endVal = conditions[resource].endValue;
-          conditions[resource][countUpName].options.suffix = ' / '+ conditions[resource].endValue;
+          theMachine.updateGradient(countUpNameAuto, resource);
+          conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
+          conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
           
           /*FIXME:
           *1) resource speed goes up the more times capacity is increased while paused.
@@ -253,8 +251,8 @@ let theMachine = {
         conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
         if (conditions[resource].paused === true){
           //update DOM when counter is paused;
-          theMachine.updateGradient(countUpName, resource);
-          conditions[resource][countUpName].options.ratePerSecond = conditions[resource].ratePerSecond;
+          theMachine.updateGradient(countUpNameAuto, resource);
+          conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
         }
       } 
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
@@ -263,17 +261,17 @@ let theMachine = {
     //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
     } else {
       resource = "heat";
-      countUpName = resource + 'CountUpAnim';
+      countUpNameAuto = resource + 'CountUpAnim';
     }
     
     //please do not animate the counter if it's paused!
     if (conditions[resource].paused === false){
       try{
-      conditions[resource][countUpName].reset();
+      conditions[resource][countUpNameAuto].reset();
       } catch (e) {}
-      theMachine.animateCountUp(countUpName, elemnt, resource);
+      theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
     }
-    theMachine.manualCounterButtonStatus(resource);
+    theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
   },
   
   updateGradient(countUpName, resource) {

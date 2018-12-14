@@ -141,6 +141,15 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	};
 
 	// Print value to target
+  
+  /*
+  *
+  *
+  * Comments added to make this section visually stand out (I need to reference this function often)
+  *
+  *
+  */
+  
 	self.printValue = function(value) {
 		var result = self.options.formattingFn(value);
     var resource = target.dataset.resource;
