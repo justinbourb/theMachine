@@ -29,7 +29,7 @@
 
 
 let conditions = (
-  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 6 }}
+  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 9 }}
   );
 
 
@@ -67,9 +67,10 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
+      conditions[resource].paused = true;
       theMachine.pauseResume(resource, countUpNameAuto);
       theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
-      conditions[resource].paused = true;
+      
       
       
     //case 2: starting automation
@@ -83,8 +84,9 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.display = 'none';
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'none';
       //check if any resources have been generated manually and start the (updated) counter again
-      conditions[resource][countUpNameAuto].pauseResume(resource, countUpNameAuto);
       conditions[resource].paused = false;
+      theMachine.pauseResume(resource, countUpNameAuto);
+      
     }
   },
   
@@ -101,10 +103,16 @@ let theMachine = {
   },
   
   checkStartValue(resource, countUpNameAuto) {
-    if (conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue) {
-        conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
-        conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
-      }  
+    try {
+      //case 1: the counter is not yet completed and we can access it's values
+      if (conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue) {
+          conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
+          conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
+        }
+      //case 2: the counter is completed, we cannot access it's values
+    } catch (e) {
+      conditions[resource].startValue = conditions[resource].endValue
+    };
     
   },
   
@@ -120,7 +128,7 @@ let theMachine = {
     Object.getOwnPropertyNames(conditions).forEach(function(resource){
       conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
       conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
-      conditions[resource].duration = conditions[resource].endValue / conditions[resource].ratePerSecond;
+      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
     });
     
     theMachine.updateCounter();
@@ -146,7 +154,6 @@ let theMachine = {
     *  Thus we will match startValue to frameVal before doing +1 to startValue
     **/
     theMachine.checkStartValue(resource, countUpNameAuto);
-    //parseInt(document.getElementById(resource + "CountUpAnim").innerHTML.split('/')[0])+1;
     conditions[resource][countUpName] = new CountUp(targetElement, startValue, endValue, decimals, duration, {useEasing:false, suffix: ' / '+ '1', gradientColors: conditions[resource].gradientColors});
     if (!conditions[resource][countUpName].error) {
         window.onload = conditions[resource][countUpName].start();
@@ -155,11 +162,11 @@ let theMachine = {
     }
     //disable button until manual resource generation is finished
     document.getElementById(event.target.id).disabled = true;
-    //wait for the manual resource generation to finish
+    //wait for the manual resource generation to finish & update accordingly
     setTimeout(function() {
-      conditions[resource][countUpNameAuto].frameVal += 1;
+      conditions[resource].startValue += 1;
       theMachine.updateGradientAndValue(countUpNameAuto, resource);    
-      if (!(conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal)) {
+      if (!(conditions[resource].startValue === conditions[resource][countUpNameAuto].endVal)) {
         document.getElementById(event.target.id).disabled = false;
       }
       }, duration*1000);
@@ -169,16 +176,26 @@ let theMachine = {
   
   manualCounterButtonStatus(resource, countUpNameAuto) {
     //User cannot add more resource than maximum (endValue) so disable the manual button.
-      if (conditions[resource][countUpNameAuto].frameVal === conditions[resource][countUpNameAuto].endVal){
+      if (conditions[resource].startValue === conditions[resource].endValue){
         document.getElementById(resource + 'Manual').disabled = true;
       } else {
         document.getElementById(resource + 'Manual').disabled = false;
       }
   },
     
-  pauseResume(resource, counter) {
-    //This function will pauseResume the desired counter, as stored on the conditions object.
-    conditions[resource][counter].pauseResume();
+  pauseResume(resource, countUpNameAuto) {
+    //This function will pauseResume the desired countUpNameAuto, as stored on the conditions object.
+    let elemnt = document.getElementById(countUpNameAuto);
+    
+    if (conditions[resource].paused === false){
+      try{
+      theMachine.checkStartValue(resource, countUpNameAuto);
+      conditions[resource][countUpNameAuto].reset();
+      } catch (e) {}
+      theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
+    } else {
+      conditions[resource][countUpNameAuto].pauseResume();
+    }
   },
   
   store(namespace, data) {
@@ -211,7 +228,7 @@ let theMachine = {
     if (event) {
       resource = event.target.dataset.resource; //heat or tanks or fuel, etc
       countUpNameAuto = resource + 'CountUpAnim';
-      theMachine.checkStartValue(resource);
+      theMachine.checkStartValue(resource, countUpNameAuto);
       
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource].endValue += 10;
@@ -221,14 +238,6 @@ let theMachine = {
           theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
           conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
-          
-          /*FIXME:
-          *1) resource speed goes up the more times capacity is increased while paused.
-          *   1a) update self.duration in countUp.js???? or startTime or End Time???
-          *2) currently does not resume counting if adding capacity after reaching capacity.
-          *  2a) 20/20 resource -> add capacity while paused -> 20/30 resource and not counting.
-          *    2a1) add this logic to pauseResume if startValue = endValue call a new countUp??
-          */
           
         }
       } 
@@ -260,13 +269,14 @@ let theMachine = {
       conditions[resource][countUpNameAuto].reset();
       } catch (e) {}
       theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
+    } else {
+      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
     }
-    theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
   },
   
   updateGradientAndValue(countUpNameAuto, resource) {
-    let gradientPercent = conditions[resource][countUpNameAuto].frameVal / conditions[resource][countUpNameAuto].endVal * 100;
-    document.getElementById(countUpNameAuto).innerHTML = conditions[resource][countUpNameAuto].frameVal + ' / ' + conditions[resource][countUpNameAuto].endVal;
+    let gradientPercent = conditions[resource][countUpNameAuto].frameVal / conditions[resource].endValue * 100;
+    document.getElementById(countUpNameAuto).innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
     document.getElementById(countUpNameAuto).style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
   }
 }
