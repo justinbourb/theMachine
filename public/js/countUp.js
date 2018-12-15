@@ -141,6 +141,15 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	};
 
 	// Print value to target
+  
+  /*
+  *
+  *
+  * Comments added to make this section visually stand out (I need to reference this function often)
+  *
+  *
+  */
+  
 	self.printValue = function(value) {
 		var result = self.options.formattingFn(value);
     var resource = target.dataset.resource;
@@ -152,18 +161,18 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			this.d.textContent = result;
 		}
 		else {
-			this.d.innerHTML = result;     
+			this.d.innerHTML = result;
     }
    if (self.options.gradientColors) {
-      var GradientPercent = value / endVal * 100
+      var gradientPercent = value / self.endVal * 100
       //adds color to the progress bar as countUp.js counts up using self.options.gradientColors!
-      document.getElementById(target.id).style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+GradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
+      document.getElementById(target.id).style.backgroundImage="linear-gradient(to right, "+self.options.gradientColors[0]+", "+self.options.gradientColors[0]+" "+gradientPercent+"%, "+self.options.gradientColors[1]+" 1%)";
     }
     
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
       document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
-      var remainingTime = parseFloat((endVal - value)/self.options.ratePerSecond).toFixed(2);
+      var remainingTime = parseFloat((self.endVal - value)/self.options.ratePerSecond).toFixed(2);
       document.getElementById(resource + 'Time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
     }
 	};
@@ -211,12 +220,14 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			if (self.callback) self.callback();
 		}
 	};
+  
 	// start your animation
 	self.start = function(callback) {
 		if (!self.initialize()) return;
 		self.callback = callback;
 		self.rAF = requestAnimationFrame(self.count);
 	};
+  
 	// toggles pause/resume animation
 	self.pauseResume = function() {
 		if (!self.paused) {
@@ -230,6 +241,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			requestAnimationFrame(self.count);
 		}
 	};
+  
 	// reset to startVal so animation can be run again
 	self.reset = function() {
 		self.paused = false;
@@ -240,23 +252,24 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 			self.printValue(self.startVal);
 		}
 	};
+  
 	// pass a new endVal and start animation
-	self.update = function (newEndVal) {
+	self.update = function (newStartVal, newEndVal) {
 		if (!self.initialize()) return;
-		newEndVal = Number(newEndVal);
-		if (!ensureNumber(newEndVal)) {
-			self.error = '[CountUp] update() - new endVal is not a number: '+newEndVal;
+		newStartVal = Number(newStartVal);
+		if (!ensureNumber(newStartVal)) {
+			self.error = '[CountUp] update() - new startVal is not a number: '+newStartVal;
 			return;
 		}
 		self.error = '';
-		if (newEndVal === self.frameVal) return;
+		if (newStartVal === self.endVal) return;
 		cancelAnimationFrame(self.rAF);
-		self.paused = false;
+		//self.paused = false;
 		delete self.startTime;
-		self.startVal = self.frameVal;
-		self.endVal = newEndVal;
+		self.startVal = newStartVal;
+    self.endVal = newEndVal;
 		self.countDown = (self.startVal > self.endVal);
-		self.rAF = requestAnimationFrame(self.count);
+		// self.rAF = requestAnimationFrame(self.count);
 	};
 
 	// format startVal on initialization

@@ -24,6 +24,11 @@ body {
   text-align: right;
   width: 50%;
 }
+#heatCountUpAnimManual{
+  width: 61%;
+  text-indent: -9999px;
+  margin-left: 22%;
+}
 #heatBar{
   background-color:white;
 }
