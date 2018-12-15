@@ -176,11 +176,12 @@ let theMachine = {
   
   manualCounterButtonStatus(resource, countUpNameAuto) {
     //User cannot add more resource than maximum (endValue) so disable the manual button.
-      if (conditions[resource].startValue === conditions[resource].endValue){
-        document.getElementById(resource + 'Manual').disabled = true;
-      } else {
-        document.getElementById(resource + 'Manual').disabled = false;
-      }
+    theMachine.checkStartValue(resource, countUpNameAuto);
+    if (conditions[resource].startValue === conditions[resource].endValue){
+      document.getElementById(resource + 'Manual').disabled = true;
+    } else {
+      document.getElementById(resource + 'Manual').disabled = false;
+    }
   },
     
   pauseResume(resource, countUpNameAuto) {
