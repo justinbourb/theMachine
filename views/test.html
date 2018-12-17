@@ -1,0 +1,151 @@
+<html>
+  <head>
+    <script src="js/countUp.js"></script>
+    <script src="js/theMachine.js"></script>
+    <script src="js/collapse.js"></script>
+    <script src="js/templates.js"></script>
+    <script src="https://justinbourb.github.io/jstinytest_dom_edition/tinytest_dom_edition.js"></script>
+  </head>
+  <div id="heatCountUpAnimManual" data-resource="heat"></div>
+  <div id="heatCountUpAnim" data-resource="heat" style="margin-left: -9999px"></div>
+  <div id="heatManual" data-resource="heat"></div>
+</html>
+
+<script>
+  tests({
+    'theMachine.calculateValues() should fill in calculated values for conditions':function() {
+      
+      theMachine.calculateValues();
+      eq(conditions.heat.counterElement, document.getElementById("heatCountUpAnim"));
+      eq(conditions.heat.counterElementManual, document.getElementById("heatCountUpAnimManual"));
+      eq(conditions.heat.duration, 2);
+    },
+    
+    'theMachine.checkStartValue() should update start value as needed':function() {
+      conditions.heat.heatCountUpAnim.frameVal = 8;
+      conditions.heat.startValue = 7;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 8);
+    },
+    
+    'theMachine.manualCounterButtonStatus() should toggle disabled state correctly':function() {
+      conditions.heat.startValue = 7;
+      conditions.heat.heatCountUpAnim.frameVal = 7;
+      conditions.heat.endValue = 10;
+      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
+      eq(document.getElementById('heat' + 'Manual').disabled, false);
+      
+      conditions.heat.startValue = 10;
+      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
+      eq(document.getElementById('heat' + 'Manual').disabled, true);
+    },
+    
+    'theMachine.store() should store in local storage':function() {
+      theMachine.store('test', 1);
+      eq(theMachine.store('test'), 1);
+    },
+    
+    'theMachine.updateCounter() "Item Capacity" should only update endValue when not paused':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      conditions.heat.endValue = 10;
+      try{
+        theMachine.updateCounter(testCase);
+      } catch (e) {};
+      
+      //condition which should change
+      eq(conditions.heat.endValue, 20);
+      
+      //it should not affect other values
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 20);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, false);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.heat.rateCost, 6);
+      eq(conditions.heat.startValue, 10);
+      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 10');
+      
+    },
+    
+    'theMachine.updateCounter() "Item Capacity" should only update options.suffix and endVal when paused':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};      
+     
+      conditions.heat.paused = true;
+      conditions.heat.heatCountUpAnim.endVal = 5;
+      conditions.heat.heatCountUpAnim.options.suffix = ' / 10'
+      
+       try{
+        theMachine.updateCounter(testCase);
+      } catch (e) {};
+      
+      //conditions which should change
+      eq(conditions.heat.heatCountUpAnim.endVal, 30);
+      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 30');
+      
+      //it should not affect other values
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 40);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, true);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.heat.rateCost, 6);
+      eq(conditions.heat.startValue, 10);
+      
+    },
+    
+    'theMachine.updateCounter() "Job Speed" should only update ratePerSecond, startValue and rateCost':function () {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
+      conditions.heat.paused = false;
+       try{
+        theMachine.updateCounter(testCase);
+      } catch (e) {};
+      
+      //conditions which should change
+      eq(conditions.heat.ratePerSecond, 0.55);
+      eq(conditions.heat.rateCost, 6.6);
+      eq(conditions.heat.startValue, 4);
+      
+      //it should not affect other values
+      eq(conditions.heat.heatCountUpAnim.endVal, 30);
+      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 30');
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 47.272727272727266);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, false);
+      
+    },
+      //conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
+    'theMachine.updateCounter() "Job Speed" should only update [countUpNameAuto].options.ratePerSecond when paused':function () {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
+      conditions.heat.paused = true;
+       try{
+        theMachine.updateCounter(testCase);
+      } catch (e) {};
+
+      //conditions which should change
+      eq(conditions.heat.ratePerSecond, 0.605);
+      eq(conditions.heat.rateCost, 7.26);
+      eq(conditions.heat.startValue, 7);
+      eq(conditions.heat.heatCountUpAnim.options.ratePerSecond, 0.605);
+
+      //it should not affect other values
+      eq(conditions.heat.heatCountUpAnim.endVal, 30);
+      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 30');
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 48.925619834710744);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, true);
+
+    }
+    
+  });
+  
+</script>

@@ -102,6 +102,15 @@ let theMachine = {
     **/
   },
   
+  calculateValues() {
+      //add calculated values (cannot be assigned during object creation, it causes an error)
+    Object.getOwnPropertyNames(conditions).forEach(function(resource){
+      conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
+      conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
+      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
+    });  
+  },
+  
   checkStartValue(resource, countUpNameAuto) {
     try {
       //case 1: the counter is not yet completed and we can access it's values
@@ -124,12 +133,7 @@ let theMachine = {
       conditions = theMachine.store('theMachine');  
     }
     
-    //add calculated values (cannot be assigned during object creation, it causes an error)
-    Object.getOwnPropertyNames(conditions).forEach(function(resource){
-      conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
-      conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
-      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
-    });
+    theMachine.calculateValues();
     
     theMachine.updateCounter();
     
