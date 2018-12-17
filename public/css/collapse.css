@@ -5,6 +5,9 @@
   width:100%;
 }
 .content{
+ flex-direction: column; 
+}
+.contentBottom{
   align-items: center;
   background-color:black;
   display: flex;
@@ -12,6 +15,8 @@
   min-height: 30px;
   width: 100%;
 }
+
+
 .modify-buttons{
   color: white;
   background-color: black; 
