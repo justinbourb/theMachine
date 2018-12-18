@@ -1,0 +1,90 @@
+body {
+	background: #f5f5f5;
+	color: #4d4d4d;
+	font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	-webkit-font-smoothing: antialiased;
+	-moz-font-smoothing: antialiased;
+	font-smoothing: antialiased;
+	font-weight: 300;
+	line-height: 1.4em;
+	margin: 2% 20%;
+	max-width: 100%;
+	min-width: 230px;
+	padding: 0;
+}
+.enableAutomation{
+  width: 12%;
+}
+#heatAutomate{
+ width: 13%; 
+}
+#heatCounter{
+  display: table-cell;
+  right: 0px;
+  text-align: right;
+  width: 50%;
+}
+#heatCountUpAnimManual{
+  width: 61%;
+  text-indent: -9999px;
+  margin-left: 22%;
+}
+#heatBar{
+  background-color:white;
+}
+
+#heatText{
+  display: table-cell;
+  left: 0px;
+  width: 25%;
+}
+#heatTime{
+  display: table-cell;
+  font-size: 90%;
+  text-align: center;
+  width: 20%;
+  }
+#heatRate{
+  display: table-cell;
+  font-size: 90%;
+  text-align: right;
+  width: 12%;
+}
+.machine-parts{
+  border: solid;
+  border-width: 1px;
+  border-color: black;
+  padding-top: 20px;
+  background-color: #ececec;
+  min-width: 50%;
+}
+.resource-bar{
+  background-color: white;
+  border: solid;
+  border-width: 1px;
+  border-color: black;
+  display: inline-table;
+  padding: 10px;
+  width: 60%;
+}
+#spacer{
+ min-height: calc(100vh - 80px); 
+}
+#title{
+  background-color: black;
+  height: 50px;
+  position: relative;
+  width: 100%;
+}
+#title h1 {
+  bottom: 0;
+	color: white;
+	font-size: 20px;
+  left: 0;
+  position: absolute;
+	text-align: left;
+	-webkit-text-rendering: optimizeLegibility;
+	-moz-text-rendering: optimizeLegibility;
+	text-rendering: optimizeLegibility;
+  top: 15px;
+}

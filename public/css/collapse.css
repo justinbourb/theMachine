@@ -1,0 +1,45 @@
+.collapsible{
+  background-color: white;
+  border: 1px;
+  text-align:center; 
+  width:100%;
+}
+.content{
+ flex-direction: column; 
+}
+.contentBottom{
+  align-items: center;
+  background-color:black;
+  display: flex;
+  justify-content: center;
+  min-height: 30px;
+  width: 100%;
+}
+
+.contentFloatRight{
+ margin-left: 20%; 
+}
+.contentTop{
+  align-items: center;
+  background-color:	#ececec;
+  display: flex;
+  justify-content: center;
+  min-height: 30px;
+  width: 100%;
+  font-size: 0.8em;
+}
+#heatProductionVolume, #heatProductionTime, #heatWorkerEfficiency, #heatAutomationRate{
+  border-top: solid;
+}
+.modify-buttons{
+  color: white;
+  background-color: black; 
+  border: 1px solid;
+  border-color:white;
+  padding-top: 1%;
+  padding-bottom: 1%;
+  margin-bottom: 10px;
+  margin-top: 10px;
+  margin-right: 10px;
+  width: 15%;
+ }
