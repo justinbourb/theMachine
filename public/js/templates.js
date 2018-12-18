@@ -54,8 +54,7 @@ let templates = {
   //make sure creating elements with templating still starts the counters
   
   //TODO: add some logic behind adding resources beyond heat (start with heat and add more as they get unlocked)
-  
-  
+
   },
   renderFooter() {
     

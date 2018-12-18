@@ -17,7 +17,6 @@
     <div id="heatAutomationRate" data-resource="heat">Automation Rate: default rate</div>
     <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: default efficiency</div>
   </div>
-  
 </html>
 
 <script>
@@ -130,8 +129,9 @@
       eq(conditions.heat.paused, false);
       
     },
-      //conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
+      
     'theMachine.updateCounter() "Job Speed" should only update [countUpNameAuto].options.ratePerSecond and .frameVal when paused':function () {
+    
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
       conditions.heat.paused = true;
        try{

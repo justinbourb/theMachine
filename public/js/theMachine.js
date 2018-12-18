@@ -153,7 +153,6 @@ let theMachine = {
     let endValue = 100;
     let decimals = 0;
     let duration = 4;
-    
     /**When pausing the counter, startValue is not automatically updated.
     *  This could cause a discrepancy when the counter is restarted.
     *  Thus we will match startValue to frameVal before doing +1 to startValue
@@ -244,8 +243,7 @@ let theMachine = {
           theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
           conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
-          document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: ' + conditions[resource].endValue;
-          
+          document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: ' + conditions[resource].endValue;          
         }
       } 
       //check if enough heat to upgrade speed

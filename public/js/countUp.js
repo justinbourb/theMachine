@@ -189,7 +189,6 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '<b>';
       document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + self.options.ratePerSecond + '/s</b>'
       document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>'
-      
     }
 	};
 
