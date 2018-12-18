@@ -7,8 +7,16 @@
     <script src="https://justinbourb.github.io/jstinytest_dom_edition/tinytest_dom_edition.js"></script>
   </head>
   <div id="heatCountUpAnimManual" data-resource="heat"></div>
-  <div id="heatCountUpAnim" data-resource="heat" style="margin-left: -9999px"></div>
   <div id="heatManual" data-resource="heat"></div>
+  <div id="testingContainer" style="margin-left: -9999px">
+    <div id="heatCountUpAnim" data-resource="heat" ></div>
+    <div id="heatItemCap" data-resource="heat">Item Cap: default cap</div>
+    <div id="heatProductionTime" data-resource="heat">Production Time: default time</div>
+    <div id="heatProductionVolume" data-resource="heat">Production Volume: default volume</div>
+    <div id="heatWorkerCap" data-resource="heat">Worker Cap: default cap</div>
+    <div id="heatAutomationRate" data-resource="heat">Automation Rate: default rate</div>
+    <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: default efficiency</div>
+  </div>
 </html>
 
 <script>
@@ -69,7 +77,7 @@
       
     },
     
-    'theMachine.updateCounter() "Item Capacity" should only update options.suffix and endVal when paused':function() {
+    'theMachine.updateCounter() "Item Capacity" should only update options.suffix, Item Cap and endVal when paused':function() {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};      
      
       conditions.heat.paused = true;
@@ -83,6 +91,7 @@
       //conditions which should change
       eq(conditions.heat.heatCountUpAnim.endVal, 30);
       eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 30');
+      eq(document.getElementById('heatItemCap').innerHTML, 'Item Cap: 30');
       
       //it should not affect other values
       eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
@@ -120,8 +129,9 @@
       eq(conditions.heat.paused, false);
       
     },
-      //conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
-    'theMachine.updateCounter() "Job Speed" should only update [countUpNameAuto].options.ratePerSecond when paused':function () {
+      
+    'theMachine.updateCounter() "Job Speed" should only update [countUpNameAuto].options.ratePerSecond and .frameVal when paused':function () {
+    
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
       conditions.heat.paused = true;
        try{
@@ -131,8 +141,9 @@
       //conditions which should change
       eq(conditions.heat.ratePerSecond, 0.605);
       eq(conditions.heat.rateCost, 7.26);
-      eq(conditions.heat.startValue, 7);
+      eq(conditions.heat.startValue, 0.40000000000000036);
       eq(conditions.heat.heatCountUpAnim.options.ratePerSecond, 0.605);
+      eq(conditions.heat.heatCountUpAnim.frameVal, 0.40000000000000036);
 
       //it should not affect other values
       eq(conditions.heat.heatCountUpAnim.endVal, 30);

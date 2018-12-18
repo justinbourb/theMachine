@@ -145,7 +145,18 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
   /*
   *
   *
+  *
+  *
+  *
+  *
+  *
   * Comments added to make this section visually stand out (I need to reference this function often)
+  *
+  *
+  *
+  *
+  *
+  *
   *
   *
   */
@@ -174,6 +185,10 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second"
       var remainingTime = parseFloat((self.endVal - value)/self.options.ratePerSecond).toFixed(2);
       document.getElementById(resource + 'Time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds"
+      document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + self.endVal + '</b>';
+      document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '<b>';
+      document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + self.options.ratePerSecond + '/s</b>'
+      document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>'
     }
 	};
 

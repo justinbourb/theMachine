@@ -15,8 +15,21 @@
   min-height: 30px;
   width: 100%;
 }
-
-
+.contentFloatRight{
+ margin-left: 20%; 
+}
+.contentTop{
+  align-items: center;
+  background-color:	#ececec;
+  display: flex;
+  justify-content: center;
+  min-height: 30px;
+  width: 100%;
+  font-size: 0.8em;
+}
+#heatProductionVolume, #heatProductionTime, #heatWorkerEfficiency, #heatAutomationRate{
+  border-top: solid;
+}
 .modify-buttons{
   color: white;
   background-color: black; 

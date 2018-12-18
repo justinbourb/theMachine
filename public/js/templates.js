@@ -1,11 +1,13 @@
-function createResourceBarHTML() {
+let templates = {
+  
+  createResourceBarHTML() {
   /**this function is an attempt at making a javascript template
   *handlebars at it's face seems more complicated than doing
   *this without a library.
   *After giving this a try I'll have a better point of reference.
   **/
-  var theMachine = document.getElementById("body");
-  var section = document.createElement("section");
+  let theMachine = document.getElementById("body");
+  let section = document.createElement("section");
   section.id="tanks";
   section.className="machine-parts";
   section.innerHTML=`<section id="heat">
@@ -52,6 +54,22 @@ function createResourceBarHTML() {
   //make sure creating elements with templating still starts the counters
   
   //TODO: add some logic behind adding resources beyond heat (start with heat and add more as they get unlocked)
-  
-  
-}
+
+  },
+  renderFooter() {
+    
+    let footerElement = document.createElement("footer");
+    
+    footerElement.innerHTML = `
+    <footer>
+      <button class="footer-buttons" type="button" onclick="location.href='/'">Craft</button>
+      <button class="footer-buttons" type="button" onclick="location.href='/research'">Research</button>
+      <button class="footer-buttons" type="button" onclick="location.href='/log'">Log</button>
+      <button class="footer-buttons" type="button" onclick="location.href='/explore'">Explore</button>
+    </footer>
+      `
+    document.body.appendChild(footerElement);
+  }
+};
+
+templates.renderFooter();

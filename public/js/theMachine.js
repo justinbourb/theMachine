@@ -29,8 +29,10 @@
 
 
 let conditions = (
-  {heat: { counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 9 }}
-  );
+  {
+    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 9, workersAssigned: 0, workerCap: 0 },
+    global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
+  });
 
 
 
@@ -134,7 +136,6 @@ let theMachine = {
     }
     
     theMachine.calculateValues();
-    
     theMachine.updateCounter();
     
   },
@@ -151,8 +152,7 @@ let theMachine = {
     let startValue = 0;
     let endValue = 100;
     let decimals = 0;
-    let duration = conditions[resource].duration/5;
-    
+    let duration = 4;
     /**When pausing the counter, startValue is not automatically updated.
     *  This could cause a discrepancy when the counter is restarted.
     *  Thus we will match startValue to frameVal before doing +1 to startValue
@@ -243,7 +243,7 @@ let theMachine = {
           theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
           conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
-          
+          document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: ' + conditions[resource].endValue;          
         }
       } 
       //check if enough heat to upgrade speed
@@ -257,6 +257,7 @@ let theMachine = {
           //update DOM when counter is paused;
           theMachine.updateGradientAndValue(countUpNameAuto, resource);
           conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
+          conditions[resource][countUpNameAuto].frameVal = conditions[resource].startValue;
         }
       } 
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
