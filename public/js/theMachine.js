@@ -26,11 +26,19 @@
 *     
 **/
 
+//FIXME: had a bad session, lots of things wrong... taking a break...
 
+
+// FIXME: tests are optimized to these values, need to uncomment before running tests
+// let conditions = (
+//   {
+//     heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, workersAssigned: 0, workerCap: 0 },
+//     global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
+//   });
 
 let conditions = (
   {
-    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 9, workersAssigned: 0, workerCap: 0 },
+    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, workersAssigned: 0, workerCap: 0 },
     global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
   });
 
@@ -54,41 +62,28 @@ let theMachine = {
   },
   
   automationButton(event) {
-    //case 1: stopping automation
+    
     let resource = event.target.dataset.resource; //heat or tanks or fuel, etc
     let countUpNameAuto = resource + 'CountUpAnim';
-    
-    if (event.toElement.innerText === "Disable Automation"){
-      event.toElement.innerText = "Enable Automation";
-      document.getElementById(resource + '+').style.display = 'none';
-      document.getElementById(resource + '-').style.display = 'none';
-      document.getElementById(resource + 'Rate').style.visibility = 'hidden';
-      document.getElementById(resource + 'Time').style.visibility = 'hidden';
-      document.getElementById(resource + 'Manual').style.display = 'inline';
-      document.getElementById(resource + 'Manual').style.visibility = 'visible';
-      document.getElementById(resource + 'Manual').style.width = '48px';
-      document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
-      document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
-      conditions[resource].paused = true;
-      theMachine.pauseResume(resource, countUpNameAuto);
-      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
-      
-      
-      
-    //case 2: starting automation
-    } else {
-      event.toElement.innerText = "Disable Automation";
+    //case 1: stopping automation
+    if (document.getElementById(resource + 'AutomationButton').innerHTML === "Enable Automation" || conditions[resource].paused === true){
+      document.getElementById(resource + 'AutomationButton').innerHTML = "Disable Automation";
       document.getElementById(resource + '+').style.display = 'inline-block';
       document.getElementById(resource + '+').style.marginLeft = "12.5%";
       document.getElementById(resource + '-').style.display = 'inline-block';
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
       document.getElementById(resource + 'Manual').style.display = 'none';
-      document.getElementById(resource + 'CountUpAnimManual').style.display = 'none';
+      document.getElementById(resource + 'CountUpAnimManual').style.display = 'none'; 
       //check if any resources have been generated manually and start the (updated) counter again
       conditions[resource].paused = false;
       theMachine.pauseResume(resource, countUpNameAuto);
-      
+    //case 2: starting automation
+    } else {
+      theMachine.renderWhilePaused(resource, countUpNameAuto);
+      conditions[resource].paused = true;
+      theMachine.pauseResume(resource, countUpNameAuto);
+      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
     }
   },
   
@@ -98,19 +93,31 @@ let theMachine = {
     *  Currently disabled.
     **/
     
-    /** window.addEventListener('beforeunload', function() {
-    *   theMachine.store('theMachine', conditions);
-    * });  
-    **/
+    window.addEventListener('beforeunload', function() {
+      theMachine.calculateValues('bindEvents');
+      theMachine.store('theMachine', conditions);
+    });  
+    
   },
   
-  calculateValues() {
-      //add calculated values (cannot be assigned during object creation, it causes an error)
-    Object.getOwnPropertyNames(conditions).forEach(function(resource){
-      conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
-      conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
-      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
-    });  
+  calculateValues(whichCalculation) {
+    //add calculated values (cannot be assigned during object creation, it causes an error)
+    if (whichCalculation === 'init'){
+      Object.getOwnPropertyNames(conditions).forEach(function(resource){
+        conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
+        conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
+        /**TODO: can calculate time difference here when page if left and values are reloaded
+        *  (currentTime-timePageLeft)*rate = startValue
+        *  if startValue > EndValue => startValue = EndValue
+        **/
+        conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
+      });
+    }
+    if (whichCalculation === 'bindEvents'){
+      Object.getOwnPropertyNames(conditions).forEach(function(resource){
+        theMachine.checkStartValue(resource, resource + 'CountUpAnim');
+      });
+    }
   },
   
   checkStartValue(resource, countUpNameAuto) {
@@ -128,14 +135,14 @@ let theMachine = {
   },
   
   init() {
-    theMachine.bindEvents();
+    //theMachine.bindEvents();
     
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
-      conditions = theMachine.store('theMachine');  
+      conditions = theMachine.store('theMachine');
     }
     
-    theMachine.calculateValues();
+    theMachine.calculateValues('init');
     theMachine.updateCounter();
     
   },
@@ -153,6 +160,7 @@ let theMachine = {
     let endValue = 100;
     let decimals = 0;
     let duration = 4;
+    
     /**When pausing the counter, startValue is not automatically updated.
     *  This could cause a discrepancy when the counter is restarted.
     *  Thus we will match startValue to frameVal before doing +1 to startValue
@@ -169,7 +177,7 @@ let theMachine = {
     //wait for the manual resource generation to finish & update accordingly
     setTimeout(function() {
       conditions[resource].startValue += 1;
-      theMachine.updateGradientAndValue(countUpNameAuto, resource);    
+      theMachine.updateGradientAndValue(resource, countUpNameAuto);    
       if (!(conditions[resource].startValue === conditions[resource][countUpNameAuto].endVal)) {
         document.getElementById(event.target.id).disabled = false;
       }
@@ -203,6 +211,28 @@ let theMachine = {
     }
   },
   
+  renderWhilePaused(resource, countUpNameAuto) {
+    //Manual Heat Button related DOM manipulation
+    document.getElementById(resource + 'AutomationButton').innerHTML = "Enable Automation";
+    document.getElementById(resource + '+').style.display = 'none';
+    document.getElementById(resource + '-').style.display = 'none';
+    document.getElementById(resource + 'Rate').style.visibility = 'hidden';
+    document.getElementById(resource + 'Time').style.visibility = 'hidden';
+    document.getElementById(resource + 'Manual').style.display = 'inline';
+    document.getElementById(resource + 'Manual').style.visibility = 'visible';
+    document.getElementById(resource + 'Manual').style.width = '48px';
+    document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
+    document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
+    
+    //Item Cap and AutomationRate related DOM Manipulation
+    document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + conditions[resource].ratePerSecond + '/s</b>'
+    document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: ' + conditions[resource].endValue;
+    
+    theMachine.checkStartValue(resource, countUpNameAuto);
+    theMachine.updateGradientAndValue(resource, countUpNameAuto);
+    
+  },
+  
   store(namespace, data) {
     //this function stores data to the local storage
     if (arguments.length > 1) {
@@ -218,12 +248,28 @@ let theMachine = {
     * Depending which element is clicked in the DOM this function will dynamically: 
     * 1) Increase the capacity by +10 or 
     * 2) Increase rate/second by 1 each time it is called or
+    * 3) It then updates respective DOM elements
+    *  3a) it handles paused and running scenarios differently
+    * 4) It then restarts the animation, calling theMachine.animateCountUp and theMachine.updateGradient
     *
+    **/
+    
+    /**FIXME:
+    *  1) Make  theMachine.updateCounterButton()
+    *  updateCounter()
+    *  try { counter.reset()}
+    *  theMachine.animateCountUp
+    *  theMachine.updateGradientValues()
+    *  2) Reasoning: updateCounter is too complicated and does more than the name implies... this can get confusing.
+    *    Having all this extra logic in updateCounter is making debugging more difficult.
     **/
     
     let resource;
     let countUpNameAuto;
     //allows user defined element to be used
+    /**TODO: this should probably loop over current resources available and update each?
+    *  Object.getOwnPropertyNames(conditions).forEach(function(resource){
+    **/
     if (!elemnt){
      elemnt = conditions.heat.counterElement;
     }
@@ -237,14 +283,6 @@ let theMachine = {
       
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource].endValue += 10;
-        
-         if (conditions[resource].paused === true){
-          //update DOM when counter is paused;
-          theMachine.updateGradientAndValue(countUpNameAuto, resource);
-          conditions[resource][countUpNameAuto].endVal = conditions[resource].endValue;
-          conditions[resource][countUpNameAuto].options.suffix = ' / '+ conditions[resource].endValue;
-          document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: ' + conditions[resource].endValue;          
-        }
       } 
       //check if enough heat to upgrade speed
       if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue >= conditions[resource].rateCost) {
@@ -253,12 +291,6 @@ let theMachine = {
         conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
         conditions[resource].startValue -= conditions[resource].rateCost;
         conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
-        if (conditions[resource].paused === true){
-          //update DOM when counter is paused;
-          theMachine.updateGradientAndValue(countUpNameAuto, resource);
-          conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
-          conditions[resource][countUpNameAuto].frameVal = conditions[resource].startValue;
-        }
       } 
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
       
@@ -269,6 +301,7 @@ let theMachine = {
       countUpNameAuto = resource + 'CountUpAnim';
     }
     
+    
     //please do not animate the counter if it's paused!
     if (conditions[resource].paused === false){
       try{
@@ -276,12 +309,13 @@ let theMachine = {
       } catch (e) {}
       theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
     } else {
+      theMachine.renderWhilePaused(resource, countUpNameAuto);
       theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
     }
   },
   
-  updateGradientAndValue(countUpNameAuto, resource) {
-    let gradientPercent = conditions[resource][countUpNameAuto].frameVal / conditions[resource].endValue * 100;
+  updateGradientAndValue(resource, countUpNameAuto) {
+    let gradientPercent = conditions[resource].startValue / conditions[resource].endValue * 100;
     document.getElementById(countUpNameAuto).innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
     document.getElementById(countUpNameAuto).style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
   }

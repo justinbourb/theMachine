@@ -54,22 +54,25 @@ let templates = {
   //make sure creating elements with templating still starts the counters
   
   //TODO: add some logic behind adding resources beyond heat (start with heat and add more as they get unlocked)
-
+  
+  
   },
   renderFooter() {
     
     let footerElement = document.createElement("footer");
     
     footerElement.innerHTML = `
-    <footer>
       <button class="footer-buttons" type="button" onclick="location.href='/'">Craft</button>
       <button class="footer-buttons" type="button" onclick="location.href='/research'">Research</button>
       <button class="footer-buttons" type="button" onclick="location.href='/log'">Log</button>
       <button class="footer-buttons" type="button" onclick="location.href='/explore'">Explore</button>
-    </footer>
       `
     document.body.appendChild(footerElement);
   }
 };
 
 templates.renderFooter();
+
+if (location.href.split('/').slice(-1)[0].toLowerCase() === "research") {
+ console.log("this is the research page"); 
+}

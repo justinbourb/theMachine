@@ -1,6 +1,6 @@
 // init project
-let express = require('express');
-let app = express();
+var express = require('express');
+var app = express();
 
 // http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
@@ -26,7 +26,9 @@ app.get("/explore", function (request, response) {
   response.sendFile(__dirname + '/views/explore.html');
 });
 
+
+
 // listen for requests :)
-let listener = app.listen(process.env.PORT, function () {
+var listener = app.listen(process.env.PORT, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
