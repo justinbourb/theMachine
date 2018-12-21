@@ -15,14 +15,26 @@
     <div id="heatWorkerCap" data-resource="heat">Worker Cap: default cap</div>
     <div id="heatAutomationRate" data-resource="heat">Automation Rate: default rate</div>
     <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: default efficiency</div>
-  </div>
-  
+    <div id="heatRate" data-resource="heat"></div>
+    <div id="heatTime" data-resource="heat"></div>
+  </div>  
 </html>
 
 <script>
-  
+
+  //make a backup of any user data
+  let theMachineBackup = theMachine.store('theMachine');
+  //reset conditions to test values
+  conditions = (
+      {
+        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
+        tanks: {}
+      }); 
+  //store "test" conditions" in local storage for testing purposes
+  theMachine.store('theMachine', conditions);
+    
   tests({
-    '1) theMachine.calculateValues("init") should fill in calculated values for conditions':function() {    
+    '1) theMachine.calculateValues("init") should fill in calculated values for conditions':function() {       
       theMachine.calculateValues('init');
       eq(conditions.heat.counterElement, document.getElementById("heatCountUpAnim"));
       eq(conditions.heat.counterElementManual, document.getElementById("heatCountUpAnimManual"));
@@ -30,6 +42,8 @@
     },
     
     '2) theMachine.checkStartValue() should update start value as needed':function() {
+      //theMachine.init();
+      conditions.heat.heatCountUpAnim = {};
       conditions.heat.heatCountUpAnim.frameVal = 8;
       conditions.heat.startValue = 7;
       theMachine.checkStartValue("heat", "heatCountUpAnim");
@@ -72,7 +86,7 @@
       eq(conditions.heat.ratePerSecond, 0.5);
       eq(conditions.heat.rateCost, 6);
       eq(conditions.heat.startValue, 10);
-      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 10');
+      eq(conditions.heat.heatCountUpAnim.options.suffix, ' / 20');
       
     },
     
@@ -134,20 +148,29 @@
       } catch (e) {};
 
       //conditions which should change
-      eq(conditions.heat.ratePerSecond, 0.605);
-      eq(conditions.heat.rateCost, 7.26);
-      eq(conditions.heat.startValue, 0.40000000000000036);
+      eq(conditions.heat.ratePerSecond, 0.55);
+      eq(conditions.heat.rateCost, 6.6);
+      eq(conditions.heat.startValue, 4);
 
       //it should not affect other values
       eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
       eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 48.925619834710744);
+      eq(conditions.heat.duration, 47.272727272727266);
       eq(conditions.heat.gradientColors[0], "white");
       eq(conditions.heat.gradientColors[1], "#F5F5F5");
       eq(conditions.heat.paused, true);
 
-    }
+    },
+    
+    '9) theMachine.calculateValues("init") updates startValue based on time passed':function() {
+      conditions.heat.wasPageLeft = Date.now() - 10000;
+      conditions.heat.paused = false;
+      let oldStartValue = conditions.heat.startValue;
+      theMachine.calculateValues('init');
+      eq(conditions.heat.startValue, oldStartValue+5.5);
+    },
     
   });
-  
+  //restore user data after tests are compeleted
+  theMachine.store('theMachine', theMachineBackup);
 </script>

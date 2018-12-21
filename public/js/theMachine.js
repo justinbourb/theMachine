@@ -145,7 +145,8 @@ let theMachine = {
   },
   
   init() {
-    theMachine.bindEvents();
+    //disabled for testing purposes
+    //theMachine.bindEvents();
     
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
