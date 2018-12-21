@@ -1,4 +1,6 @@
 let templates = {
+  //TODO: add header script tags to a template
+  
   
   createResourceBarHTML() {
   /**this function is an attempt at making a javascript template
@@ -54,22 +56,25 @@ let templates = {
   //make sure creating elements with templating still starts the counters
   
   //TODO: add some logic behind adding resources beyond heat (start with heat and add more as they get unlocked)
-
+  
+  
   },
   renderFooter() {
+    /*
+    *This function will create links at the bottom of each page aka the footer.    *
+    */
     
     let footerElement = document.createElement("footer");
     
     footerElement.innerHTML = `
-    <footer>
-      <button class="footer-buttons" type="button" onclick="location.href='/'">Craft</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/research'">Research</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/log'">Log</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/explore'">Explore</button>
-    </footer>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Explore</button>
       `
     document.body.appendChild(footerElement);
   }
 };
 
 templates.renderFooter();
+
