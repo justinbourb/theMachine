@@ -10,9 +10,10 @@ let controllers = {
     *      I want to test this out to see if it works... if not I'll just keep this code in controllers.js for organization reasons
     * 2) If on any other page, just follow the link
     **/
-    
+    //record the time when the page was left
     //save conditions first if we're on the craft page
-    if (location.href === '/') {
+    if (location.href.split('/').pop() === '') {
+      theMachine.calculateValues('bindEvents');
       theMachine.store('theMachine', conditions);
     }
     //next follow the links

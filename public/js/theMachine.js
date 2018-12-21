@@ -34,11 +34,7 @@
 //     global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
 //   });
 
-let conditions = (
-  {
-    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
-    tanks: {}
-  });
+let conditions;
 
 let globalData = (
   {
@@ -108,16 +104,17 @@ let theMachine = {
       Object.getOwnPropertyNames(conditions).forEach(function(resource){
         conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
         conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
-        if (conditions[resource]['wasPageLeft']) {
+        //checks if page was left while not paused => we should calculate how much progress was made
+        if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false) {
           //amount of progress made after page was left
-          let newStartValue = (Date.now() - conditions[resource].wasPageLeft)*0.5/1000;
+          let newStartValue = (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
           //check if amount of progress exceeds cap
           if (newStartValue > conditions[resource].endValue) {
             //Case 1: yes it does => startValue = endValue;
             conditions[resource].startValue = conditions[resource].endValue; 
           } else {
             //case 2: no it doesn't => startValue = newStartValue
-            conditions[resource].startValue = newStartValue;
+            conditions[resource].startValue += newStartValue;
           }
         }
         conditions[resource]['wasPageLeft'] = false;
@@ -153,6 +150,12 @@ let theMachine = {
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
       conditions = theMachine.store('theMachine');
+    } else {
+     conditions = (
+      {
+        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
+        tanks: {}
+      }); 
     }
     
     theMachine.calculateValues('init');
