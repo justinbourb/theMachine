@@ -26,8 +26,6 @@
 *     
 **/
 
-//FIXME: had a bad session, lots of things wrong... taking a break...
-
 
 // FIXME: tests are optimized to these values, need to uncomment before running tests
 // let conditions = (
@@ -38,10 +36,14 @@
 
 let conditions = (
   {
-    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, workersAssigned: 0, workerCap: 0 },
-    global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
+    heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
+    tanks: {}
   });
 
+let globalData = (
+  {
+   globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0  
+  });
 
 
 let theMachine = {
@@ -93,7 +95,7 @@ let theMachine = {
     *  Currently disabled.
     **/
     
-    window.addEventListener('beforeunload', function() {
+    window.addEventListener('beforeunload', function(event) {
       theMachine.calculateValues('bindEvents');
       theMachine.store('theMachine', conditions);
     });  
@@ -104,18 +106,29 @@ let theMachine = {
     //add calculated values (cannot be assigned during object creation, it causes an error)
     if (whichCalculation === 'init'){
       Object.getOwnPropertyNames(conditions).forEach(function(resource){
-        conditions[resource]["counterElement"] = document.getElementById(resource + "CountUpAnim");
-        conditions[resource]["counterElementManual"] = document.getElementById(resource + "CountUpAnimManual");
-        /**TODO: can calculate time difference here when page if left and values are reloaded
-        *  (currentTime-timePageLeft)*rate = startValue
-        *  if startValue > EndValue => startValue = EndValue
-        **/
+        conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
+        conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
+        if (conditions[resource]['wasPageLeft']) {
+          //amount of progress made after page was left
+          let newStartValue = (Date.now() - conditions[resource].wasPageLeft)*0.5/1000;
+          //check if amount of progress exceeds cap
+          if (newStartValue > conditions[resource].endValue) {
+            //Case 1: yes it does => startValue = endValue;
+            conditions[resource].startValue = conditions[resource].endValue; 
+          } else {
+            //case 2: no it doesn't => startValue = newStartValue
+            conditions[resource].startValue = newStartValue;
+          }
+        }
+        conditions[resource]['wasPageLeft'] = false;
         conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
       });
     }
     if (whichCalculation === 'bindEvents'){
       Object.getOwnPropertyNames(conditions).forEach(function(resource){
         theMachine.checkStartValue(resource, resource + 'CountUpAnim');
+        //save the timestamp when page was left to calculate progress upon reloading.
+        conditions[resource].wasPageLeft = Date.now();
       });
     }
   },
@@ -135,7 +148,7 @@ let theMachine = {
   },
   
   init() {
-    //theMachine.bindEvents();
+    theMachine.bindEvents();
     
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
@@ -297,7 +310,7 @@ let theMachine = {
     //Case 2: called without event, which means it was from init()
     //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
     } else {
-      resource = "heat";
+      resource = 'heat';
       countUpNameAuto = resource + 'CountUpAnim';
     }
     
@@ -321,4 +334,10 @@ let theMachine = {
   }
 }
 
-theMachine.init();
+window.onload = function() {
+  //on start our counters on the machine page
+  //TODO: expand this logic when adding additional pages that require counters
+  if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
+    theMachine.init(); 
+  }
+};

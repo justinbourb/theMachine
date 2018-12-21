@@ -194,10 +194,12 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	};
 
 	self.count = function(timestamp) {
+    //convert countUp.js timestamp from performance.now() to Date.now()
+		// if (!self.startTime) { self.startTime = timestamp; }
 
-		if (!self.startTime) { self.startTime = timestamp; }
-
-		self.timestamp = timestamp;
+		//self.timestamp = timestamp;
+    self.timestamp = Date.now();
+    if (!self.startTime) { self.startTime = timestamp; }
 		var progress = timestamp - self.startTime;
 		self.remaining = self.duration - progress;
    

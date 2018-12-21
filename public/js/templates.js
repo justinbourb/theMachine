@@ -1,4 +1,6 @@
 let templates = {
+  //TODO: add header script tags to a template
+  
   
   createResourceBarHTML() {
   /**this function is an attempt at making a javascript template
@@ -58,14 +60,17 @@ let templates = {
   
   },
   renderFooter() {
+    /*
+    *This function will create links at the bottom of each page aka the footer.    *
+    */
     
     let footerElement = document.createElement("footer");
     
     footerElement.innerHTML = `
-      <button class="footer-buttons" type="button" onclick="location.href='/'">Craft</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/research'">Research</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/log'">Log</button>
-      <button class="footer-buttons" type="button" onclick="location.href='/explore'">Explore</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
+      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Explore</button>
       `
     document.body.appendChild(footerElement);
   }
@@ -73,6 +78,3 @@ let templates = {
 
 templates.renderFooter();
 
-if (location.href.split('/').slice(-1)[0].toLowerCase() === "research") {
- console.log("this is the research page"); 
-}
