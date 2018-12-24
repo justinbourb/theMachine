@@ -17,6 +17,8 @@
     <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: default efficiency</div>
     <div id="heatRate" data-resource="heat"></div>
     <div id="heatTime" data-resource="heat"></div>
+    <div id="globalWorkerCount" data-resource="global">Workers: 0/5</div>  
+    <div class="workers" id="heatWorkerCount" data-resource="heat">0/5</div>  
   </div>  
 </html>
 
@@ -27,7 +29,7 @@
   //reset conditions to test values
   conditions = (
       {
-        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
+        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
         tanks: {}
       }); 
   //store "test" conditions" in local storage for testing purposes
@@ -169,6 +171,65 @@
       theMachine.calculateValues('init');
       eq(conditions.heat.startValue, oldStartValue+5.5);
     },
+    
+    '10) theMachine.calculateValues("init") should not update values based on time passed if paused':function () {
+      conditions.heat.wasPageLeft = Date.now() - 10000;
+      conditions.heat.paused = true;
+      let oldStartValue = conditions.heat.startValue;
+      theMachine.calculateValues('init');
+      eq(conditions.heat.startValue, oldStartValue);
+    },
+    
+    '11) theMachine.workerButtons() updates global & resource worker counts': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 4);
+      eq(conditions.heat.workersAssigned, 1);
+      
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 5);
+      eq(conditions.heat.workersAssigned, 0);  
+    },
+    
+    '12) theMachine.workerButtons() cannot exceed resource caps or mins': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 4);
+      eq(conditions.heat.workersAssigned, 1);
+      
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 5);
+      eq(conditions.heat.workersAssigned, 0);  
+    },
+    
+    '13) theMachine.workerButtons() cannot make global workersAvailable be a negative value': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      conditions.heat.workerCap = 6;
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 0);
+      eq(conditions.heat.workersAssigned, 5);
+    },
+    
+    '15) theMachine.workerButtons() update the DOM correctly': function() {
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);    
+      
+      eq(document.getElementById('heatWorkerCount').innerHTML, '4/6');
+      eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: 1/5');
+    },
+    
+    '14) theMachine.workerButtons() after increasing workers, automation rates increase correctly': function() {
+      fail();
+    }
     
   });
   //restore user data after tests are compeleted

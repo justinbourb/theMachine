@@ -3,9 +3,13 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Armory and Machine clone</title>
-		<link rel="stylesheet" href="css/theMachine.css">
+    <link href="https://fonts.googleapis.com/css?family=Major+Mono+Display" rel="stylesheet">
+		
     <link rel="stylesheet" href="css/collapse.css">
     <link rel="stylesheet" href="css/footer.css">
+    <link rel="stylesheet" href="css/headerBar.css">
+    <link rel="stylesheet" href="css/theMachine.css">
+    
     <script async src="js/countUp.js"></script>
     <script async src="js/templates.js"></script>
     <script async src="js/theMachine.js"></script>
@@ -16,7 +20,9 @@
 	<body id="body">
     <div id="spacer">
       
-    
+    <section class="headerBar">
+      <div id="globalWorkerCount" data-resource="global">Workers: 0/5</div>  
+    </section>
     <section id="title">
     	<header id="header">
 			  <h1>The Machine</h1>
@@ -29,8 +35,9 @@
       <section id="heat">
         <in-line-group>
           <button type="button" data-resource="heat" class="enableAutomation" id="heatManual" style="visibility:hidden" onclick="theMachine.manualCounterButton(event)">Heat</button>
-          <button type="button" id="heat+">+</button>
-          <button type="button" id="heat-">-</button>
+          <button type="button" data-resource="heat" id="heat+" onclick="theMachine.workerButtons(event)">+</button>
+          <button type="button" data-resource="heat" id="heat-" onclick="theMachine.workerButtons(event)">-</button>
+          <div class="workers" id="heatWorkerCount" data-resource="heat">0/5</div>  
           <!- add hammer and wrentch logo ->
 
           <div class="resource-bar" id="heatBar">

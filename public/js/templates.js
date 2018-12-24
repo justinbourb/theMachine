@@ -61,7 +61,7 @@ let templates = {
   },
   renderFooter() {
     /*
-    *This function will create links at the bottom of each page aka the footer.    *
+    *This function will create links at the bottom of each page aka the footer.
     */
     
     let footerElement = document.createElement("footer");
