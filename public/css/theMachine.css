@@ -88,3 +88,8 @@ body {
 	text-rendering: optimizeLegibility;
   top: 15px;
 }
+.workers {
+  font-family: 'Major Mono Display', monospace;
+  display: inline-block;
+  font-size: 80%;
+}

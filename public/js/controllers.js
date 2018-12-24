@@ -1,4 +1,5 @@
 let controllers = {
+  
   whichLinkClicked(event) {
     if (event.target.innerHTML === 'Craft') {
       location.href = '/';

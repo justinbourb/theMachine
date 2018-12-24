@@ -1,7 +1,6 @@
 /**
 *TODO: 
-*1) add workers to automate processes
-*  1a) add a variable activeHeatWorkers = 0
+*1) add workers to automate processes (added to DOM, but no functionality!)
 *    1a1) if zero ratePerSecond = 0 // only add heat by clicking button
 *    1a2) if (activeHeatWokers >= 1) { ratePerSecond = ratePerSecond * activeHeatWorkers } // or some such
 *  1b) if no workers => stop countUp and add a button to increase heat by one unit
@@ -19,26 +18,19 @@
 *  3a) I want to be able to continue the game each time browser is opened
 *    3a1) save data on close?  Save any other times or irrelevant? 
 *      3a1a) Save data on close completed.  Is this best practice?
-*    3b) save timestamp to calculate how much progress has been made (or lost)
-*        since last login.  (timestampeCurrentTime - timestampBrowserClosed = timeDifference)
 *    3c) each button / attribute should have a level associated with it.
 *        ratePerSecond = {rate: 1, level: 1)
-*     
+*4) create updateDOM() to update the number of workers displayed upon init?
+*  a) right now this is only handled inside workerButtons(), so hardcoded text in index.html may not match
+*    resource specific and global workers assigned / cap values.
+*
 **/
-
-
-// FIXME: tests are optimized to these values, need to uncomment before running tests
-// let conditions = (
-//   {
-//     heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, workersAssigned: 0, workerCap: 0 },
-//     global: {globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0}
-//   });
 
 let conditions;
 
 let globalData = (
   {
-   globalWorkerCap: 0, globalWorkersAssigned: 0, globalWorkersAvailable: 0  
+   globalWorkerCap: 5, globalWorkersAvailable: 5  
   });
 
 
@@ -154,7 +146,7 @@ let theMachine = {
     } else {
      conditions = (
       {
-        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
+        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
         tanks: {}
       }); 
     }
@@ -279,6 +271,7 @@ let theMachine = {
     *  theMachine.updateGradientValues()
     *  2) Reasoning: updateCounter is too complicated and does more than the name implies... this can get confusing.
     *    Having all this extra logic in updateCounter is making debugging more difficult.
+    *    2a) it's also a waste of resources to go through the entire updateCounter upon init.
     **/
     
     let resource;
@@ -286,6 +279,7 @@ let theMachine = {
     //allows user defined element to be used
     /**TODO: this should probably loop over current resources available and update each?
     *  Object.getOwnPropertyNames(conditions).forEach(function(resource){
+    *  1) conversely the logic could just decide which element to update instead of doing a loop
     **/
     if (!elemnt){
      elemnt = conditions.heat.counterElement;
@@ -335,8 +329,36 @@ let theMachine = {
     let gradientPercent = conditions[resource].startValue / conditions[resource].endValue * 100;
     document.getElementById(countUpNameAuto).innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
     document.getElementById(countUpNameAuto).style.backgroundImage="linear-gradient(to right, "+conditions[resource].gradientColors[0]+", "+conditions[resource].gradientColors[0]+" "+gradientPercent+"%, "+conditions[resource].gradientColors[1]+" 1%)";
+  },
+  
+  workerButtons(event) {
+    let resource = event.target.dataset.resource;
+    //check if adding workers
+    if (event.target.innerHTML === '+') {
+      //check if there's any workers left in global pool
+      if (globalData.globalWorkersAvailable > 0) {
+        //check if resource cap is not exceeded
+        if (conditions[resource].workersAssigned < conditions[resource].workerCap) {
+          conditions[resource].workersAssigned += 1;
+          globalData.globalWorkersAvailable -= 1;
+        }
+      }
+    }
+    
+    //check if subtrating workers
+    if (event.target.innerHTML === '-') {
+      //check if there's any workers left in resource pool
+      if (conditions[resource].workersAssigned > 0) {
+        conditions[resource].workersAssigned -= 1;
+        globalData.globalWorkersAvailable += 1;        
+      }
+    }
+    //update DOM
+    document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
+    document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
   }
-}
+  
+};
 
 window.onload = function() {
   //on start our counters on the machine page

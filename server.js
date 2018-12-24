@@ -15,7 +15,7 @@ app.get("/research", function (request, response) {
 });
 
 app.get("/", function (request, response) {
-  response.sendFile(__dirname + '/views/test.html');
+  response.sendFile(__dirname + '/views/index.html');
 });
 
 app.get("/log", function (request, response) {

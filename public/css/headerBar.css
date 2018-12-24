@@ -1,0 +1,9 @@
+.headerBar {
+  font-family: 'Major Mono Display', monospace;
+  width: 100%;
+  display: flex;
+}
+
+#globalWorkerCount {
+  margin-left: auto;
+}
