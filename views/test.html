@@ -18,7 +18,8 @@
     <div id="heatRate" data-resource="heat"></div>
     <div id="heatTime" data-resource="heat"></div>
     <div id="globalWorkerCount" data-resource="global">Workers: 0/5</div>  
-    <div class="workers" id="heatWorkerCount" data-resource="heat">0/5</div>  
+    <div class="workers" id="heatWorkerCount" data-resource="heat">0/5</div> 
+    <button type="button" data-resource="heat" class="enableAutomation" id="heatAutomationButton" onclick="theMachine.automationButton(event)">Disable Automation</button>
   </div>  
 </html>
 
@@ -26,12 +27,19 @@
 
   //make a backup of any user data
   let theMachineBackup = theMachine.store('theMachine');
+  let globalDataBackup = theMachine.store('globalData');
   //reset conditions to test values
   conditions = (
-      {
-        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-        tanks: {}
-      }); 
+    {
+      heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
+      tanks: {}
+    }
+  ); 
+  globalData = (
+    {
+     globalWorkerCap: 5, globalWorkersAvailable: 4  
+    }
+  );
   //store "test" conditions" in local storage for testing purposes
   theMachine.store('theMachine', conditions);
     
@@ -40,7 +48,6 @@
       theMachine.calculateValues('init');
       eq(conditions.heat.counterElement, document.getElementById("heatCountUpAnim"));
       eq(conditions.heat.counterElementManual, document.getElementById("heatCountUpAnimManual"));
-      eq(conditions.heat.duration, 20);
     },
     
     '2) theMachine.checkStartValue() should update start value as needed':function() {
@@ -182,6 +189,7 @@
     
     '11) theMachine.workerButtons() updates global & resource worker counts': function() {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      conditions.heat.paused = false;
       theMachine.workerButtons(testCase);
       eq(globalData.globalWorkersAvailable, 4);
       eq(conditions.heat.workersAssigned, 1);
@@ -219,7 +227,7 @@
       eq(conditions.heat.workersAssigned, 5);
     },
     
-    '15) theMachine.workerButtons() update the DOM correctly': function() {
+    '14) theMachine.workerButtons() update the DOM correctly': function() {
       testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
       theMachine.workerButtons(testCase);    
       
@@ -227,11 +235,32 @@
       eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: 1/5');
     },
     
-    '14) theMachine.workerButtons() after increasing workers, automation rates increase correctly': function() {
+    '15) theMachine.workerButtons() after increasing workers, automation rates increase correctly': function() {
       fail();
+    },
+    
+    '16) theMachine.pauseResume() pauses and resumes counter correctly': function() {
+      //pause the counter
+      conditions.heat.paused = true;
+      theMachine.pauseResume('heat', 'heatCountUpAnim');
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 30');
+      
+      //no progress is made while paused
+      setTimeout(function(){ 
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 30');
+        conditions.heat.paused = false;
+        theMachine.pauseResume('heat', 'heatCountUpAnim');
+      }, 6000);
+      
+      //for some reason this does not trigger a fail in the window when failing, only prints to console
+      setTimeout(function() {
+         //the counter was resumed in last setTimeout, progress should be made
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '23 / 30');
+      }, 12000);
     }
     
   });
   //restore user data after tests are compeleted
   theMachine.store('theMachine', theMachineBackup);
+  theMachine.store('globalData', globalDataBackup);
 </script>
