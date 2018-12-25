@@ -28,27 +28,42 @@
 
 let conditions;
 
-let globalData = (
-  {
-   globalWorkerCap: 5, globalWorkersAvailable: 5  
-  });
+let globalData;
 
 
 let theMachine = {
   
-  /**TODO:
-  * 3) + - buttons should have functionality (add or remove workers)
-  *  3a) for that matter, I need to add workers...
-  * 4) create a loop to toggle visibilty from an array or Id's, less lines of code (worthwhile?)
-  **/
-   animateCountUp(countUpName, elemnt, resource) {
-    //call a new animation with updated values for automated resources
-    conditions[resource][countUpName] = new CountUp(elemnt, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond});
-    if (!conditions[resource][countUpName].error) {
-        window.onload = conditions[resource][countUpName].start();
-    } else {
-        console.error(conditions[resource][countUpName].error);
-    }  
+   animateCountUp(resource, countUpName, elemnt) {
+     
+    //make sure duration has been updated
+    conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond * conditions[resource].workersAssigned);
+    
+   
+    //Case 1: duration is 0 => there's no workers for this resource... do not animate.
+    if (conditions[resource].duration === 0){
+      conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
+      return
+      
+    //Case 2: please do not animate the counter if it's paused!
+    }
+    if (conditions[resource].paused === false){
+      try{
+      conditions[resource][countUpName].reset();
+      } catch (e) {}
+      //call a new animation with updated values for automated resources
+      conditions[resource][countUpName] = new CountUp(elemnt, conditions[resource].startValue, conditions[resource].endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue, gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond * conditions[resource].workersAssigned});
+      if (!conditions[resource][countUpName].error) {
+          window.onload = conditions[resource][countUpName].start();
+      } else {
+          console.error(conditions[resource][countUpName].error);
+      }
+    }
+    //Case 3: update the DOM while paused 
+    if (conditions[resource].paused === true) {
+        theMachine.renderWhilePaused(resource, countUpName);
+        theMachine.manualCounterButtonStatus(resource, countUpName);
+      }
+      
   },
   
   automationButton(event) {
@@ -86,6 +101,7 @@ let theMachine = {
     window.addEventListener('beforeunload', function(event) {
       theMachine.calculateValues('bindEvents');
       theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
     });  
     
   },
@@ -110,7 +126,6 @@ let theMachine = {
           }
         }
         conditions[resource]['wasPageLeft'] = false;
-        conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
       });
     }
     if (whichCalculation === 'bindEvents'){
@@ -131,8 +146,10 @@ let theMachine = {
         }
       //case 2: the counter is completed, we cannot access it's values
     } catch (e) {
-      conditions[resource].startValue = conditions[resource].endValue
-    };
+      if (typeof(parseInt(document.getElementById('heatCountUpAnim').innerHTML.split('/')[0].trim()) === 'number')) {
+        conditions[resource].startValue = document.getElementById('heatCountUpAnim').innerHTML.split('/')[0].trim()
+      }
+    }
     
   },
   
@@ -143,16 +160,26 @@ let theMachine = {
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
       conditions = theMachine.store('theMachine');
+      globalData = theMachine.store('globalData');
     } else {
-     conditions = (
-      {
-        heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
-        tanks: {}
-      }); 
+      conditions = (
+        {
+          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          tanks: {}
+        }); 
+      (
+      globalData = {
+       globalWorkerCap: 5, globalWorkersAvailable: 4  
+      });
     }
     
     theMachine.calculateValues('init');
-    theMachine.updateCounter();
+    //start counters for all resources available
+    Object.getOwnPropertyNames(conditions).forEach(function(resource){
+      theMachine.renderWorkers(resource);
+      let countUpNameAuto = resource + 'CountUpAnim';
+      theMachine.animateCountUp(resource, countUpNameAuto, conditions[resource].counterElement);
+    });
     
   },
   manualCounterButton(event) {
@@ -208,13 +235,9 @@ let theMachine = {
   pauseResume(resource, countUpNameAuto) {
     //This function will pauseResume the desired countUpNameAuto, as stored on the conditions object.
     let elemnt = document.getElementById(countUpNameAuto);
-    
+    theMachine.checkStartValue(resource, countUpNameAuto);   
     if (conditions[resource].paused === false){
-      try{
-      theMachine.checkStartValue(resource, countUpNameAuto);
-      conditions[resource][countUpNameAuto].reset();
-      } catch (e) {}
-      theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
+      theMachine.animateCountUp(resource, countUpNameAuto, elemnt);
     } else {
       conditions[resource][countUpNameAuto].pauseResume();
     }
@@ -240,6 +263,15 @@ let theMachine = {
     theMachine.checkStartValue(resource, countUpNameAuto);
     theMachine.updateGradientAndValue(resource, countUpNameAuto);
     
+  },
+  
+  renderWorkers(resource) {
+    //update DOM
+    try {
+      document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
+      document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
+    } catch (e) {}
+  
   },
   
   store(namespace, data) {
@@ -303,7 +335,7 @@ let theMachine = {
         conditions[resource].startValue -= conditions[resource].rateCost;
         conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
       } 
-      conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / conditions[resource].ratePerSecond;
+      
       
     //Case 2: called without event, which means it was from init()
     //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
@@ -312,17 +344,8 @@ let theMachine = {
       countUpNameAuto = resource + 'CountUpAnim';
     }
     
+    theMachine.animateCountUp(resource, countUpNameAuto, elemnt);
     
-    //please do not animate the counter if it's paused!
-    if (conditions[resource].paused === false){
-      try{
-      conditions[resource][countUpNameAuto].reset();
-      } catch (e) {}
-      theMachine.animateCountUp(countUpNameAuto, elemnt, resource);
-    } else {
-      theMachine.renderWhilePaused(resource, countUpNameAuto);
-      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
-    }
   },
   
   updateGradientAndValue(resource, countUpNameAuto) {
@@ -333,6 +356,7 @@ let theMachine = {
   
   workerButtons(event) {
     let resource = event.target.dataset.resource;
+    let countUpName =  resource + 'CountUpAnim';
     //check if adding workers
     if (event.target.innerHTML === '+') {
       //check if there's any workers left in global pool
@@ -353,9 +377,13 @@ let theMachine = {
         globalData.globalWorkersAvailable += 1;        
       }
     }
-    //update DOM
-    document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
-    document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
+    theMachine.checkStartValue(resource, countUpName); 
+    theMachine.renderWorkers(resource);
+    theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
+    //event.target.disabled = true;
+    // setTimeout(function() {
+    //   event.target.disabled = false;
+    // }, 1000);
   }
   
 };
