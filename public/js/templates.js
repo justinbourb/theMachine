@@ -67,6 +67,7 @@ let templates = {
     let footerElement = document.createElement("footer");
     
     footerElement.innerHTML = `
+      <!- css handled by footer.css ->
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
