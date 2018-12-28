@@ -1,8 +1,5 @@
 /**
 *TODO: 
-*1) add workers to automate processes (added to DOM, but no functionality!)
-*    1a1) if zero ratePerSecond = 0 // only add heat by clicking button
-*    1a2) if (activeHeatWokers >= 1) { ratePerSecond = ratePerSecond * activeHeatWorkers } // or some such
 *  1b) if no workers => stop countUp and add a button to increase heat by one unit
 *    1b1) determine what this unit would be (heat/second to heat/click converstion???)
 *      1b1a) something based on rateCost / level?  
@@ -20,9 +17,6 @@
 *      3a1a) Save data on close completed.  Is this best practice?
 *    3c) each button / attribute should have a level associated with it.
 *        ratePerSecond = {rate: 1, level: 1)
-*4) create updateDOM() to update the number of workers displayed upon init?
-*  a) right now this is only handled inside workerButtons(), so hardcoded text in index.html may not match
-*    resource specific and global workers assigned / cap values.
 *
 **/
 
@@ -78,6 +72,7 @@ let theMachine = {
       document.getElementById(resource + '-').style.display = 'inline-block';
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
+      document.getElementById(resource + 'WorkerCount').style.visibility = 'visible';
       document.getElementById(resource + 'Manual').style.display = 'none';
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'none'; 
       //check if any resources have been generated manually and start the (updated) counter again
@@ -164,8 +159,8 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
-          tanks: {}
+          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
         }); 
       (
       globalData = {
@@ -250,6 +245,7 @@ let theMachine = {
     document.getElementById(resource + '-').style.display = 'none';
     document.getElementById(resource + 'Rate').style.visibility = 'hidden';
     document.getElementById(resource + 'Time').style.visibility = 'hidden';
+    document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
     document.getElementById(resource + 'Manual').style.display = 'inline';
     document.getElementById(resource + 'Manual').style.visibility = 'visible';
     document.getElementById(resource + 'Manual').style.width = '48px';
@@ -284,66 +280,35 @@ let theMachine = {
     }
   },
   
-  updateCounter(event, elemnt) {
+  updateCounterButtons(event) {
     /**
     * Depending which element is clicked in the DOM this function will dynamically: 
     * 1) Increase the capacity by +10 or 
     * 2) Increase rate/second by 1 each time it is called or
-    * 3) It then updates respective DOM elements
-    *  3a) it handles paused and running scenarios differently
-    * 4) It then restarts the animation, calling theMachine.animateCountUp and theMachine.updateGradient
+    * 3) It then restarts the animation, calling theMachine.animateCountUp
     *
     **/
     
-    /**FIXME:
-    *  1) Make  theMachine.updateCounterButton()
-    *  updateCounter()
-    *  try { counter.reset()}
-    *  theMachine.animateCountUp
-    *  theMachine.updateGradientValues()
-    *  2) Reasoning: updateCounter is too complicated and does more than the name implies... this can get confusing.
-    *    Having all this extra logic in updateCounter is making debugging more difficult.
-    *    2a) it's also a waste of resources to go through the entire updateCounter upon init.
-    **/
     
-    let resource;
-    let countUpNameAuto;
-    //allows user defined element to be used
-    /**TODO: this should probably loop over current resources available and update each?
-    *  Object.getOwnPropertyNames(conditions).forEach(function(resource){
-    *  1) conversely the logic could just decide which element to update instead of doing a loop
-    **/
-    if (!elemnt){
-     elemnt = conditions.heat.counterElement;
+    let resource = event.target.dataset.resource; //heat or tanks or fuel, etc;
+    let countUpNameAuto = resource + 'CountUpAnim';
+    let elemnt = conditions[resource].counterElement;;
+
+    theMachine.checkStartValue(resource, countUpNameAuto);
+
+    if (event.target.innerHTML === 'Item Capacity') {
+      conditions[resource].endValue += 10;
+    } 
+    //check if enough heat to upgrade speed
+    if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue >= conditions[resource].rateCost) {
+      //increase 10%
+      conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
+      conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
+      conditions[resource].startValue -= conditions[resource].rateCost;
+      conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
+      conditions[resource].rateLevel += 1;
     }
-    
-    //skips event logic if called by theMachine.init();
-    //Case 1: called from DOM via a button click
-    if (event) {
-      resource = event.target.dataset.resource; //heat or tanks or fuel, etc
-      countUpNameAuto = resource + 'CountUpAnim';
-      theMachine.checkStartValue(resource, countUpNameAuto);
-      
-      if (event.target.innerHTML === 'Item Capacity') {
-        conditions[resource].endValue += 10;
-      } 
-      //check if enough heat to upgrade speed
-      if (event.target.innerHTML === 'Job Speed' && conditions[resource].startValue >= conditions[resource].rateCost) {
-        //increase 10%
-        conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
-        conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
-        conditions[resource].startValue -= conditions[resource].rateCost;
-        conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
-      } 
-      
-      
-    //Case 2: called without event, which means it was from init()
-    //FIXME: will this need to be fixed if more than just heat present?  ie user loads a game
-    } else {
-      resource = 'heat';
-      countUpNameAuto = resource + 'CountUpAnim';
-    }
-    
+
     theMachine.animateCountUp(resource, countUpNameAuto, elemnt);
     
   },
@@ -380,10 +345,7 @@ let theMachine = {
     theMachine.checkStartValue(resource, countUpName); 
     theMachine.renderWorkers(resource);
     theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
-    //event.target.disabled = true;
-    // setTimeout(function() {
-    //   event.target.disabled = false;
-    // }, 1000);
+    
   }
   
 };

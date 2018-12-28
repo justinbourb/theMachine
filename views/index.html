@@ -19,7 +19,7 @@
    <!- ########## title section ############### ->
 	<body id="body">
     <div id="spacer">
-      
+    <!- css handled by headerBar.css ->  
     <section class="headerBar">
       <div id="globalWorkerCount" data-resource="global">Workers: 0/5</div>  
     </section>
@@ -60,23 +60,33 @@
         <br>
       </section>
       <!- css handled by collapse.css ->
-        <button class="collapsible">+/-</button>
-        <div class="content" style="display: none">
+        <button class="collapsible" data-resource="heat">+/-</button>
+        <div class="content" data-resource="heat" style="display: none">
           <div class="contentTop">
             <div class="contentFloatLeft">
-              <div id="heatItemCap" data-resource="heat">Item Cap: default cap</div>
+              <div id="heatItemCap" data-resource="heat">Item Cap: unknown</div>
               <div id="heatProductionTime" data-resource="heat">Production Time: <b>4s</b></div>
               <div id="heatProductionVolume" data-resource="heat">Production Volume: <b>1</b></div>
             </div>
             <div class="contentFloatRight">
-              <div id="heatWorkerCap" data-resource="heat">Worker Cap: default cap</div>
-              <div id="heatAutomationRate" data-resource="heat">Automation Rate: default rate</div>
-              <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: default efficiency</div>
+              <div id="heatWorkerCap" data-resource="heat">Worker Cap: unknown</div>
+              <div id="heatAutomationRate" data-resource="heat">Automation Rate: unknown</div>
+              <div id="heatWorkerEfficiency" data-resource="heat">Worker Efficiency: unknown</div>
             </div>
           </div>
           <div class="contentBottom">
-            <button class="modify-buttons" data-resource="heat" type="button" onclick="theMachine.updateCounter(event)">Job Speed</button>
-            <button class="modify-buttons" data-resource="heat" type="button" onclick="theMachine.updateCounter(event)">Item Capacity</button>
+            <div class="contentFloatLeft">
+              <div class="smallText" id="heatJobCost">Cost: unknown Heat</div>
+              <button class="modify-buttons" data-resource="heat" type="button" onclick="theMachine.updateCounterButtons(event)">Job Speed</button>
+              <div class="smallText" id="heatJobLevel">Level: unknown</div>
+              <div class="smallText" id="heatNextRate">Next: unknown</div>
+            </div>
+            <div class="contentFloatRight">
+              <div class="smallText" id="heatItemCost">Cost: unknown Tanks</div>
+              <button class="modify-buttons" data-resource="heat" type="button" onclick="theMachine.updateCounterButtons(event)">Item Capacity</button>
+              <div class="smallText" id="heatItemLevel">Level: unknown</div>
+              <div class="smallText" id="heatNextItem">Next:  unknown</div>
+            </div>
           </div>
         </div>
     </section>

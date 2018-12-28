@@ -2,61 +2,93 @@ let templates = {
   //TODO: add header script tags to a template
   
   
-  createResourceBarHTML() {
-  /**this function is an attempt at making a javascript template
-  *handlebars at it's face seems more complicated than doing
-  *this without a library.
-  *After giving this a try I'll have a better point of reference.
+  createResourceBarHTML(resource) {
+  /**
+  * this function creates a "resource" based on the html template below
+  * must be called with the name of the resource you wish to create
   **/
-  let theMachine = document.getElementById("body");
+    
+  /**TODO:
+  *1) attach to machine parts instead of body
+  *2) figure out why scripts are not working properly for tanks elements
+  *  2a) theMachine scripts should all be DRY and accept any resource name.
+  *3) Can this be improved to read the html in index.html so there's one source of truth?
+  *  3a) replace index.html text with template below so there's one source of truth?
+  *4) createResourceBarHTML based on url (craft page, hunter page, soldier page, scientist page, etc);
+  *  4a) only add craft resourceBars on craft page, etc
+  *    4a1) if (url === craft && research is complete ) { createResourceBarHTML('heat', 'tanks', 'kilns', 'liquid') };
+  **/
+    
+  let targetElement = document.getElementById("The-Machine");
   let section = document.createElement("section");
-  section.id="tanks";
-  section.className="machine-parts";
-  section.innerHTML=`<section id="heat">
+  let regex = /{{resource}}/gi;
+  let templateHTML = `<section id="{{resource}}">
         <in-line-group>
-          <button type="button" id="heat+">+</button>
-          <button type="button" id="heat-">-</button>
+          <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}Manual" style="visibility:hidden" onclick="theMachine.manualCounterButton(event)">{{resource}}</button>
+          <button type="button" data-resource="{{resource}}" id="{{resource}}+" onclick="theMachine.workerButtons(event)">+</button>
+          <button type="button" data-resource="{{resource}}" id="{{resource}}-" onclick="theMachine.workerButtons(event)">-</button>
+          <div class="workers" id="{{resource}}WorkerCount" data-resource="{{resource}}">0/5</div>  
           <!- add hammer and wrentch logo ->
 
-          <div class="resource-bar" id="heat-bar">
-            <div id="heat-text">Heat</div>
-            <div id="heat-counter"></div>
+          <div class="resource-bar" id="{{resource}}Bar">
+            <div id="{{resource}}Text">{{resource}}</div>
+            <div id="{{resource}}CountUpAnim" data-resource="{{resource}}"></div>
           </div>
+          
+          <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}AutomationButton" onclick="theMachine.automationButton(event)">Disable Automation</button>
         </in-line-group>
         
         <in-line-group>
-            <div id="heat-rate"><b>Rate:</b> unknown</div>
-            <div id="heat-time"><b>Time remaining:</b> unknown</div>
-            <div id="heat-seconds-remaining">seconds</div>
+          <div>
+            <div id="{{resource}}Rate"><b>Rate:</b> unknown</div>
+            <div id="{{resource}}Time"><b>Time remaining:</b> unknown</div>
+            <div id="{{resource}}CountUpAnimManual" data-resource="{{resource}}"></div>
+          </div>
         </in-line-group>  
         
         
         <br>
-      </section>
       <!- css handled by collapse.css ->
-           <button class="collapsible">+/-</button>
+        <button class="collapsible">+/-</button>
         <div class="content" style="display: none">
-          <button class="modify-buttons" type="button" id="heat-pause" onclick="pause()">Pause</button>
-          <button class="modify-buttons" type="button" onclick="jobSpeed()">Job Speed</button>
-          <button class="modify-buttons" type="button" onclick="itemCapacity()">Item Capacity</button>
+          <div class="contentTop">
+            <div class="contentFloatLeft">
+              <div id="{{resource}}ItemCap" data-resource="{{resource}}">Item Cap: unknown</div>
+              <div id="{{resource}}ProductionTime" data-resource="{{resource}}">Production Time: <b>4s</b></div>
+              <div id="{{resource}}ProductionVolume" data-resource="{{resource}}">Production Volume: <b>1</b></div>
+            </div>
+            <div class="contentFloatRight">
+              <div id="{{resource}}WorkerCap" data-resource="{{resource}}">Worker Cap: unknown</div>
+              <div id="{{resource}}AutomationRate" data-resource="{{resource}}">Automation Rate: unknown</div>
+
+              <div id="{{resource}}WorkerEfficiency" data-resource="{{resource}}">Worker Efficiency: unknown</div>
+            </div>
+          </div>
+          <div class="contentBottom">
+            <div class="contentFloatLeft">
+              <div class="smallText" id="{{resource}}JobCost">Cost: unknown {{resource}}</div>
+              <button class="modify-buttons" data-resource="{{resource}}" type="button" onclick="theMachine.updateCounterButtons(event)">Job Speed</button>
+              <div class="smallText" id="{{resource}}JobLevel">Level: unknown</div>
+              <div class="smallText" id="{{resource}}NextRate">Next: unknown</div>
+            </div>
+            <div class="contentFloatRight">
+              <div class="smallText" id="{{resource}}ItemCost">Cost: unknown Tanks</div>
+              <button class="modify-buttons" data-resource="{{resource}}" type="button" onclick="theMachine.updateCounterButtons(event)">Item Capacity</button>
+              <div class="smallText" id="{{resource}}ItemLevel">Level: unknown</div>
+              <div class="smallText" id="{{resource}}NextItem">Next:  unknown</div>
+            </div>
+          </div>
         </div>
-    `
-  theMachine.appendChild(section);
-  
-  //TODO: add .replace() and chain for each item to replace
-  //modify text with mustaches {{ }}
-  //{{resource-name}} example id="{{resource-name}}-pause"
-  //section.replace({{resource-name}}, tanks) ==> id="tanks-pause"
-  //useing replace / regex in this way will create a template
-  // modify createResourceBarHTML() function to take the parameters to be replaced
-  //that are unqiue to each resource bar (heat, tanks, klins, fuel, fluid, etc, etc)
-  //google vanilla javascript template or some such to find a good example
-  
-  //TODO: call createReourceBarHTML() on document.load or as a self invoking function??
-  //make sure creating elements with templating still starts the counters
-  
-  //TODO: add some logic behind adding resources beyond heat (start with heat and add more as they get unlocked)
-  
+      </section>
+    `;
+  section.id = "tanks";
+  section.className = "machine-parts";
+  let updatedTemplateHTML = templateHTML.replace(regex, resource);
+  section.innerHTML = updatedTemplateHTML;
+  targetElement.appendChild(section);
+  document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase() + resource.slice(1,);
+  //add resource calculated values (DOM elements, etc)
+  theMachine.calculateValues('init');
   
   },
   renderFooter() {
@@ -67,6 +99,7 @@ let templates = {
     let footerElement = document.createElement("footer");
     
     footerElement.innerHTML = `
+      <!- css handled by footer.css ->
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
