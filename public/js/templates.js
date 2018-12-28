@@ -14,9 +14,12 @@ let templates = {
   *  2a) theMachine scripts should all be DRY and accept any resource name.
   *3) Can this be improved to read the html in index.html so there's one source of truth?
   *  3a) replace index.html text with template below so there's one source of truth?
+  *4) createResourceBarHTML based on url (craft page, hunter page, soldier page, scientist page, etc);
+  *  4a) only add craft resourceBars on craft page, etc
+  *    4a1) if (url === craft && research is complete ) { createResourceBarHTML('heat', 'tanks', 'kilns', 'liquid') };
   **/
     
-  let theMachine = document.getElementById("body");
+  let targetElement = document.getElementById("The-Machine");
   let section = document.createElement("section");
   let regex = /{{resource}}/gi;
   let templateHTML = `<section id="{{resource}}">
@@ -82,8 +85,10 @@ let templates = {
   section.className = "machine-parts";
   let updatedTemplateHTML = templateHTML.replace(regex, resource);
   section.innerHTML = updatedTemplateHTML;
-  theMachine.appendChild(section);
-  document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase();  
+  targetElement.appendChild(section);
+  document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase() + resource.slice(1,);
+  //add resource calculated values (DOM elements, etc)
+  theMachine.calculateValues('init');
   
   },
   renderFooter() {
