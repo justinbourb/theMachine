@@ -34,8 +34,13 @@ let theMachine = {
     
    
     //Case 1: duration is 0 => there's no workers for this resource... do not animate.
-    if (conditions[resource].duration === 0){
+    if (conditions[resource].duration === Infinity){
+      try {
+        conditions[resource][countUpName].reset();
+      } catch (e) {}
       conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
+      document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00';
+      document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
       return
       
     //Case 2: please do not animate the counter if it's paused!
