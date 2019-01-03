@@ -36,7 +36,7 @@
   conditions = (
     {
       heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
-      tanks: {}
+      tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
     }
   ); 
   globalData = (
@@ -161,6 +161,7 @@
       conditions.heat.paused = true;
       conditions.heat.startValue = 10;
       conditions.heat.ratePerSecond = 0.5;
+      conditions.heat.rateCost = 6.6;
       
        try{
         theMachine.updateCounterButtons(testCase);
@@ -169,7 +170,7 @@
       //conditions which should change
       eq(conditions.heat.ratePerSecond, 0.55);
       eq(conditions.heat.rateCost, 7.26);
-      eq(conditions.heat.startValue, 4);
+      eq(conditions.heat.startValue, 3.4000000000000004);
       eq(conditions.heat.rateLevel, 3);
 
       //it should not affect other values
@@ -357,7 +358,53 @@
       document.getElementById('tanksCollapsible').click();
       eq(document.getElementById('heatCollapsibleContent').style.display, "none");
       eq(document.getElementById('tanksCollapsibleContent').style.display, "flex");
+    },
+    '22) theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = true;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+    },
+    '23) theMachine.updateCounterButtons("job speed") should also update DOM correctly when called from other resources while paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = true;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
+    },
+    '23) theMachine.updateCounterButtons("job speed") should also restart the heat countUpAnim with new startValue when called from other resources while not paused': function() {
+      conditions.heat.heatCountUpAnim.reset();
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = false;
+      delete conditions.heat.heatCountUpAnim;
+      
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
+      eq(typeof(conditions.heat.heatCountUpAnim), 'object');
+    },
+    '24) theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while not paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = false;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+    },
+    '25) class="collapsible" child elements get their updated while paused & on init': function() {
+      fail(); 
     }
-    
   });
 </script>

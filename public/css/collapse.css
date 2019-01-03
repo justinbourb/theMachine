@@ -8,27 +8,25 @@
   flex-direction: column; 
 }
 .contentBottom{
-  align-items: center;
+  padding-left: 4%;
   background-color:black;
   display: flex;
-  justify-content: center;
   min-height: 30px;
-  width: 100%;
+  width: 96%;
 }
 
 .contentFloatRight{
-  margin-left: 20%; 
+  margin-left: 10%; 
 }
 .contentTop{
-  align-items: center;
   background-color:	#ececec;
   display: flex;
-  justify-content: center;
+  margin-left: 4%;
   min-height: 30px;
-  width: 100%;
+  width: 96%;
   font-size: 0.8em;
 }
-#heatProductionVolume, #heatProductionTime, #heatWorkerEfficiency, #heatAutomationRate{
+.resourceProductionVolume, .resourceProductionTime, .resourceWorkerEfficiency, .resourceAutomationRate{
   border-top: solid;
 }
 .modify-buttons{
@@ -41,7 +39,7 @@
   width: 100%;
   margin-bottom: 10px;
   margin-top: 10px;
-  margin-right: 10px;
+  
   
 }
 .smallText{

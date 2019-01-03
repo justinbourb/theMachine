@@ -33,7 +33,7 @@ let templates = {
 
           <div class="resourceBar" id="{{resource}}Bar">
             <div class="resourceText" id="{{resource}}Text">{{resource}}</div>
-            <div id="{{resource}}CountUpAnim" data-resource="{{resource}}"></div>
+            <div class="resourceCountUpAnim" id="{{resource}}CountUpAnim" data-resource="{{resource}}"></div>
           </div>
           
           <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}AutomationButton" onclick="theMachine.automationButton(event)">Disable Automation</button>
@@ -55,14 +55,14 @@ let templates = {
           <div class="contentTop">
             <div class="contentFloatLeft">
               <div id="{{resource}}ItemCap" data-resource="{{resource}}">Item Cap: unknown</div>
-              <div id="{{resource}}ProductionTime" data-resource="{{resource}}">Production Time: <b>4s</b></div>
-              <div id="{{resource}}ProductionVolume" data-resource="{{resource}}">Production Volume: <b>1</b></div>
+              <div class="resourceProductionTime" id="{{resource}}ProductionTime" data-resource="{{resource}}">Production Time: <b>4s</b></div>
+              <div class="resourceProductionVolume" id="{{resource}}ProductionVolume" data-resource="{{resource}}">Production Volume: <b>1</b></div>
             </div>
             <div class="contentFloatRight">
               <div id="{{resource}}WorkerCap" data-resource="{{resource}}">Worker Cap: unknown</div>
-              <div id="{{resource}}AutomationRate" data-resource="{{resource}}">Automation Rate: unknown</div>
+              <div class="resourceAutomationRate" id="{{resource}}AutomationRate" data-resource="{{resource}}">Automation Rate: unknown</div>
 
-              <div id="{{resource}}WorkerEfficiency" data-resource="{{resource}}">Worker Efficiency: unknown</div>
+              <div class="resourceWorkerEfficiency" id="{{resource}}WorkerEfficiency" data-resource="{{resource}}">Worker Efficiency: unknown</div>
             </div>
           </div>
           <div class="contentBottom">
