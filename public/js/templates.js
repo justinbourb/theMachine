@@ -22,11 +22,12 @@ let templates = {
   let targetElement = document.getElementById("The-Machine");
   let section = document.createElement("section");
   let regex = /{{resource}}/gi;
-  let templateHTML = `<section id="{{resource}}">
+  let templateHTML = `
+      <section class="machine-parts" id="{{resource}}">
         <in-line-group>
           <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}Manual" style="visibility:hidden" onclick="theMachine.manualCounterButton(event)">{{resource}}</button>
-          <button type="button" data-resource="{{resource}}" id="{{resource}}+" onclick="theMachine.workerButtons(event)">+</button>
-          <button type="button" data-resource="{{resource}}" id="{{resource}}-" onclick="theMachine.workerButtons(event)">-</button>
+          <button type="button" data-resource="{{resource}}" id="{{resource}}Plus" onclick="theMachine.workerButtons(event)">+</button>
+          <button type="button" data-resource="{{resource}}" id="{{resource}}Minus" onclick="theMachine.workerButtons(event)">-</button>
           <div class="workers" id="{{resource}}WorkerCount" data-resource="{{resource}}">0/5</div>  
           <!- add hammer and wrentch logo ->
 
@@ -48,7 +49,7 @@ let templates = {
         
         
         <br>
-      <!- css handled by collapse.css ->
+        <!- css handled by collapse.css ->
         <button class="collapsible">+/-</button>
         <div class="content" style="display: none">
           <div class="contentTop">
@@ -81,11 +82,10 @@ let templates = {
         </div>
       </section>
     `;
-  section.id = "tanks";
-  section.className = "machine-parts";
+
   let updatedTemplateHTML = templateHTML.replace(regex, resource);
-  section.innerHTML = updatedTemplateHTML;
-  targetElement.appendChild(section);
+
+  targetElement.innerHTML += updatedTemplateHTML;
   document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase() + resource.slice(1,);
   //add resource calculated values (DOM elements, etc)
   theMachine.calculateValues('init');

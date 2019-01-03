@@ -7,13 +7,16 @@ body {
 	font-smoothing: antialiased;
 	font-weight: 300;
 	line-height: 1.4em;
-	margin: 2% 20%;
+	
 	max-width: 100%;
 	min-width: 230px;
 	padding: 0;
 }
 .enableAutomation{
-  width: 12%;
+  width: 13%;
+}
+#heatPlus{
+ margin-left: 5%; 
 }
 #heatAutomate{
  width: 13%; 
@@ -51,10 +54,12 @@ body {
   width: 12%;
 }
 .machine-parts{
+  margin: 2% 10%;
   border: solid;
   border-width: 1px;
   border-color: black;
-  padding-top: 20px;
+  padding-top: 2%;
+  margin-top: 2%;
   background-color: #ececec;
   min-width: 50%;
 }

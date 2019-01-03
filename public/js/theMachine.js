@@ -20,6 +20,11 @@
 *
 **/
 
+/**FIXME:
+*1) excessive button clicks call animateCountUp and prevent resource counter / CountUp progress
+*  1a) limit clicks to every half second?
+**/
+
 let conditions;
 
 let globalData;
@@ -72,9 +77,9 @@ let theMachine = {
     //case 1: stopping automation
     if (document.getElementById(resource + 'AutomationButton').innerHTML === "Enable Automation" || conditions[resource].paused === true){
       document.getElementById(resource + 'AutomationButton').innerHTML = "Disable Automation";
-      document.getElementById(resource + '+').style.display = 'inline-block';
-      document.getElementById(resource + '+').style.marginLeft = "12.5%";
-      document.getElementById(resource + '-').style.display = 'inline-block';
+      document.getElementById(resource + 'Plus').style.display = 'inline-block';
+      document.getElementById(resource + 'Plus').style.marginLeft = "5%";
+      document.getElementById(resource + 'Minus').style.display = 'inline-block';
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
       document.getElementById(resource + 'WorkerCount').style.visibility = 'visible';
@@ -169,9 +174,12 @@ let theMachine = {
         }); 
       (
       globalData = {
-       globalWorkerCap: 5, globalWorkersAvailable: 4  
+       globalWorkerCap: 5, globalWorkersAvailable: 4, unlockedResources: ['heat', 'tanks']  
       });
     }
+    globalData.unlockedResources.forEach(function(resource){
+      templates.createResourceBarHTML(resource);
+    });
     
     theMachine.calculateValues('init');
     //start counters for all resources available
@@ -246,15 +254,15 @@ let theMachine = {
   renderWhilePaused(resource, countUpNameAuto) {
     //Manual Heat Button related DOM manipulation
     document.getElementById(resource + 'AutomationButton').innerHTML = "Enable Automation";
-    document.getElementById(resource + '+').style.display = 'none';
-    document.getElementById(resource + '-').style.display = 'none';
+    document.getElementById(resource + 'Plus').style.display = 'none';
+    document.getElementById(resource + 'Minus').style.display = 'none';
     document.getElementById(resource + 'Rate').style.visibility = 'hidden';
     document.getElementById(resource + 'Time').style.visibility = 'hidden';
     document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
     document.getElementById(resource + 'Manual').style.display = 'inline';
     document.getElementById(resource + 'Manual').style.visibility = 'visible';
     document.getElementById(resource + 'Manual').style.width = '48px';
-    document.getElementById(resource + 'Manual').style.marginLeft = "12.5%";
+    document.getElementById(resource + 'Manual').style.marginLeft = "5%";
     document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
     
     //Item Cap and AutomationRate related DOM Manipulation
