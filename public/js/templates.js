@@ -22,16 +22,17 @@ let templates = {
   let targetElement = document.getElementById("The-Machine");
   let section = document.createElement("section");
   let regex = /{{resource}}/gi;
-  let templateHTML = `<section id="{{resource}}">
+  let templateHTML = `
+      <section class="machine-parts" id="{{resource}}">
         <in-line-group>
-          <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}Manual" style="visibility:hidden" onclick="theMachine.manualCounterButton(event)">{{resource}}</button>
-          <button type="button" data-resource="{{resource}}" id="{{resource}}+" onclick="theMachine.workerButtons(event)">+</button>
-          <button type="button" data-resource="{{resource}}" id="{{resource}}-" onclick="theMachine.workerButtons(event)">-</button>
+          <button type="button" data-resource="{{resource}}" class="enableAutomation" id="{{resource}}Manual" style="display: none" onclick="theMachine.manualCounterButton(event)">{{resource}}</button>
+          <button type="button" data-resource="{{resource}}" class="resourcePlus" id="{{resource}}Plus" onclick="theMachine.workerButtons(event)">+</button>
+          <button type="button" data-resource="{{resource}}" id="{{resource}}Minus" onclick="theMachine.workerButtons(event)">-</button>
           <div class="workers" id="{{resource}}WorkerCount" data-resource="{{resource}}">0/5</div>  
           <!- add hammer and wrentch logo ->
 
-          <div class="resource-bar" id="{{resource}}Bar">
-            <div id="{{resource}}Text">{{resource}}</div>
+          <div class="resourceBar" id="{{resource}}Bar">
+            <div class="resourceText" id="{{resource}}Text">{{resource}}</div>
             <div id="{{resource}}CountUpAnim" data-resource="{{resource}}"></div>
           </div>
           
@@ -40,17 +41,17 @@ let templates = {
         
         <in-line-group>
           <div>
-            <div id="{{resource}}Rate"><b>Rate:</b> unknown</div>
-            <div id="{{resource}}Time"><b>Time remaining:</b> unknown</div>
-            <div id="{{resource}}CountUpAnimManual" data-resource="{{resource}}"></div>
+            <div class="resourceRate" id="{{resource}}Rate"><b>Rate:</b> unknown</div>
+            <div class="resourceTime" id="{{resource}}Time"><b>Time remaining:</b> unknown</div>
+            <div class="resourceCountUpAnimManual" id="{{resource}}CountUpAnimManual" data-resource="{{resource}}"></div>
           </div>
         </in-line-group>  
         
         
         <br>
-      <!- css handled by collapse.css ->
-        <button class="collapsible">+/-</button>
-        <div class="content" style="display: none">
+        <!- css handled by collapse.css ->
+        <button class="collapsible" id="{{resource}}Collapsible" data-resource="{{resource}}">+/-</button>
+        <div class="content" id="{{resource}}CollapsibleContent" style="display: none" data-resource="{{resource}}">
           <div class="contentTop">
             <div class="contentFloatLeft">
               <div id="{{resource}}ItemCap" data-resource="{{resource}}">Item Cap: unknown</div>
@@ -81,11 +82,10 @@ let templates = {
         </div>
       </section>
     `;
-  section.id = "tanks";
-  section.className = "machine-parts";
+
   let updatedTemplateHTML = templateHTML.replace(regex, resource);
-  section.innerHTML = updatedTemplateHTML;
-  targetElement.appendChild(section);
+
+  targetElement.innerHTML += updatedTemplateHTML;
   document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase() + resource.slice(1,);
   //add resource calculated values (DOM elements, etc)
   theMachine.calculateValues('init');
