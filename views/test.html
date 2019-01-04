@@ -304,26 +304,30 @@
     },
     
     '19) theMachine.pauseResume() pauses and resumes counter correctly': function() {
-      //reset any existing CountUps from previous tests
-      conditions.heat.heatCountUpAnim.reset();
-      conditions.heat.paused = false; //if true, the animation will be paused by pauseResume();
-      conditions.heat.startValue = 9;
-      conditions.heat.endValue = 30;
-      conditions.heat.workersAssigned = 1;
-      //start a new CountUp for this test;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      //the CountUp should pause with pauseResume
-      conditions.heat.paused = true; //if true, the animation will be paused by pauseResume();
-      //this line will pause any existing CountUp element via countUp.js pauseResume();
-      theMachine.pauseResume('heat', 'heatCountUpAnim');
-      //why did I put bindEvents in here?  Is this messing things up?
-      // theMachine.bindEvents();
-      //check innerHTML because CountUp is not running;
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
       
+      
+      //set conditions to test during setTimeout so they will not be overwritten by other tests
+      setTimeout(function() {
+        //reset any existing CountUps from previous tests
+        try {
+          conditions.heat.heatCountUpAnim.reset();
+        } catch (e) {}  
+        conditions.heat.paused = false; //if true, the animation will be paused by pauseResume();
+        conditions.heat.startValue = 9;
+        conditions.heat.endValue = 30;
+        conditions.heat.workersAssigned = 1;
+        //start a new CountUp for this test;
+        theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+        //the CountUp should pause with pauseResume
+        conditions.heat.paused = true; //if true, the animation will be paused by pauseResume();
+        //this line will pause any existing CountUp element via countUp.js pauseResume();
+        theMachine.pauseResume('heat', 'heatCountUpAnim');
+        //check innerHTML because CountUp is not running;
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
+      }, 0);
       
       //no progress is made while paused
-      setTimeout(function(){ 
+      setTimeout(function() { 
         eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
         eq(conditions.heat.heatCountUpAnim.frameVal, 9);
         conditions.heat.paused = false;
@@ -403,8 +407,67 @@
       theMachine.updateCounterButtons(testCase);
       eq(conditions.heat.startValue, 4);
     },
-    '25) class="collapsible" child elements get their updated while paused & on init': function() {
+    //scenario 1: countUp is paused
+    //scenario 2: countUp does not exist yet
+    //scenario 3: countUp has no workers assigned
+    '25) class="collapsible" child elements get their values updated while paused': function() {
+      conditions.heat.paused = true;
+      conditions.tanks.paused = true;
+      try {
+        conditions.heat.countUpAnim.reset();
+        conditions.tanks.countUpAnim.reset();
+      } catch (e) {}
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
+      
+      eq(document.getElementById('tanks' + 'ItemCap').innerHTML, 'Item Cap: <b>'+ conditions.tanks.endValue + '</b>')
+      eq(document.getElementById('tanks' + 'JobCost').innerHTML, '<b>Cost: </b>' + conditions.tanks.rateCost + ' Heat');
+      eq(document.getElementById('heat' + 'NextRate').innerHTML, '<b>Next: </b>' + parseFloat((conditions.heat.rateCost + conditions.heat.rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat');
+      eq(document.getElementById('tanks' + 'JobLevel').innerHTML, '<b>Level: </b>' + conditions.tanks.rateLevel + ' Heat');
+      eq(document.getElementById('heat' + 'WorkerCap').innerHTML, 'Worker Cap: <b>' + conditions.heat.workerCap + '</b>');
+      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + parseFloat(conditions.tanks.ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>');
+      eq(document.getElementById('heat' + 'WorkerEfficiency').innerHTML, 'Worker Efficiency: <b>' + conditions.heat.efficiency + '%</b>');
+      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + conditions.tanks.ratePerSecond + '/s</b>');
+      eq(document.getElementById('heat' + 'ItemCap').innerHTML, 'Item Cap: <b>' + conditions.heat.endValue + '</b>');  
+      fail('Tanks DOM manipulation not setup'); 
+    },
+    '26) theMachine.manualCounterButton() correctly disables and enables the resource generation button': function() {
       fail(); 
+    },
+    '27) theMachine.automationButton() correctly toggles html elements (hidden or not hidden) when clicked': function() {
+      //theMachine.automationButton() accomplishes this by calling theMachine.renderWhilePaused();
+      
+      //Case 1: resource counter is not paused
+      conditions.heat.paused = false;
+      let testCase = {target: {dataset: {resource: "heat"}}};
+      document.getElementById('heat' + 'AutomationButton').innerHTML = "Disable Automation";
+      theMachine.automationButton(testCase);
+         
+      eq(document.getElementById('heat' + 'AutomationButton').innerHTML, "Enable Automation");
+      eq(document.getElementById('heat' + 'Plus').style.display, 'none');
+      eq(document.getElementById('heat' + 'Minus').style.display, 'none');
+      eq(document.getElementById('heat' + 'Rate').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'Time').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'Manual').style.display, 'inline');
+      eq(document.getElementById('heat' + 'Manual').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'Manual').style.width, '48px');
+      eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
+      eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
+      eq(conditions.heat.paused, true);
+      
+      theMachine.automationButton(testCase);
+      //Case 2: resource counter is paused
+      eq(document.getElementById('heat' + 'AutomationButton').innerHTML, "Disable Automation");
+      eq(document.getElementById('heat' + 'Plus').style.display, 'inline-block');
+      eq(document.getElementById('heat' + 'Plus').style.marginLeft, "5%");
+      eq(document.getElementById('heat' + 'Minus').style.display, 'inline-block');
+      eq(document.getElementById('heat' + 'Rate').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'Time').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'Manual').style.display, 'none');
+      eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'none'); 
+      eq(conditions.heat.paused, false);
     }
   });
 </script>
