@@ -190,12 +190,12 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       var remainingTime = parseFloat(((self.endVal - value)/self.options.ratePerSecond).toFixed(2)).toLocaleString();
       document.getElementById(resource + 'Time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds";
       document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + self.endVal.toLocaleString() + '</b>';
-      document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '<b>';
+      document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '</b>';
       document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + parseFloat(self.options.ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>';
       document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>';
-      document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>&emsp;&emsp;&emsp;' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
-      document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>&emsp;&emsp;&emsp;' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
-      document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>&emsp;&emsp;&emsp;' + conditions[resource].rateLevel + ' Heat';
+      document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
+      document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
+      document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel + ' Heat';
       
     }
 	};
