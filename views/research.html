@@ -12,8 +12,12 @@
   </head>
   <body>
     <div id="spacer">
-      <button onclick="globalData.push('heat')">Research Heat</button>
+      <div id="content">
+        <button id="tanksResearch" data-resource="tanks" data-requirement="5" onclick="theMachine.researchButtons(event)">Research Tanks</button>
+        <button id="workersResearch" data-resource="workers" data-requirement="50" onclick="theMachine.researchButtons(event)">Research Workers</button>
+        <button id="klinsResearch" data-resource="klins" data-requirement="500" onclick="theMachine.researchButtons(event)">Research Klins</button>
+        <button id="fluidResearch" data-resource="fluid" data-requirement="3000" onclick="theMachine.researchButtons(event)">Research Fluid</button>
+      </div>
     </div>
-
   </body>
 </html>

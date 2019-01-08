@@ -12,6 +12,12 @@
       <section id="title">
         <header id="header">
           <h1>The Machine</h1>
+          <div id="researchTests">
+            <button id="tanksResearch" data-resource="tanks" data-requirement="5" onclick="theMachine.researchButtons(event)">Research Tanks</button>
+            <button id="workersResearch" data-resource="workers" data-requirement="50" onclick="theMachine.researchButtons(event)">Research Workers</button>
+            <button id="klinsResearch" data-resource="klins" data-requirement="500" onclick="theMachine.researchButtons(event)">Research Klins</button>
+            <button id="fluidResearch" data-resource="fluid" data-requirement="3000" onclick="theMachine.researchButtons(event)">Research Fluid</button>
+          </div>
         </header>
       </section>
 
@@ -41,7 +47,7 @@
   ); 
   globalData = (
     {
-     globalWorkerCap: 5, globalWorkersAvailable: 4, unlockedResources: ['heat', 'tanks']  
+     globalWorkerCap: 5, globalWorkersAvailable: 5, unlockedResources: ['heat', 'tanks'], lockedResearch: ['tanks', 'workers', 'klins', 'fluid']
     }
   );
   //create resource HTML
@@ -432,7 +438,17 @@
       fail('Tanks DOM manipulation not setup'); 
     },
     '26) theMachine.manualCounterButton() correctly disables and enables the resource generation button': function() {
-      fail(); 
+      //the button is active to start off
+      eq(document.getElementById('heatManual').disabled, false);
+      //click the button ==> it should be disabled during manual generation
+      document.getElementById('heatManual').click();
+      eq(document.getElementById('heatManual').disabled, true);
+      //after manual generation (1000ms), the button is enabled again
+      setTimeout(function() { 
+        eq(document.getElementById('heatManual').disabled, false);
+      }, 1001);
+      
+      
     },
     '27) theMachine.automationButton() correctly toggles html elements (hidden or not hidden) when clicked': function() {
       //theMachine.automationButton() accomplishes this by calling theMachine.renderWhilePaused();
@@ -468,6 +484,101 @@
       eq(document.getElementById('heat' + 'Manual').style.display, 'none');
       eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'none'); 
       eq(conditions.heat.paused, false);
+    },
+    '28) the research buttons push their respective resources to globalData.resourcesUnlocked': function() {
+      globalData.unlockedResources = ['heat'];
+      document.getElementById('tanksResearch').click();
+      eq(globalData.unlockedResources.includes('tanks'), true);
+      document.getElementById('workersResearch').click();
+      eq(globalData.unlockedResources.includes('workers'), true);
+      document.getElementById('klinsResearch').click();
+      eq(globalData.unlockedResources.includes('klins'), true);
+      document.getElementById('fluidResearch').click();
+      eq(globalData.unlockedResources.includes('fluid'), true);
+    },
+    '29) the research buttons will not add a resource twice to globalData.resourcesUnlocked': function() {
+      document.getElementById('tanksResearch').click();
+      let counter = 0;
+      globalData.unlockedResources.forEach(function(element) {
+        if (element === 'tanks'){
+         counter += 1; 
+        }
+      });
+      eq(counter, 1);
+    },
+    '30) the research buttons will be hidden or shown based on their requirements': function() {
+      /*Requirements:
+      *tanks - 5 heat
+      *workers - 50 heat
+      *klins - 500 heat
+      *fluid - 3000 heat
+      */
+      
+      conditions.heat.starValue = 0;
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').style.display, 'none');
+      eq(document.getElementById('workersResearch').style.display, 'none');
+      eq(document.getElementById('klinsResearch').style.display, 'none');
+      eq(document.getElementById('fluidResearch').style.display, 'none');
+      
+      conditions.heat.startValue = 5;
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').style.display, 'inline-block');
+      eq(document.getElementById('workersResearch').style.display, 'none');
+      eq(document.getElementById('klinsResearch').style.display, 'none');
+      eq(document.getElementById('fluidResearch').style.display, 'none');
+      
+      conditions.heat.startValue = 50;
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').style.display, 'inline-block');
+      eq(document.getElementById('workersResearch').style.display, 'inline-block');
+      eq(document.getElementById('klinsResearch').style.display, 'none');
+      eq(document.getElementById('fluidResearch').style.display, 'none');
+      
+      conditions.heat.startValue = 500;
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').style.display, 'inline-block');
+      eq(document.getElementById('workersResearch').style.display, 'inline-block');
+      eq(document.getElementById('klinsResearch').style.display, 'inline-block');
+      eq(document.getElementById('fluidResearch').style.display, 'none');
+      
+      conditions.heat.startValue = 3000;
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').style.display, 'inline-block');
+      eq(document.getElementById('workersResearch').style.display, 'inline-block');
+      eq(document.getElementById('klinsResearch').style.display, 'inline-block');
+      eq(document.getElementById('fluidResearch').style.display, 'inline-block');
+      
+    },
+    
+    '31) theMachine.researchButtons() removes items from globalData.lockedResearch once research is compelted': function() {
+      //see test 32 notes, code base needs to be upgraded for test to pass
+      fail(); 
+    },
+    
+    '32) theMachine.researchButtons() pushes research to the appropriate array': function() {
+      /*test goals: 
+      *1) non-resource items should not get pushed to globalData.unlockedResources
+      *  1a) this will cause a rendering bug/crash
+      */
+      
+      /*proposal:
+      *1) globalData.craftLockedResources = ['tanks', 'klins', fluid']
+      *2) globalData.theArmoryLockedResources = ['worker', 'fuel', 'elixir', 'pure elixer']
+      *  2a) worker animation needs special logic, cannot be made auto!
+      *3) if (globalData.theArmoryUnlockedResources.includes('worker')) {
+            theMachine.renderWorkers();
+            theMachine.makeAutomationVisible(); //not a real function
+          }
+      *  3a) does renderWorkers() include the header part?
+      *    3a1) renderWorkers() currently only updates the DOM with how many workers a resource 
+      *        and globalworkers have assigned
+      *  3b) make workers (including header) invisible by default
+      *  3c) make automation button invisible by default
+      *  3d) make both automation and workers visible after research
+      *4) follow format of steps 1 & 2 for other tabs (soldier, inventor, hunter, stat upgrade items
+      */
+      fail();
     }
   });
 </script>
