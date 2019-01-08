@@ -87,10 +87,8 @@ let templates = {
 
   targetElement.innerHTML += updatedTemplateHTML;
   document.getElementById(resource + "Text").innerHTML = resource.charAt(0).toUpperCase() + resource.slice(1,);
-  //add resource calculated values (DOM elements, etc)
-  theMachine.calculateValues('init');
-  
   },
+  
   renderFooter() {
     /*
     *This function will create links at the bottom of each page aka the footer.

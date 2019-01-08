@@ -14,9 +14,15 @@
 *    3c) each button / attribute should have a level associated with it.
 *        ratePerSecond = {rate: 1, level: 1)
 *4) build out logic of which elements belong in resources GlobalData.resourceUnlocked
-*  4a) incoroprate this logic into the research page
-*  4b) create breakpoints where new research is also unlocked
-*5) write out code for failing tests in test.html
+*5) research.html css file and/or align class names to theMachine.css  
+*6) create header link to theArmory, Soldiers, Inventor, Hunter, etc
+*  6a) unlocked header based on research
+*7) theMachine.updateCounterButtons() add logic for additional resource costs
+*  7a) crafting capacity costs tanks
+*  7b) crafting workers capacity costs klins
+*  7c) crafting efficiency costs fluid
+*8) theMachine.updateCounterbuttons() add logic for additional pages
+*  8a) theArmory, Soldiers, Inventor, Hunter, etc
 **/
 
 /**FIXME:
@@ -96,7 +102,11 @@ let theMachine = {
     **/
     
     window.addEventListener('beforeunload', function(event) {
-      theMachine.calculateValues('bindEvents');
+      //this if statemement is only relevent to the craft page (currently)
+      //FIXME: expand this logic when adding additional pages that require counters
+      if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
+        theMachine.calculateValues('bindEvents');
+      }
       theMachine.store('theMachine', conditions);
       theMachine.store('globalData', globalData);
     });  
@@ -109,8 +119,8 @@ let theMachine = {
       globalData.unlockedResources.forEach(function(resource){
         conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
         conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
-        //checks if page was left while not paused => we should calculate how much progress was made
-        if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false) {
+        //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
+        if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false && conditions[resource].workersAssigned > 0) {
           //amount of progress made after page was left
           let newStartValue = (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
           //check if amount of progress exceeds cap
@@ -157,7 +167,7 @@ let theMachine = {
   
   init() {
     //disabled for testing purposes
-    //theMachine.bindEvents();
+    theMachine.bindEvents();
     
     //check if any data is stored from a previous session
     if (theMachine.store('theMachine').length !== 0){
@@ -168,12 +178,12 @@ let theMachine = {
         {
           heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
           tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 },
-          liquid: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 0 }
+          klins: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
+          fluid: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
         }); 
       (
       globalData = {
-       globalWorkerCap: 5, globalWorkersAvailable: 5, unlockedResources: ['heat', 'tanks']  
+       globalWorkerCap: 5, globalWorkersAvailable: 5, unlockedResources: ['heat'], lockedResearch: ['tanks', 'workers', 'klins', 'fluid']
       });
     }
     globalData.unlockedResources.forEach(function(resource){
@@ -190,11 +200,7 @@ let theMachine = {
     
   },
   manualCounterButton(event) {
-    /**TODO:
-    * 1) build out heatManual button
-    *      1a2a) increase +1 amount based on capacity?? Should level with capacity??
-    *            With 10 capacity +1 is a lot.  With 10,000 cap, +1 is nothing. Needs to scale.
-    */
+
     let resource = event.target.dataset.resource;
     let countUpName = resource + 'CountUpAnimManual'; 
     let countUpNameAuto = resource + 'CountUpAnim'; 
@@ -216,13 +222,14 @@ let theMachine = {
         console.error(conditions[resource][countUpName].error);
     }
     //disable button until manual resource generation is finished
-    document.getElementById(event.target.id).disabled = true;
+    
+    event.target.disabled = true;
     //wait for the manual resource generation to finish & update accordingly
     setTimeout(function() {
       conditions[resource].startValue += 1;
       theMachine.updateGradientAndValue(resource, countUpNameAuto);    
       if (!(conditions[resource].startValue === conditions[resource].endVal)) {
-        document.getElementById(event.target.id).disabled = false;
+        event.target.disabled = false;
       }
       }, duration*1000);
     
@@ -253,6 +260,42 @@ let theMachine = {
     }
   },
   
+  researchInit(){
+    //gather current conditions from local storage on page load
+    if (theMachine.store('theMachine').length !== 0){
+      conditions = theMachine.store('theMachine');
+      globalData = theMachine.store('globalData');
+    }
+    //store current conditions before leaving the page
+    theMachine.bindEvents();
+    
+    //update DOM
+    theMachine.researchRender();
+  },
+  
+  researchButtons(event){
+    //FIXME: workers is part of global data, not a resource.
+    //this creates bugs when workers is clicked
+    if (!globalData.unlockedResources.includes(event.target.dataset.resource)){
+     globalData.unlockedResources.push(event.target.dataset.resource)
+    }
+    
+  },
+  
+  researchRender(){
+    //this function will update the DOM based on the research requirements
+    
+    globalData.lockedResearch.forEach(function(arrayItem) {
+      let elemnt = document.getElementById(arrayItem + 'Research');
+      if (conditions.heat.startValue >= elemnt.dataset.requirement) {
+        elemnt.style.display = "inline-block";
+      } else {
+        elemnt.style.display = "none"; 
+      }
+    });
+    
+  },
+    
   renderWhilePaused(resource, countUpNameAuto) {
     //Case 1: duration is divided by 0 => there's no workers for this resource.
     if (conditions[resource].duration === Infinity){
@@ -394,8 +437,11 @@ let theMachine = {
 
 window.onload = function() {
   //on start our counters on the machine page
-  //TODO: expand this logic when adding additional pages that require counters
+  //FIXME: expand this logic when adding additional pages that require counters
   if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
     theMachine.init(); 
+  }
+  if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
+    theMachine.researchInit(); 
   }
 };
