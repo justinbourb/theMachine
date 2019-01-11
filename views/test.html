@@ -607,6 +607,44 @@
       eq(document.getElementById('heat' + 'Manual').style.width, '48px');
       eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
       eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
+    },
+    '36) theMachine.calculateResourceGenerationOverTime() calculates resources generation based on time passed': function() {
+      //Case 1: it works for positive values
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = 0.5
+      let result = theMachine.calculateResourceGenerationOverTime('heat'); 
+      eq(result, 1);
+      //Case 2: it works for negative values
+      conditions.heat.ratePerSecond = -0.5
+      result = theMachine.calculateResourceGenerationOverTime('heat');
+      eq(result, -1);
+    },
+    '37) theMachine.calculateValues("init") Case 1: Resource generation cannot exceed endValue': function() {
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = 0.5
+      let result = theMachine.calculateResourceGenerationOverTime('heat'); 
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 10);
+      eq(conditions.heat.endValue, 10);
+    },
+    '38) theMachine.calculateValues("init") Case 2: Negative resource generation cannot cause startValue to be less than 0': function() {
+      conditions.heat.startValue = 0;
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = -0.5
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 0);
+    },
+    '39) theMachine.calculateValues("init") Case 3: it is safe to set startValue = newStartValue': function() {
+      conditions.heat.startValue = 9;
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = -0.5
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 8);
     }
     
   });

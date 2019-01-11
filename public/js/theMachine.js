@@ -24,8 +24,10 @@
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
-    9a) break out newStartValue logic from calculateValues('init') into it's own function;
-      9a1) return newStartValue from this function and use it for init and research page requirement checking
+*10) Assuming negative resource generation. Based on amount of time passed, halt resources after 
+    requirement resoure hits zero regardless of time passed.
+  10a) example: tanks require heat.  Heat drops to zero after 5 seconds.  Only generation
+    5 seconds worth of tanks regardless of time passed.
 **/
 
 /**FIXME:
@@ -114,7 +116,16 @@ let theMachine = {
     
   },
   
+  calculateResourceGenerationOverTime(resource) {
+    //calculates the amount of progress made after page was left
+    return (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
+  },
+  
   calculateValues(whichCalculation, whichInit) {
+    /*usage:
+    *1) whichCalculation = 'init' or 'bindEvents'
+    *2) whichInit = 'craftUnlockedResources' or 'theArmoryUnlockedResources' or etc
+    */
     //add calculated values (cannot be assigned during object creation, it causes an error)
     if (whichCalculation === 'init'){
       globalData[whichInit].forEach(function(resource){
@@ -123,15 +134,19 @@ let theMachine = {
         //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
         if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false && conditions[resource].workersAssigned > 0) {
           //amount of progress made after page was left
-          let newStartValue = (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
+          let newStartValue = conditions[resource].startValue + theMachine.calculateResourceGenerationOverTime(resource);
           //check if amount of progress exceeds cap
           if (newStartValue > conditions[resource].endValue) {
-            //Case 1: yes it does => startValue = endValue;
+            //Case 1: Case 1: Resource generation cannot exceed endValue;
             conditions[resource].startValue = conditions[resource].endValue; 
+          } else if (newStartValue < 0) {
+            //Case 2: Negative resource generation cannot cause startValue to be less than 0;
+            conditions[resource].startValue = 0;
           } else {
-            //case 2: no it doesn't => startValue = newStartValue
-            conditions[resource].startValue += newStartValue;
+            //Case 3: it is safe to set startValue = newStartValue
+            conditions[resource].startValue = newStartValue;
           }
+            
         }
         conditions[resource]['wasPageLeft'] = false;
       });
