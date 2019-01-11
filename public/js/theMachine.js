@@ -13,7 +13,6 @@
 *      3a1a) Save data on close completed.  Is this best practice?
 *    3c) each button / attribute should have a level associated with it.
 *        ratePerSecond = {rate: 1, level: 1)
-*4) build out logic of which elements belong in resources GlobalData.resourceUnlocked
 *5) research.html css file and/or align class names to theMachine.css  
 *6) create header link to theArmory, Soldiers, Inventor, Hunter, etc
 *  6a) unlocked header based on research
@@ -23,6 +22,10 @@
 *  7c) crafting efficiency costs fluid
 *8) theMachine.updateCounterbuttons() add logic for additional pages
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
+*9) theMachine.researchButtons() should check for any progress made since leaving the craft page
+    to check if requirements are still met
+    9a) break out newStartValue logic from calculateValues('init') into it's own function;
+      9a1) return newStartValue from this function and use it for init and research page requirement checking
 **/
 
 /**FIXME:
@@ -44,8 +47,8 @@ let globalData;
 
 
 let theMachine = {
-  
-   animateCountUp(resource, countUpName, elemnt) {
+
+  animateCountUp(resource, countUpName, elemnt) {
      
     //make sure duration has been updated
     conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond * conditions[resource].workersAssigned);
@@ -95,28 +98,26 @@ let theMachine = {
     }
   },
   
-  bindEvents() {
+  bindEvents(whichInit) {
     /** this event listener creates a local storage item every time the page is left
     *   while this is good in theory for production, it's bad for testing.
     *  Currently disabled.
     **/
     
     window.addEventListener('beforeunload', function(event) {
-      //this if statemement is only relevent to the craft page (currently)
-      //FIXME: expand this logic when adding additional pages that require counters
-      if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
-        theMachine.calculateValues('bindEvents');
-      }
+      try {
+        theMachine.calculateValues('bindEvents', whichInit);
+      } catch (e) {}
       theMachine.store('theMachine', conditions);
       theMachine.store('globalData', globalData);
     });  
     
   },
   
-  calculateValues(whichCalculation) {
+  calculateValues(whichCalculation, whichInit) {
     //add calculated values (cannot be assigned during object creation, it causes an error)
     if (whichCalculation === 'init'){
-      globalData.unlockedResources.forEach(function(resource){
+      globalData[whichInit].forEach(function(resource){
         conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
         conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
         //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
@@ -136,7 +137,7 @@ let theMachine = {
       });
     }
     if (whichCalculation === 'bindEvents'){
-      globalData.unlockedResources.forEach(function(resource){
+      globalData[whichInit].forEach(function(resource){
         theMachine.checkStartValue(resource, resource + 'CountUpAnim');
         //save the timestamp when page was left to calculate progress upon reloading.
         conditions[resource].wasPageLeft = Date.now();
@@ -165,34 +166,40 @@ let theMachine = {
     
   },
   
-  init() {
+  init(whichInit) {
     //disabled for testing purposes
-    theMachine.bindEvents();
+    theMachine.bindEvents(whichInit);
     
-    //check if any data is stored from a previous session
+    //check if any data is stored from a previous session else use defaults
     if (theMachine.store('theMachine').length !== 0){
       conditions = theMachine.store('theMachine');
       globalData = theMachine.store('globalData');
     } else {
       conditions = (
         {
-          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
-          tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["white", "orange"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 50, gradientColors: ["white", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 50, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
+          fluid: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
         }); 
-      (
-      globalData = {
-       globalWorkerCap: 5, globalWorkersAvailable: 5, unlockedResources: ['heat'], lockedResearch: ['tanks', 'workers', 'klins', 'fluid']
+      globalData = (
+      {
+        globalWorkerCap: 5, globalWorkersAvailable: 5, workersUnlocked: false,
+        craftUnlockedResources: ['heat'], 
+        craftLockedResources: ['tanks', 'klins', 'fluid'],
+        theArmoryUnlockedResources: [],
+        theArmoryLockedResources: ['workers'],
       });
     }
-    globalData.unlockedResources.forEach(function(resource){
+    
+    globalData[whichInit].forEach(function(resource){
       templates.createResourceBarHTML(resource);
     });
     
-    theMachine.calculateValues('init');
+    theMachine.calculateValues('init', whichInit);
+    
     //start counters for all resources available
-    globalData.unlockedResources.forEach(function(resource){
+    globalData[whichInit].forEach(function(resource){
       theMachine.renderWorkers(resource);
       let countUpNameAuto = resource + 'CountUpAnim';
       theMachine.animateCountUp(resource, countUpNameAuto, conditions[resource].counterElement);
@@ -259,6 +266,77 @@ let theMachine = {
       } catch(e) {}
     }
   },
+    
+  renderWhilePaused(resource, countUpNameAuto) {
+    //Case 1: duration is divided by 0 => there's no workers for this resource.
+    if (conditions[resource].duration === Infinity){
+      try {
+        conditions[resource][countUpNameAuto].reset();
+      } catch (e) {}
+      conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
+      document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00';
+      document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
+    }
+    
+    //Case 2: CountUp Animation is paused or workers not unlocked => manual resource button related DOM manipulation
+    if (conditions[resource].paused === true || globalData.workersUnlocked === false) {
+      document.getElementById(resource + 'AutomationButton').innerHTML = "Enable Automation";
+      document.getElementById(resource + 'Plus').style.display = 'none';
+      document.getElementById(resource + 'Minus').style.display = 'none';
+      document.getElementById(resource + 'Rate').style.visibility = 'hidden';
+      document.getElementById(resource + 'Time').style.visibility = 'hidden';
+      document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
+      document.getElementById(resource + 'Manual').style.display = 'inline';
+      document.getElementById(resource + 'Manual').style.visibility = 'visible';
+      document.getElementById(resource + 'Manual').style.width = '48px';
+      document.getElementById(resource + 'Manual').style.marginLeft = "5%";
+      document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
+    }
+    
+    //collapse child elements related DOM manipulation
+    document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + conditions[resource].endValue.toLocaleString() + '</b>';
+    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
+    document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
+    document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel + ' Heat';
+    document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '</b>';
+    document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + parseFloat(conditions[resource].ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>';
+    document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>';
+    
+    //if called by renderWorkers countUpNameAuto is not supplied, this if statement prevents errors
+    if (countUpNameAuto) {
+      theMachine.checkStartValue(resource, countUpNameAuto);
+      theMachine.updateGradientAndValue(resource, countUpNameAuto);
+      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
+    }
+    
+  },
+  
+  renderWorkers(resource) {
+    //Case 1: workers are unlocked && counter is not paused
+    if (globalData.workersUnlocked === true && conditions[resource].paused === false) {
+      //update DOM
+      try {
+        document.getElementById(resource + 'AutomationButton').style.display = 'inline-block';
+        document.getElementById(resource + 'Collapsible').style.display = 'inline-block';
+        document.getElementById('globalWorkerCount').style.display = 'block'
+        document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
+        document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
+      } catch (e) {console.log(e);}
+    } 
+    //Case 2: workers are unlocked && counter is paused
+    if (globalData.workersUnlocked === true && conditions[resource].paused === true) {
+      document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
+      theMachine.renderWhilePaused(resource); 
+    }
+    
+    //Case 3: workers are locked
+    if (globalData.workersUnlocked === false) {
+      document.getElementById(resource + 'AutomationButton').style.display = 'none';
+      document.getElementById(resource + 'Collapsible').style.display = 'none';
+      document.getElementById('globalWorkerCount').style.display = 'none';
+    }
+  
+  },
   
   researchInit(){
     //gather current conditions from local storage on page load
@@ -276,8 +354,14 @@ let theMachine = {
   researchButtons(event){
     //FIXME: workers is part of global data, not a resource.
     //this creates bugs when workers is clicked
-    if (!globalData.unlockedResources.includes(event.target.dataset.resource)){
-     globalData.unlockedResources.push(event.target.dataset.resource)
+    let type = event.target.dataset.type;
+    let resource = event.target.dataset.resource;
+    if (!globalData[type].includes(resource)){
+     globalData[type].push(resource);
+    }
+    
+    if (resource === 'workers') {
+      globalData.workersUnlocked = true; 
     }
     
   },
@@ -285,7 +369,7 @@ let theMachine = {
   researchRender(){
     //this function will update the DOM based on the research requirements
     
-    globalData.lockedResearch.forEach(function(arrayItem) {
+    globalData.craftLockedResources.forEach(function(arrayItem) {
       let elemnt = document.getElementById(arrayItem + 'Research');
       if (conditions.heat.startValue >= elemnt.dataset.requirement) {
         elemnt.style.display = "inline-block";
@@ -294,56 +378,15 @@ let theMachine = {
       }
     });
     
-  },
+    globalData.theArmoryLockedResources.forEach(function(arrayItem) {
+      let elemnt = document.getElementById(arrayItem + 'Research');
+      if (conditions.heat.startValue >= elemnt.dataset.requirement) {
+        elemnt.style.display = "inline-block";
+      } else {
+        elemnt.style.display = "none"; 
+      }
+    });
     
-  renderWhilePaused(resource, countUpNameAuto) {
-    //Case 1: duration is divided by 0 => there's no workers for this resource.
-    if (conditions[resource].duration === Infinity){
-      try {
-        conditions[resource][countUpNameAuto].reset();
-      } catch (e) {}
-      conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
-      document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00';
-      document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
-    }
-    //Case 2: CountUp Animation is paused => manual resource button related DOM manipulation
-    if (conditions[resource].paused === true) {
-      document.getElementById(resource + 'AutomationButton').innerHTML = "Enable Automation";
-      document.getElementById(resource + 'Plus').style.display = 'none';
-      document.getElementById(resource + 'Minus').style.display = 'none';
-      document.getElementById(resource + 'Rate').style.visibility = 'hidden';
-      document.getElementById(resource + 'Time').style.visibility = 'hidden';
-      document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
-      document.getElementById(resource + 'Manual').style.display = 'inline';
-      document.getElementById(resource + 'Manual').style.visibility = 'visible';
-      document.getElementById(resource + 'Manual').style.width = '48px';
-      document.getElementById(resource + 'Manual').style.marginLeft = "5%";
-      document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
-      
-      theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
-    }
-    
-    //collapse child elements related DOM manipulation
-    document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + conditions[resource].endValue.toLocaleString() + '</b>';
-    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
-    document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
-    document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel + ' Heat';
-    document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '</b>';
-    document.getElementById(resource + 'AutomationRate').innerHTML = 'Automation Rate: <b>' + parseFloat(conditions[resource].ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>';
-    document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>';
-    
-    theMachine.checkStartValue(resource, countUpNameAuto);
-    theMachine.updateGradientAndValue(resource, countUpNameAuto);
-    
-  },
-  
-  renderWorkers(resource) {
-    //update DOM
-    try {
-      document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
-      document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
-    } catch (e) {}
-  
   },
   
   store(namespace, data) {
@@ -419,7 +462,7 @@ let theMachine = {
       }
     }
     
-    //check if subtrating workers
+    //check if subtracting workers
     if (event.target.innerHTML === '-') {
       //check if there's any workers left in resource pool
       if (conditions[resource].workersAssigned > 0) {
@@ -439,7 +482,7 @@ window.onload = function() {
   //on start our counters on the machine page
   //FIXME: expand this logic when adding additional pages that require counters
   if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
-    theMachine.init(); 
+    theMachine.init('craftUnlockedResources'); 
   }
   if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
     theMachine.researchInit(); 
