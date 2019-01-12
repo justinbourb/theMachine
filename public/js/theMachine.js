@@ -41,6 +41,8 @@
 *  2b) However, class='collapsible' child elements do not need to be animated => this code
 *      should be removed from countUp.js and called somewhere in theMachine.js or perhaps
 *      collapse.js???  Since this is inside the collapse item, but it's also part of theMachine...
+*3) theMachine.updateCounterButton() should work for other page besides craft (theArmory, Soldier, etc) - make it DRY
+*  3a) combine item capacity and job speed code?  there's a lot of similarity there...
 **/
 
 let conditions;
@@ -192,10 +194,10 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 50, gradientColors: ["white", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 50, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          heat: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 10, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          tanks: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
+          fluid: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
         }); 
       globalData = (
       {
@@ -421,7 +423,7 @@ let theMachine = {
     * 2) Increase rate/second by 1 each time it is called or
     * 3) It then restarts the animation, calling theMachine.animateCountUp
     *
-    **/    
+    **/   
     let resource = event.target.dataset.resource; //heat or tanks or fuel, etc;
     let countUpNameAuto = resource + 'CountUpAnim';
     let elemnt = conditions[resource].counterElement;;
@@ -429,7 +431,23 @@ let theMachine = {
     theMachine.checkStartValue(resource, countUpNameAuto);
 
     if (event.target.innerHTML === 'Item Capacity') {
-      conditions[resource].endValue += 10;
+      //Item Capacity cost is tanks specific, 'heat' related code should be hard coded here
+      theMachine.checkStartValue('tanks', 'tanksCountUpAnim');
+      if (conditions.tanks.startValue >= conditions[resource].capacityCost) {
+        //should reduce tanks.startValue by [resource].capacityCost
+        conditions.tanks.startValue -= conditions[resource].capacityCost;
+        conditions[resource].endValue += (conditions[resource].endValue * 0.1);
+        conditions[resource].capacityCost += (conditions[resource].capacityCost * 0.1);
+        conditions[resource].capacityLevel += 1;
+        try{
+        //prevent theMachine.checkStartValue from overwriting startValue while paused
+          conditions.tanks.tanksCountUpAnim.frameVal = conditions.tanks.startValue;
+        }catch(e){}
+        
+        if (resource !== 'tanks') {
+          theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
+        }
+      }
     } 
     //check if enough heat to upgrade speed
     if (event.target.innerHTML === 'Job Speed') {
@@ -440,12 +458,13 @@ let theMachine = {
         conditions[resource].ratePerSecond += (conditions[resource].ratePerSecond * 0.1);
         conditions[resource].ratePerSecond = parseFloat(conditions[resource].ratePerSecond.toFixed(4));
         conditions.heat.startValue -= conditions[resource].rateCost;
+        conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
+        conditions[resource].rateLevel += 1;
         //prevent theMachine.checkStartValue from overwriting startValue while paused
         try{
           conditions.heat.heatCountUpAnim.frameVal = conditions.heat.startValue;
         }catch(e){}
-        conditions[resource].rateCost += (conditions[resource].rateCost * 0.1);
-        conditions[resource].rateLevel += 1;
+        
         if (resource !== 'heat') {
           theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
         }

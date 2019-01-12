@@ -41,8 +41,8 @@
   //reset conditions to test values
   conditions = (
     {
-      heat: { counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
-      tanks: { counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
+      heat: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
+      tanks: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
     }
   ); 
   globalData = (
@@ -95,18 +95,21 @@
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
       conditions.heat.endValue = 10;
       conditions.heat.startValue = 10;
+      conditions.tanks.startValue = 10;
+      conditions.heat.capacityCost = 5;
       conditions.heat.heatCountUpAnim.frameVal = 0;
+      //conditions.heat.paused = false;
       try{
         theMachine.updateCounterButtons(testCase);
       } catch (e) {};
       
       //condition which should change
-      eq(conditions.heat.endValue, 20);
+      eq(conditions.heat.endValue, 11);
       
       //it should not affect other values
       eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
       eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 20);
+      eq(conditions.heat.duration, 2);
       eq(conditions.heat.gradientColors[0], "white");
       eq(conditions.heat.gradientColors[1], "#F5F5F5");
       eq(conditions.heat.paused, false);
@@ -121,18 +124,21 @@
       conditions.heat.paused = true;
       conditions.heat.startValue = 10;
       conditions.heat.endValue = 10;
+      conditions.heat.capacityCost = 5;
+      conditions.tanks.startValue = 10;
       
       try{
         theMachine.updateCounterButtons(testCase);
       } catch (e) {};
       
       //conditions which should change
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 20');
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 11');
+      eq(conditions.heat.endValue, 11);
       
       //it should not affect other values
       eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
       eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 20);
+      eq(conditions.heat.duration, 2);
       eq(conditions.heat.gradientColors[0], "white");
       eq(conditions.heat.gradientColors[1], "#F5F5F5");
       eq(conditions.heat.paused, true);
@@ -381,7 +387,7 @@
       theMachine.updateCounterButtons(testCase);
       eq(conditions.heat.startValue, 4);
     },
-    '23) theMachine.updateCounterButtons("job speed") should also update DOM correctly when called from other resources while paused': function() {
+    '23) theMachine.updateCounterButtons("job speed") should update DOM correctly when called from other resources while paused': function() {
       conditions.heat.startValue = 10;
       conditions.heat.endValue = 10;
       conditions.tanks.rateCost= 6;
@@ -392,7 +398,7 @@
       eq(conditions.heat.heatCountUpAnim.frameVal, 4);
       eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
     },
-    '23) theMachine.updateCounterButtons("job speed") should also restart the heat countUpAnim with new startValue when called from other resources while not paused': function() {
+    '23) theMachine.updateCounterButtons("job speed") should restart the heat countUpAnim with new startValue when called from other resources while not paused': function() {
       conditions.heat.heatCountUpAnim.reset();
       conditions.heat.startValue = 10;
       conditions.heat.endValue = 10;
@@ -645,7 +651,36 @@
       globalData.craftUnlockedResources = ['heat'];
       theMachine.calculateValues('init', 'craftUnlockedResources');
       eq(conditions.heat.startValue, 8);
+    },
+    '40) theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
+      conditions.heat.capacityCost = 10;
+      conditions.tanks.startValue = 5;
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.capacityCost, 10);
+      eq(conditions.tanks.startValue, 5);
+    },
+    '41) theMachine.updateCounterButtons("item capacity") should reduce tanks.startValue by [resource].capacityCost':function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
+      conditions.tanks.capacityCost = 5;
+      conditions.tanks.startValue = 10
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.tanks.startValue, 5);
+    },
+    '42) theMachine.updateCounterButtons("item capacity") should increase [resource].capacityCost 10%':function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
+      conditions.tanks.startValue = 10;
+      conditions.tanks.capacityCost = 5;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.tanks.capacityCost, 5.5);
+    },
+    '43) theMachine.updateCounterButtons("item capacity") should increase [resource].endValue by 10%':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      conditions.heat.capacityCost = 5;
+      conditions.tanks.startValue = 10;
+      conditions.heat.endValue = 10;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.endValue, 11);
     }
-    
   });
 </script>
