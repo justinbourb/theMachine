@@ -255,7 +255,7 @@
       eq(conditions.heat.workersAssigned, 5);
     },
     
-    '14) theMachine.workerButtons() update the DOM correctly': function() {
+    '14) theMachine.workerButtons() update the number of workers in DOM correctly': function() {
       testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
       theMachine.workerButtons(testCase);    
       
@@ -421,6 +421,17 @@
       let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
       theMachine.updateCounterButtons(testCase);
       eq(conditions.heat.startValue, 4);
+      
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.rateCost = 6;
+      conditions.heat.heatCountUpAnim.frameVal = 10;
+      conditions.heat.paused = false;
+      conditions.heat.workersAssigned = 0;
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
     },
     //scenario 1: countUp is paused
     //scenario 2: countUp does not exist yet
@@ -442,7 +453,7 @@
       eq(document.getElementById('heat' + 'WorkerCap').innerHTML, 'Worker Cap: <b>' + conditions.heat.workerCap + '</b>');
       eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + parseFloat(conditions.tanks.ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>');
       eq(document.getElementById('heat' + 'WorkerEfficiency').innerHTML, 'Worker Efficiency: <b>' + conditions.heat.efficiency + '%</b>');
-      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + conditions.tanks.ratePerSecond + '/s</b>');
+      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + conditions.tanks.ratePerSecond.toFixed(3) + '/s</b>');
       eq(document.getElementById('heat' + 'ItemCap').innerHTML, 'Item Cap: <b>' + conditions.heat.endValue + '</b>');  
       fail('Tanks DOM manipulation not setup'); 
     },
@@ -646,6 +657,7 @@
     },
     '39) theMachine.calculateValues("init") Case 3: it is safe to set startValue = newStartValue': function() {
       conditions.heat.startValue = 9;
+      conditions.heat.workersAssigned = 1;
       conditions['heat'].wasPageLeft = Date.now() - 2000;
       conditions.heat.ratePerSecond = -0.5
       globalData.craftUnlockedResources = ['heat'];
@@ -681,6 +693,69 @@
       conditions.heat.endValue = 10;
       theMachine.updateCounterButtons(testCase);
       eq(conditions.heat.endValue, 11);
+    },
+    '44) theMachine.workerButtons() reduces resourceSpent ratePerSecond when increasing resource ratePerSecond': function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '+'}};
+      conditions.heat.paused = false;
+      conditions.heat.workersAssigned = 0;
+      conditions.heat.startValue = 10;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.tanks.ratePerSecond = 0.5;
+      globalData.globalWorkersAvailable = 5;
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.4);
+      eq(conditions.tanks.ratePerSecond, 0.5);
+    },
+    '45) theMachine.workerButtons() increases resourceSpent ratePerSecond when reducing resource ratePerSecond': function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.tanks.ratePerSecond, 0.5);
+    },
+    '46) theMachine.workerButtons() will not change ratePerSecond is resource === resourceSpent': function() {
+      //heat === resource === resourceSpent
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.5);
+    },
+    '47) theMachine.workerButtons() it will not animate resource CountUp if resourceSpent startValue is zero': function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '+'}};
+      delete conditions.tanks.tanksCountUpAnim
+      theMachine.workerButtons(testCase);
+      eq(conditions.tanks.tanksCountUpAnim, undefined);
+    },
+    '48) theMachine.workerButtons() it will animate resource CountUp if resource === resourceSpent && startValue is zero': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      delete conditions.heat.heatCountUpAnim
+      theMachine.workerButtons(testCase);
+      eq(typeof(conditions.heat.heatCountUpAnim), 'object');
+    },
+    ') theMachine.animateCountUp() will reduce resourceSpent if ratePerSecond is negative if workers are assigned to any resource': function() {
+      fail();
+      /**
+      *1) workerButtons() keeps track of which resource has workers by calling both animations when hitting +/-
+      *2) animateCountUp needs some special cases
+      *  2a) if resourceSpent workers = 0
+      *    2a) effective rate = 0 - (resource.ratePerSecond / 5);
+      *      2a1) this would take effect if resourceSpent is paused or workers = 0;
+      **/
+    },
+    ') resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
+      fail();
+      /**1) where to check for this?  Probably need to check every second or something?
+      *2)check in countUp.js?
+      *  2a) could in countUp.js printValue() before rending resource
+      *    2a1) if (conditions[resource.resourceSpent].startValue || conditions[resource.resourceSpent].countUpAnim.frameVal = 0) {
+      *            conditions[resource].countUpAnim.reset(); }
+      *    2a2) the counters would need to be restarted if there was enough resourceSpent... would have to be all relevant counters...
+      **/
+    },
+    ') resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
+      fail();
+      //see above comments, not sure how to do this yet
     }
   });
 </script>
