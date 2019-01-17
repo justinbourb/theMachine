@@ -79,7 +79,7 @@ let theMachine = {
     //make sure duration has been updated
     conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond * conditions[resource].workersAssigned);
     
-    //Case 1: animation is not paused && there are more than 0 workers assigned, please render it
+    //Case 1: it will animate if not paused && there are more than 0 workers assigned
     if (conditions[resource].paused === false && conditions[resource].duration !== Infinity){
       try{
       conditions[resource][countUpName].reset();
@@ -150,6 +150,14 @@ let theMachine = {
     *1) whichCalculation = 'init' or 'bindEvents'
     *2) whichInit = 'craftUnlockedResources' or 'theArmoryUnlockedResources' or etc
     */
+    if (whichCalculation === 'bindEvents'){
+      globalData[whichInit].forEach(function(resource){
+        theMachine.checkStartValue(resource, resource + 'CountUpAnim');
+        //save the timestamp when page was left to calculate progress upon reloading.
+        conditions[resource].wasPageLeft = Date.now();
+      });
+    }
+    
     //add calculated values (cannot be assigned during object creation, it causes an error)
     if (whichCalculation === 'init'){
       globalData[whichInit].forEach(function(resource){
@@ -175,23 +183,16 @@ let theMachine = {
         conditions[resource]['wasPageLeft'] = false;
       });
     }
-    if (whichCalculation === 'bindEvents'){
-      globalData[whichInit].forEach(function(resource){
-        theMachine.checkStartValue(resource, resource + 'CountUpAnim');
-        //save the timestamp when page was left to calculate progress upon reloading.
-        conditions[resource].wasPageLeft = Date.now();
-      });
-    }
   },
   
   checkStartValue(resource, countUpNameAuto) {
     try {
-      //case 1: the counter is not yet completed and we can access it's values
+      //case 1: if frameVal > startValue it will set startValue = frameVal
       if (conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue) {
           conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
           conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
         }
-      //case 2: the counter is completed or deleted (test cases only), we cannot access it's values
+      //case 2: it will update startValue when the counter is completed or deleted (by reading HTML values)
     } catch (e) {
       let checkInnerHTML = parseInt(document.getElementById(countUpNameAuto).innerHTML.split('/')[0].trim());
       //confirm checkInnerHTML is a number, not NaN
