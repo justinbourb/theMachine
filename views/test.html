@@ -38,7 +38,7 @@
 
 <script>
 
-  //reset conditions to test values
+  //baseline test values for conditions & globalData
   conditions = (
     {
       heat: { capacityCost: 5, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
@@ -58,306 +58,38 @@
       templates.createResourceBarHTML(resource);
     });
   
+  function countUpReset(resource) {
+    try {
+      conditions[resource][resource + 'CountUpAnim'].reset();
+      } catch (e) {}
+  };
+  
+  function resetConditions() {
+    conditions.heat.startValue = 0;
+    conditions.heat.endValue = 10;
+    conditions.heat.ratePerSecond = 0.5;
+    conditions.heat.workersAssigned = 1;
+    conditions.heat.paused = false;
+    conditions.heat.capacityCost = 5;
+    try {
+      conditions.heat.heatCountUpAnim.frameVal = 0;
+    } catch(e) {
+      conditions.heat.heatCountUpAnim = {};
+      conditions.heat.heatCountUpAnim.frameVal = 0;
+    }
+    
+    conditions.tanks.ratePerSecond = 0.5;
+    
+    globalData.globalWorkersAvailable = 4;
+  };
     
   tests({
-    '1) theMachine.calculateValues("init") should fill in calculated values for conditions':function() {       
-      theMachine.calculateValues('init', 'craftUnlockedResources');
-      eq(conditions.heat.counterElement, document.getElementById("heatCountUpAnim"));
-      eq(conditions.heat.counterElementManual, document.getElementById("heatCountUpAnimManual"));
-    },
     
-    '2) theMachine.checkStartValue() should update start value as needed':function() {
-      //theMachine.init();
-      conditions.heat.heatCountUpAnim = {};
-      conditions.heat.heatCountUpAnim.frameVal = 8;
-      conditions.heat.startValue = 7;
-      theMachine.checkStartValue("heat", "heatCountUpAnim");
-      eq(conditions.heat.startValue, 8);
-    },
+    //
+    //collapse.js
+    //
     
-    '3) theMachine.manualCounterButtonStatus() should toggle disabled state correctly':function() {
-      conditions.heat.startValue = 7;
-      conditions.heat.heatCountUpAnim.frameVal = 7;
-      conditions.heat.endValue = 10;
-      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
-      eq(document.getElementById('heat' + 'Manual').disabled, false);
-      conditions.heat.startValue = 10;
-      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
-      eq(document.getElementById('heat' + 'Manual').disabled, true);
-    },
-    
-    '4) theMachine.store() should store in local storage':function() {
-      theMachine.store('test', 1);
-      eq(theMachine.store('test'), 1);
-    },
-    
-    '5) theMachine.updateCounterButtons() "Item Capacity" should only update endValue when not paused':function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
-      conditions.heat.endValue = 10;
-      conditions.heat.startValue = 10;
-      conditions.tanks.startValue = 10;
-      conditions.heat.capacityCost = 5;
-      conditions.heat.heatCountUpAnim.frameVal = 0;
-      //conditions.heat.paused = false;
-      try{
-        theMachine.updateCounterButtons(testCase);
-      } catch (e) {};
-      
-      //condition which should change
-      eq(conditions.heat.endValue, 11);
-      
-      //it should not affect other values
-      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
-      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 2);
-      eq(conditions.heat.gradientColors[0], "white");
-      eq(conditions.heat.gradientColors[1], "#F5F5F5");
-      eq(conditions.heat.paused, false);
-      eq(conditions.heat.ratePerSecond, 0.5);
-      eq(conditions.heat.rateCost, 6);
-      eq(conditions.heat.startValue, 10);
-    },
-    
-    '6) theMachine.updateCounterButtons() "Item Capacity" should only update options.suffix, Item Cap and endVal when paused':function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};      
-     
-      conditions.heat.paused = true;
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.heat.capacityCost = 5;
-      conditions.tanks.startValue = 10;
-      
-      try{
-        theMachine.updateCounterButtons(testCase);
-      } catch (e) {};
-      
-      //conditions which should change
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 11');
-      eq(conditions.heat.endValue, 11);
-      
-      //it should not affect other values
-      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
-      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 2);
-      eq(conditions.heat.gradientColors[0], "white");
-      eq(conditions.heat.gradientColors[1], "#F5F5F5");
-      eq(conditions.heat.paused, true);
-      eq(conditions.heat.ratePerSecond, 0.5);
-      eq(conditions.heat.rateCost, 6);
-      eq(conditions.heat.startValue, 10);
-    },
-    
-    '7) theMachine.updateCounterButtons() "Job Speed" should only update ratePerSecond, startValue and rateCost':function () {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
-      conditions.heat.paused = false;
-      conditions.heat.endValue = 30;
-      
-       try{
-        theMachine.updateCounterButtons(testCase);
-      } catch (e) {};
-      
-      //conditions which should change
-      eq(conditions.heat.ratePerSecond, 0.55);
-      eq(conditions.heat.rateCost, 6.6);
-      eq(conditions.heat.startValue, 4);
-      
-      //it should not affect other values
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 30');
-      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
-      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 47.272727272727266);
-      eq(conditions.heat.gradientColors[0], "white");
-      eq(conditions.heat.gradientColors[1], "#F5F5F5");
-      eq(conditions.heat.paused, false);
-    },
-      //conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
-    '8) theMachine.updateCounterButtons() "Job Speed" should update correctly while paused':function () {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
-      conditions.heat.paused = true;
-      conditions.heat.startValue = 10;
-      conditions.heat.ratePerSecond = 0.5;
-      conditions.heat.rateCost = 6.6;
-      
-       try{
-        theMachine.updateCounterButtons(testCase);
-      } catch (e) {};
-
-      //conditions which should change
-      eq(conditions.heat.ratePerSecond, 0.55);
-      eq(conditions.heat.rateCost, 7.26);
-      eq(conditions.heat.startValue, 3.4000000000000004);
-      eq(conditions.heat.rateLevel, 3);
-
-      //it should not affect other values
-      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
-      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
-      eq(conditions.heat.duration, 48.36363636363636);
-      eq(conditions.heat.gradientColors[0], "white");
-      eq(conditions.heat.gradientColors[1], "#F5F5F5");
-      eq(conditions.heat.paused, true);
-    },
-    
-    '9) theMachine.calculateValues("init") updates startValue based on time passed':function() {
-      conditions.heat.wasPageLeft = Date.now() - 10000;
-      conditions.heat.paused = false;
-      let oldStartValue = conditions.heat.startValue;
-      theMachine.calculateValues('init', 'craftUnlockedResources');
-      eq(conditions.heat.startValue, oldStartValue+5.5);
-    },
-    
-    '10) theMachine.calculateValues("init") should not update values based on time passed if paused':function () {
-      conditions.heat.wasPageLeft = Date.now() - 10000;
-      conditions.heat.paused = true;
-      let oldStartValue = conditions.heat.startValue;
-      theMachine.calculateValues('init', 'craftUnlockedResources');
-      eq(conditions.heat.startValue, oldStartValue);
-    },
-    
-    '11) theMachine.workerButtons() updates global & resource worker counts': function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
-      conditions.heat.paused = false;
-      conditions.heat.workersAssigned = 0;
-      globalData.globalWorkersAvailable = 5;
-      theMachine.workerButtons(testCase);
-      eq(globalData.globalWorkersAvailable, 4);
-      eq(conditions.heat.workersAssigned, 1);
-      
-      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
-      theMachine.workerButtons(testCase);
-      eq(globalData.globalWorkersAvailable, 5);
-      eq(conditions.heat.workersAssigned, 0);  
-    },
-    
-    '12) theMachine.workerButtons() cannot exceed resource caps or mins': function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      eq(globalData.globalWorkersAvailable, 4);
-      eq(conditions.heat.workersAssigned, 1);
-      
-      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      eq(globalData.globalWorkersAvailable, 5);
-      eq(conditions.heat.workersAssigned, 0);  
-    },
-    
-    '13) theMachine.workerButtons() cannot make global workersAvailable be a negative value': function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
-      conditions.heat.workerCap = 6;
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      theMachine.workerButtons(testCase);
-      eq(globalData.globalWorkersAvailable, 0);
-      eq(conditions.heat.workersAssigned, 5);
-    },
-    
-    '14) theMachine.workerButtons() update the number of workers in DOM correctly': function() {
-      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
-      theMachine.workerButtons(testCase);    
-      
-      eq(document.getElementById('heatWorkerCount').innerHTML, '4/6');
-      eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: 1/5');
-    },
-    
-    '15) theMachine.animateCountUp() will not animate if zero workers assigned': function() {      
-      //set new conditions for this test;
-      conditions.heat.heatCountUpAnim.reset();
-      conditions.heat.paused = false;
-      conditions.heat.workersAssigned = 0;
-      globalData.globalWorkersAvailable = 5;
-      conditions.heat.startValue = 0;
-      delete conditions.heat.heatCountUpAnim;
-      
-      //begin test code;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(conditions.heat.heatCountUpAnim, undefined);  
-    },
-    
-     '16) theMachine.animateCountUp() will not animate if paused': function() {      
-      //set new conditions for this test;
-      try{
-      conditions.heat.heatCountUpAnim.reset();
-      } catch (e) {}
-      conditions.heat.paused = true;
-      conditions.heat.workersAssigned = 1;
-      globalData.globalWorkersAvailable = 4;
-      delete conditions.heat.heatCountUpAnim;
-      
-      //begin test code;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(conditions.heat.heatCountUpAnim, undefined);
-    },
-    
-    '17) theMachine.animateCountUp() will animate if not paused': function() {      
-      //set new conditions for this test;
-      conditions.heat.paused = false;
-      conditions.heat.workersAssigned = 1;
-      globalData.globalWorkersAvailable = 4;
-      delete conditions.heat.heatCountUpAnim;
-      
-      //begin test code;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(typeof(conditions.heat.heatCountUpAnim), 'object');
-    },
-        
-    '18) theMachine.animateCountUp() after increasing workers, automation rates increase correctly': function() {
-      //theMachine.animateCountUp() achieves this by changing duration based on workers assigned
-      conditions.heat.heatCountUpAnim.reset();
-      conditions.heat.startValue = 0;
-      conditions.heat.endValue = 10;
-      conditions.heat.ratePerSecond = 0.5;
-      conditions.heat.workersAssigned = 1;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(conditions.heat.duration, 20);
-      conditions.heat.workersAssigned = 2;
-      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(conditions.heat.duration, 10);
-    },
-    
-    '19) theMachine.pauseResume() pauses and resumes counter correctly': function() {
-      
-      
-      //set conditions to test during setTimeout so they will not be overwritten by other tests
-      setTimeout(function() {
-        //reset any existing CountUps from previous tests
-        try {
-          conditions.heat.heatCountUpAnim.reset();
-        } catch (e) {}  
-        conditions.heat.paused = false; //if true, the animation will be paused by pauseResume();
-        conditions.heat.startValue = 9;
-        conditions.heat.endValue = 30;
-        conditions.heat.workersAssigned = 1;
-        //start a new CountUp for this test;
-        theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-        //the CountUp should pause with pauseResume
-        conditions.heat.paused = true; //if true, the animation will be paused by pauseResume();
-        //this line will pause any existing CountUp element via countUp.js pauseResume();
-        theMachine.pauseResume('heat', 'heatCountUpAnim');
-        //check innerHTML because CountUp is not running;
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
-      }, 0);
-      
-      //no progress is made while paused
-      setTimeout(function() { 
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
-        eq(conditions.heat.heatCountUpAnim.frameVal, 9);
-        conditions.heat.paused = false;
-        theMachine.pauseResume('heat', 'heatCountUpAnim');
-      }, 6000);
-
-      //for some reason this does not trigger a fail in the window when failing, only prints to console
-      setTimeout(function() {
-         //the counter was resumed in last setTimeout, progress should be made
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '12 / 30');
-        eq(conditions.heat.heatCountUpAnim.frameVal, 12);
-      }, 12000);
-    },
-    
-    '20) collapse.js opens and closes the collapsable element clicked': function() {
+    'collapse.js opens and closes the collapsable element clicked': function() {
       //not sure why this wasn't attached automatically, calling it here is a workaround.
       collapse.collapseEventListener();
       //open the container
@@ -368,7 +100,7 @@
       eq(document.getElementById('heatCollapsibleContent').style.display, "none");
     },
     
-    '21) collapse.js closes any other open elements when opening a new element': function() {
+    'collapse.js closes any other open elements when opening a new element': function() {
       //open the container
       document.getElementById('heatCollapsible').click();
       eq(document.getElementById('heatCollapsibleContent').style.display, "flex");
@@ -378,71 +110,74 @@
       eq(document.getElementById('heatCollapsibleContent').style.display, "none");
       eq(document.getElementById('tanksCollapsibleContent').style.display, "flex");
     },
-    '22) theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while paused': function() {
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.tanks.rateCost= 6;
-      conditions.heat.paused = true;
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.startValue, 4);
+    
+    //
+    //theMachine.animateCountUp()
+    //
+    
+   'theMachine.animateCountUp() updates the duration of the resource argument': function() {
+     resetConditions();
+     conditions.heat.duration = 1000;
+     countUpReset('heat');
+     
+     theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+     eq(conditions.heat.duration, 20);
+     
+   },
+    
+   'theMachine.animateCountUp() after increasing workers, resource duration updated correctly': function() {
+      //theMachine.animateCountUp() achieves this by changing duration based on workers assigned
+      countUpReset('heat');
+      resetConditions();
+
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(conditions.heat.duration, 20);
+      conditions.heat.workersAssigned = 2;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(conditions.heat.duration, 10);
     },
-    '23) theMachine.updateCounterButtons("job speed") should update DOM correctly when called from other resources while paused': function() {
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.tanks.rateCost= 6;
-      conditions.heat.paused = true;
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.startValue, 4);
-      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
-    },
-    '23) theMachine.updateCounterButtons("job speed") should restart the heat countUpAnim with new startValue when called from other resources while not paused': function() {
-      conditions.heat.heatCountUpAnim.reset();
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.tanks.rateCost= 6;
-      conditions.heat.paused = false;
+    
+    'theMachine.animateCountUp() Case 1: it will animate if not paused && there are more than 0 workers assigned': function() {      
+      resetConditions();
       delete conditions.heat.heatCountUpAnim;
       
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.startValue, 4);
-      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
-      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
+      //begin test code;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(typeof(conditions.heat.heatCountUpAnim), 'object');
     },
-    '24) theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while not paused': function() {
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.tanks.rateCost= 6;
-      conditions.heat.paused = false;
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.startValue, 4);
-      
-      conditions.heat.startValue = 10;
-      conditions.heat.endValue = 10;
-      conditions.tanks.rateCost= 6;
-      conditions.heat.rateCost = 6;
-      conditions.heat.heatCountUpAnim.frameVal = 10;
-      conditions.heat.paused = false;
+    
+    'theMachine.animateCountUp() //Case 2a: It will not animate if there are no workers assigned': function() {      
+      //set new conditions for this test;
+      countUpReset('heat');
+      resetConditions();
       conditions.heat.workersAssigned = 0;
-      testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.startValue, 4);
+      globalData.globalWorkersAvailable = 5;
+      delete conditions.heat.heatCountUpAnim;
+      
+      //begin test code;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(conditions.heat.heatCountUpAnim, undefined);  
     },
-    //scenario 1: countUp is paused
-    //scenario 2: countUp does not exist yet
-    //scenario 3: countUp has no workers assigned
-    '25) class="collapsible" child elements get their values updated while paused': function() {
+    
+     'theMachine.animateCountUp() //Case 2b: It will not animate if the countUp is paused': function() {      
+      //set new conditions for this test;
+      countUpReset('heat');
+      conditions.heat.paused = true;
+      conditions.heat.workersAssigned = 1;
+      globalData.globalWorkersAvailable = 4;
+      delete conditions.heat.heatCountUpAnim;
+      
+      //begin test code;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(conditions.heat.heatCountUpAnim, undefined);
+    },
+    
+    '*unfinished* theMachine.animateCountUp() class="collapsible" child elements get their values updated while paused': function() {
+      //rendering handled by theMachine.renderWhilePaused();
       conditions.heat.paused = true;
       conditions.tanks.paused = true;
-      try {
-        conditions.heat.countUpAnim.reset();
-        conditions.tanks.countUpAnim.reset();
-      } catch (e) {}
+      countUpReset('heat');
+      countUpReset('tanks');
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
       
@@ -453,24 +188,27 @@
       eq(document.getElementById('heat' + 'WorkerCap').innerHTML, 'Worker Cap: <b>' + conditions.heat.workerCap + '</b>');
       eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + parseFloat(conditions.tanks.ratePerSecond.toFixed(3)).toLocaleString() + '/s</b>');
       eq(document.getElementById('heat' + 'WorkerEfficiency').innerHTML, 'Worker Efficiency: <b>' + conditions.heat.efficiency + '%</b>');
-      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + conditions.tanks.ratePerSecond.toFixed(3) + '/s</b>');
+      eq(document.getElementById('tanks' + 'AutomationRate').innerHTML, 'Automation Rate: <b>' + conditions.tanks.ratePerSecond + '/s</b>');
       eq(document.getElementById('heat' + 'ItemCap').innerHTML, 'Item Cap: <b>' + conditions.heat.endValue + '</b>');  
       fail('Tanks DOM manipulation not setup'); 
     },
-    '26) theMachine.manualCounterButton() correctly disables and enables the resource generation button': function() {
-      //the button is active to start off
-      eq(document.getElementById('heatManual').disabled, false);
-      //click the button ==> it should be disabled during manual generation
-      document.getElementById('heatManual').click();
-      eq(document.getElementById('heatManual').disabled, true);
-      //after manual generation (1000ms), the button is enabled again
-      setTimeout(function() { 
-        eq(document.getElementById('heatManual').disabled, false);
-      }, 1001);
-      
-      
+    
+    '*unfinished* theMachine.animateCountUp() will reduce resourceSpent if ratePerSecond is negative if workers are assigned to any resource': function() {
+      fail();
+      /**
+      *1) workerButtons() keeps track of which resource has workers by calling both animations when hitting +/-
+      *2) animateCountUp needs some special cases
+      *  2a) if resourceSpent workers = 0
+      *    2a) effective rate = 0 - (resource.ratePerSecond / 5);
+      *      2a1) this would take effect if resourceSpent is paused or workers = 0;
+      **/
     },
-    '27) theMachine.automationButton() set HTML style while paused && toggles paused state': function() {
+    
+    //
+    //theMachine.automationButton()
+    //
+    
+    'theMachine.automationButton() set HTML style while paused && toggles paused state': function() {
       let testCase = {target: {dataset: {resource: "heat"}}};
       document.getElementById('heat' + 'AutomationButton').innerHTML = "Disable Automation";
       eq(conditions.heat.paused, true);
@@ -492,19 +230,309 @@
       //Case 2: toggle paused state to true
       eq(conditions.heat.paused, true);
     },
-    '28) the research buttons push their resources to their respective globalData.[category]UnlockedResources': function() {
-      globalData.craftUnlockedResources = ['heat'];
-      globalData.theArmoryUnlockedResources = [];
-      document.getElementById('tanksResearch').click();
-      eq(globalData.craftUnlockedResources.includes('tanks'), true);
-      document.getElementById('workersResearch').click();
-      eq(globalData.theArmoryUnlockedResources.includes('workers'), true);
-      document.getElementById('klinsResearch').click();
-      eq(globalData.craftUnlockedResources.includes('klins'), true);
-      document.getElementById('fluidResearch').click();
-      eq(globalData.craftUnlockedResources.includes('fluid'), true);
+    
+    //
+    //theMachine.calculateResourceGenerationOverTime()
+    //
+    
+    'theMachine.calculateResourceGenerationOverTime() calculates resources generation based on time passed': function() {
+      //Case 1: it works for positive values
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = 0.5
+      let result = theMachine.calculateResourceGenerationOverTime('heat'); 
+      eq(result, 1);
+      //Case 2: it works for negative values
+      conditions.heat.ratePerSecond = -0.5
+      result = theMachine.calculateResourceGenerationOverTime('heat');
+      eq(result, -1);
     },
-    '29) the research buttons will not add a resource twice to globalData.resourcesUnlocked': function() {
+    
+    //
+    //theMachine.calculateValues()
+    //
+    
+    'theMachine.calculateValues("bindEvents") runs checkStartValue for whichInit arguement': function() {
+      resetConditions();
+      conditions.heat.heatCountUpAnim.frameVal = 25;
+      theMachine.calculateValues('bindEvents', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 25);
+    },
+    
+    'theMachine.calculateValues("bindEvents") sets [resource].wasPageLeft to Date.now() for whichInit arguement': function() {
+      resetConditions();
+      conditions.heat.wasPageLeft = false;
+      theMachine.calculateValues('bindEvents', 'craftUnlockedResources');
+      eq(conditions.heat.wasPageLeft, Date.now());
+    },
+    
+    'theMachine.calculateValues("init") should fill in calculated values for conditions':function() {       
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.counterElement, document.getElementById("heatCountUpAnim"));
+      eq(conditions.heat.counterElementManual, document.getElementById("heatCountUpAnimManual"));
+    },
+    
+    'theMachine.calculateValues("init") updates startValue based on time passed if not paused':function() {
+      conditions.heat.wasPageLeft = Date.now() - 10000;
+      resetConditions();
+      let oldStartValue = conditions.heat.startValue;
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, oldStartValue + 5);
+    },
+    
+    'theMachine.calculateValues("init") should not update values based on time passed if paused':function () {
+      conditions.heat.wasPageLeft = Date.now() - 10000;
+      conditions.heat.paused = true;
+      let oldStartValue = conditions.heat.startValue;
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, oldStartValue);
+    },
+    
+    'theMachine.calculateValues("init") should not update values based on time passed if no workers are assigned':function () {
+      conditions.heat.wasPageLeft = Date.now() - 10000;
+      conditions.heat.paused = false;
+      conditions.heat.workersAssigned = 0;
+      let oldStartValue = conditions.heat.startValue;
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, oldStartValue);
+    },
+    
+    'theMachine.calculateValues("init") Case 1: Resource generation cannot exceed endValue': function() {
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 10);
+      eq(conditions.heat.endValue, 10);
+    },
+    
+    'theMachine.calculateValues("init") Case 2: Negative resource generation cannot cause startValue to be less than 0': function() {
+      conditions.heat.startValue = 0;
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = -0.5
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 0);
+    },
+    
+    'theMachine.calculateValues("init") Case 3: it is safe to set startValue = newStartValue': function() {
+      conditions.heat.startValue = 9;
+      conditions.heat.workersAssigned = 1;
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = -0.5
+      globalData.craftUnlockedResources = ['heat'];
+      conditions.heat.paused = false;
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.startValue, 8);
+    },
+    
+    'theMachine.calculateValues("init") sets resource[wasPageLeft] = false for whichInit': function() {
+      conditions.heat.wasPageLeft = 501;
+      theMachine.calculateValues('init', 'craftUnlockedResources');
+      eq(conditions.heat.wasPageLeft, false);
+    },
+    
+    //
+    //theMachine.checkStartValue()
+    //
+    
+    'theMachine.checkStartValue() Case 1a: if frameVal > startValue it will set startValue = frameVal':function() {
+      conditions.heat.heatCountUpAnim = {};
+      conditions.heat.heatCountUpAnim.frameVal = 8;
+      conditions.heat.startValue = 7;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 8);
+    },
+    
+    'theMachine.checkStartValue() Case 1b: it will do nothing if frameVal < startValue':function() {
+      conditions.heat.heatCountUpAnim = {};
+      conditions.heat.heatCountUpAnim.frameVal = 6;
+      conditions.heat.startValue = 7;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 7);
+    },
+    
+    'theMachine.checkStartValue() case 2a: it will update startValue when the counter is completed or deleted (by reading HTML values)': function() {
+      delete conditions.heat.heatCountUpAnim;
+      document.getElementById('heatCountUpAnim').innerHTML = '8 / 10';
+      conditions.heat.startValue = 0;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 8);
+    },
+    
+    'theMachine.checkStartValue() case 2a: it will only update startValue when the counter is completed or deleted (by reading HTML values) if HTML is a number': function() {
+      delete conditions.heat.heatCountUpAnim;
+      document.getElementById('heatCountUpAnim').innerHTML = 'peter pan';
+      conditions.heat.startValue = 0;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 0);
+    },
+    
+    //
+    //theMachine.manualCounterButton()
+    //
+    
+    'theMachine.manualCounterButton() creates a manual CountUp element for [resource] provided by the event': function() {
+      delete conditions.heat.heatCountUpAnimManual;
+      document.getElementById('heatManual').click();
+      eq(typeof(conditions.heat.heatCountUpAnimManual), 'object')
+    },
+    
+    'theMachine.manualCounterButton() correctly disables and enables the resource generation button': function() {
+      
+      //click the button ==> it should be disabled during manual generation
+      document.getElementById('heatManual').click();
+      eq(document.getElementById('heatManual').disabled, true);
+      //after manual generation (1000ms), the button is enabled again
+      setTimeout(function() { 
+        eq(document.getElementById('heatManual').disabled, false);
+      }, 1001);
+    },
+    
+    //
+    //theMachine.manualCounterButtonStatus()
+    //
+    
+    'theMachine.manualCounterButtonStatus() should toggle disabled state correctly':function() {
+      resetConditions();
+      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
+      eq(document.getElementById('heat' + 'Manual').disabled, false);
+      conditions.heat.startValue = 10;
+      theMachine.manualCounterButtonStatus('heat', 'heatCountUpAnim')
+      eq(document.getElementById('heat' + 'Manual').disabled, true);
+    },
+    
+    //
+    //theMachine.pauseResume()
+    //
+    
+    'theMachine.pauseResume() pauses and resumes counter correctly': function() {
+      
+      //set conditions to test during setTimeout so they will not be overwritten by other tests
+      setTimeout(function() {
+        countUpReset('heat');
+        resetConditions();
+        conditions.heat.startValue = 9;
+        conditions.heat.endValue = 30;
+        conditions.heat.workersAssigned = 1;
+        conditions.heat.paused = true; //if true, the animation will be paused by pauseResume();
+        //this line will pause any existing CountUp element via countUp.js pauseResume();
+        theMachine.pauseResume('heat', 'heatCountUpAnim');
+        theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+        //check innerHTML because CountUp is not running;
+        eq(conditions.heat.startValue, 9);
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
+      }, 0);
+      
+      //no progress is made while paused
+      setTimeout(function() { 
+        eq(conditions.heat.startValue, 9)
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
+        eq(conditions.heat.heatCountUpAnim.frameVal, 9);
+        conditions.heat.paused = false;
+        theMachine.pauseResume('heat', 'heatCountUpAnim');
+      }, 6000);
+
+      //for some reason this does not trigger a fail in the window when failing, only prints to console
+      setTimeout(function() {
+        //the counter was resumed in last setTimeout, progress should be made
+        eq(document.getElementById('heatCountUpAnim').innerHTML, '12 / 30');
+        eq(conditions.heat.heatCountUpAnim.frameVal, 12);
+      }, 12000);
+    },
+    
+    //
+    //theMachine.renderWhilePaused()
+    //
+    
+    
+    'theMachine.renderWhilePaused() case 1: conditions[resource].paused === false && duration === infinity (no workers assigned)': function() {
+      let resource = 'heat';
+      countUpReset('heat');
+      globalData.workersUnlocked = true;
+      conditions.heat.paused = false;
+      conditions.heat.startValue = 4;
+      conditions.heat.endValue = 10;
+      conditions[resource].duration = Infinity;
+      theMachine.renderWhilePaused('heat');
+      eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
+      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
+    },
+    'theMachine.renderWhilePaused() case 2: conditions[resource].paused === true || globalData.workersUnlocked === false': function() {
+      let resource = 'heat';
+      countUpReset('heat');
+      globalData.workersUnlocked = true;
+      conditions.heat.paused = false;
+      conditions.heat.startValue = 4;
+      conditions.heat.endValue = 10;
+      conditions[resource].duration = 20;
+      theMachine.renderWhilePaused('heat');
+      
+      eq(document.getElementById('heat' + 'AutomationButton').innerHTML, "Enable Automation");
+      eq(document.getElementById('heat' + 'Plus').style.display, 'none');
+      eq(document.getElementById('heat' + 'Minus').style.display, 'none');
+      eq(document.getElementById('heat' + 'Rate').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'Time').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'Manual').style.display, 'inline');
+      eq(document.getElementById('heat' + 'Manual').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'Manual').style.width, '48px');
+      eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
+      eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
+    },
+    
+    //
+    //theMachine.renderWorkers()
+    //
+    
+    'theMachine.renderWorkers() Case 1: workers are unlocked && counter is not paused': function() {
+      let resource = 'heat';
+      globalData.workersUnlocked = true;
+      conditions.heat.paused = false;
+      theMachine.renderWorkers('heat');
+      eq(document.getElementById(resource + 'AutomationButton').style.display, 'inline-block');
+      eq(document.getElementById(resource + 'Collapsible').style.display, 'inline-block');
+      eq(document.getElementById('globalWorkerCount').style.display, 'block');
+      eq(document.getElementById(resource + 'WorkerCount').innerHTML, conditions['heat'].workersAssigned + '/' + conditions['heat'].workerCap);
+      eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap);
+    },
+    'theMachine.renderWorkers() Case 2: workers are unlocked && counter is paused': function() {
+      globalData.workersUnlocked = false;
+      conditions.heat.paused = true;
+      theMachine.renderWorkers('heat');
+      eq(document.getElementById('heat' + 'AutomationButton').style.display, 'none');
+      eq(document.getElementById('heat' + 'Collapsible').style.display, 'none');
+      eq(document.getElementById('globalWorkerCount').style.display, 'none');
+    },
+    'theMachine.renderWorkers() Case 3: workers are locked': function() {
+      let resource = 'heat';
+      globalData.workersUnlocked = false;
+      theMachine.renderWorkers('heat');
+      eq(document.getElementById(resource + 'AutomationButton').style.display, 'none');
+      eq(document.getElementById(resource + 'Collapsible').style.display, 'none');
+      eq(document.getElementById('globalWorkerCount').style.display, 'none'); 
+    },
+    
+    //
+    //theMachine.researchButtons()
+    //
+    
+    'theMachine.researchButtons() the research buttons push their resources to their respective globalData.[category]UnlockedResources': function() {
+    globalData.craftUnlockedResources = ['heat'];
+    globalData.theArmoryUnlockedResources = [];
+    document.getElementById('tanksResearch').click();
+    eq(globalData.craftUnlockedResources.includes('tanks'), true);
+    document.getElementById('workersResearch').click();
+    eq(globalData.theArmoryUnlockedResources.includes('workers'), true);
+    document.getElementById('klinsResearch').click();
+    eq(globalData.craftUnlockedResources.includes('klins'), true);
+    document.getElementById('fluidResearch').click();
+    eq(globalData.craftUnlockedResources.includes('fluid'), true);
+    },
+    
+    'theMachine.researchButtons() the research buttons will not add a resource twice to globalData.resourcesUnlocked': function() {
       document.getElementById('tanksResearch').click();
       let counter = 0;
       globalData.craftUnlockedResources.forEach(function(element) {
@@ -514,7 +542,13 @@
       });
       eq(counter, 1);
     },
-    '30) the research buttons will be hidden or shown based on their requirements': function() {
+    
+    //
+    //theMachine.researchRender()
+    //
+    
+    
+    'theMachine.researchRender() the research buttons will be hidden or shown based on their requirements': function() {
       /*Requirements:
       *tanks - 5 heat
       *workers - 50 heat
@@ -556,115 +590,187 @@
       eq(document.getElementById('tanksResearch').style.display, 'inline-block');
       eq(document.getElementById('workersResearch').style.display, 'inline-block');
       eq(document.getElementById('klinsResearch').style.display, 'inline-block');
-      eq(document.getElementById('fluidResearch').style.display, 'inline-block');
-      
-    },    
-    '31) theMachine.renderWorkers() Case 1: workers are unlocked && counter is not paused': function() {
-      let resource = 'heat';
-      globalData.workersUnlocked = true;
-      conditions.heat.paused = false;
-      theMachine.renderWorkers('heat');
-      eq(document.getElementById(resource + 'AutomationButton').style.display, 'inline-block');
-      eq(document.getElementById(resource + 'Collapsible').style.display, 'inline-block');
-      eq(document.getElementById('globalWorkerCount').style.display, 'block');
-      eq(document.getElementById(resource + 'WorkerCount').innerHTML, conditions['heat'].workersAssigned + '/' + conditions['heat'].workerCap);
-      eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap);
+      eq(document.getElementById('fluidResearch').style.display, 'inline-block'); 
     },
-    '32) theMachine.renderWorkers() Case 2: workers are unlocked && counter is paused': function() {
-      globalData.workersUnlocked = false;
+    
+    //
+    //theMachine.store()
+    //
+    
+    'theMachine.store() should store in local storage':function() {
+      theMachine.store('test', 1);
+      eq(theMachine.store('test'), 1);
+      localStorage.removeItem('test');
+    },
+    
+    //
+    //theMachine.updateCounterButtons()
+    //
+    
+    'theMachine.updateCounterButtons() "Item Capacity" should only update endValue when not paused':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      resetConditions();
+      conditions.heat.startValue = 10;
+      conditions.tanks.startValue = 10;
+      try{
+        theMachine.updateCounterButtons(testCase);
+      } catch (e) {};
+      
+      //condition which should change
+      eq(conditions.heat.endValue, 11);
+      
+      //it should not affect other values
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 2);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, false);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.heat.rateCost, 6);
+      eq(conditions.heat.startValue, 10);
+    },
+    
+    'theMachine.updateCounterButtons() "Item Capacity" should only update options.suffix, Item Cap and endVal when paused':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};      
+     
       conditions.heat.paused = true;
-      theMachine.renderWorkers('heat');
-      eq(document.getElementById('heat' + 'AutomationButton').style.display, 'none');
-      eq(document.getElementById('heat' + 'Collapsible').style.display, 'none');
-      eq(document.getElementById('globalWorkerCount').style.display, 'none');
-    },
-    '33) theMachine.renderWorkers() Case 3: workers are locked': function() {
-      let resource = 'heat';
-      globalData.workersUnlocked = false;
-      theMachine.renderWorkers('heat');
-      eq(document.getElementById(resource + 'AutomationButton').style.display, 'none');
-      eq(document.getElementById(resource + 'Collapsible').style.display, 'none');
-      eq(document.getElementById('globalWorkerCount').style.display, 'none'); 
-    },
-    '34) theMachine.renderWhilePaused() case 1: conditions[resource].paused === false && duration === infinity (no workers assigned)': function() {
-      let resource = 'heat';
-      try {
-      conditions.heat.heatCountUpAnim.reset();
-      } catch (e) {}
-      globalData.workersUnlocked = true;
-      conditions.heat.paused = false;
-      conditions.heat.startValue = 4;
-      conditions.heat.endValue = 10;
-      conditions[resource].duration = Infinity;
-      theMachine.renderWhilePaused('heat');
-      eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
-      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
-      eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
-    },
-    '35) theMachine.renderWhilePaused() case 2: conditions[resource].paused === true || globalData.workersUnlocked === false': function() {
-      let resource = 'heat';
-      try {
-      conditions.heat.heatCountUpAnim.reset();
-      } catch (e) {}
-      globalData.workersUnlocked = true;
-      conditions.heat.paused = false;
-      conditions.heat.startValue = 4;
-      conditions.heat.endValue = 10;
-      conditions[resource].duration = 20;
-      theMachine.renderWhilePaused('heat');
-      
-      eq(document.getElementById('heat' + 'AutomationButton').innerHTML, "Enable Automation");
-      eq(document.getElementById('heat' + 'Plus').style.display, 'none');
-      eq(document.getElementById('heat' + 'Minus').style.display, 'none');
-      eq(document.getElementById('heat' + 'Rate').style.visibility, 'hidden');
-      eq(document.getElementById('heat' + 'Time').style.visibility, 'hidden');
-      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'hidden');
-      eq(document.getElementById('heat' + 'Manual').style.display, 'inline');
-      eq(document.getElementById('heat' + 'Manual').style.visibility, 'visible');
-      eq(document.getElementById('heat' + 'Manual').style.width, '48px');
-      eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
-      eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
-    },
-    '36) theMachine.calculateResourceGenerationOverTime() calculates resources generation based on time passed': function() {
-      //Case 1: it works for positive values
-      conditions['heat'].wasPageLeft = Date.now() - 2000;
-      conditions.heat.ratePerSecond = 0.5
-      let result = theMachine.calculateResourceGenerationOverTime('heat'); 
-      eq(result, 1);
-      //Case 2: it works for negative values
-      conditions.heat.ratePerSecond = -0.5
-      result = theMachine.calculateResourceGenerationOverTime('heat');
-      eq(result, -1);
-    },
-    '37) theMachine.calculateValues("init") Case 1: Resource generation cannot exceed endValue': function() {
-      conditions['heat'].wasPageLeft = Date.now() - 2000;
-      conditions.heat.ratePerSecond = 0.5
-      let result = theMachine.calculateResourceGenerationOverTime('heat'); 
       conditions.heat.startValue = 10;
       conditions.heat.endValue = 10;
-      globalData.craftUnlockedResources = ['heat'];
-      theMachine.calculateValues('init', 'craftUnlockedResources');
+      conditions.heat.capacityCost = 5;
+      conditions.tanks.startValue = 10;
+      
+      try{
+        theMachine.updateCounterButtons(testCase);
+      } catch (e) {};
+      
+      //conditions which should change
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '10 / 11');
+      eq(conditions.heat.endValue, 11);
+      
+      //it should not affect other values
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 2);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, true);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.heat.rateCost, 6);
       eq(conditions.heat.startValue, 10);
-      eq(conditions.heat.endValue, 10);
     },
-    '38) theMachine.calculateValues("init") Case 2: Negative resource generation cannot cause startValue to be less than 0': function() {
-      conditions.heat.startValue = 0;
-      conditions['heat'].wasPageLeft = Date.now() - 2000;
-      conditions.heat.ratePerSecond = -0.5
-      globalData.craftUnlockedResources = ['heat'];
-      theMachine.calculateValues('init', 'craftUnlockedResources');
-      eq(conditions.heat.startValue, 0);
+    
+    'theMachine.updateCounterButtons() "Job Speed" should only update ratePerSecond, startValue and rateCost':function () {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
+      conditions.heat.paused = false;
+      conditions.heat.endValue = 30;
+      
+       try{
+        theMachine.updateCounterButtons(testCase);
+      } catch (e) {};
+      
+      //conditions which should change
+      eq(conditions.heat.ratePerSecond, 0.55);
+      eq(conditions.heat.rateCost, 6.6);
+      eq(conditions.heat.startValue, 4);
+      
+      //it should not affect other values
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 30');
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 47.272727272727266);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, false);
     },
-    '39) theMachine.calculateValues("init") Case 3: it is safe to set startValue = newStartValue': function() {
-      conditions.heat.startValue = 9;
-      conditions.heat.workersAssigned = 1;
-      conditions['heat'].wasPageLeft = Date.now() - 2000;
-      conditions.heat.ratePerSecond = -0.5
-      globalData.craftUnlockedResources = ['heat'];
-      theMachine.calculateValues('init', 'craftUnlockedResources');
-      eq(conditions.heat.startValue, 8);
+      //conditions[resource][countUpNameAuto].options.ratePerSecond = conditions[resource].ratePerSecond;
+    'theMachine.updateCounterButtons() "Job Speed" should update correctly while paused':function () {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
+      conditions.heat.paused = true;
+      conditions.heat.startValue = 10;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.heat.rateCost = 6.6;
+      
+       try{
+        theMachine.updateCounterButtons(testCase);
+      } catch (e) {};
+
+      //conditions which should change
+      eq(conditions.heat.ratePerSecond, 0.55);
+      eq(conditions.heat.rateCost, 7.26);
+      eq(conditions.heat.startValue, 3.4000000000000004);
+      eq(conditions.heat.rateLevel, 3);
+
+      //it should not affect other values
+      eq(conditions.heat.counterElement, document.getElementById('heatCountUpAnim'));
+      eq(conditions.heat.counterElementManual, document.getElementById('heatCountUpAnimManual'));
+      eq(conditions.heat.duration, 48.36363636363636);
+      eq(conditions.heat.gradientColors[0], "white");
+      eq(conditions.heat.gradientColors[1], "#F5F5F5");
+      eq(conditions.heat.paused, true);
     },
-    '40) theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
+    
+    
+    'theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = true;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+    },
+    
+    'theMachine.updateCounterButtons("job speed") should update DOM correctly when called from other resources while paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = true;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
+    },
+    
+    'theMachine.updateCounterButtons("job speed") should restart the heat countUpAnim with new startValue when called from other resources while not paused': function() {
+      conditions.heat.heatCountUpAnim.reset();
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = false;
+      delete conditions.heat.heatCountUpAnim;
+      
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+      eq(conditions.heat.heatCountUpAnim.frameVal, 4);
+      eq(document.getElementById('heatCountUpAnim').innerHTML, '4 / 10');
+      eq(typeof(conditions.heat.heatCountUpAnim), 'object');
+    },
+    
+    'theMachine.updateCounterButtons("job speed") should cost heat for all crafting resources while not paused': function() {
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.paused = false;
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+      
+      conditions.heat.startValue = 10;
+      conditions.heat.endValue = 10;
+      conditions.tanks.rateCost= 6;
+      conditions.heat.rateCost = 6;
+      conditions.heat.heatCountUpAnim.frameVal = 10;
+      conditions.heat.paused = false;
+      conditions.heat.workersAssigned = 0;
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.startValue, 4);
+    },
+    
+    'theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
       conditions.heat.capacityCost = 10;
       conditions.tanks.startValue = 5;
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
@@ -672,21 +778,24 @@
       eq(conditions.heat.capacityCost, 10);
       eq(conditions.tanks.startValue, 5);
     },
-    '41) theMachine.updateCounterButtons("item capacity") should reduce tanks.startValue by [resource].capacityCost':function() {
+    
+    'theMachine.updateCounterButtons("item capacity") should reduce tanks.startValue by [resource].capacityCost':function() {
       let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
       conditions.tanks.capacityCost = 5;
       conditions.tanks.startValue = 10
       theMachine.updateCounterButtons(testCase);
       eq(conditions.tanks.startValue, 5);
     },
-    '42) theMachine.updateCounterButtons("item capacity") should increase [resource].capacityCost 10%':function() {
+    
+    'theMachine.updateCounterButtons("item capacity") should increase [resource].capacityCost 10%':function() {
       let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
       conditions.tanks.startValue = 10;
       conditions.tanks.capacityCost = 5;
       theMachine.updateCounterButtons(testCase);
       eq(conditions.tanks.capacityCost, 5.5);
     },
-    '43) theMachine.updateCounterButtons("item capacity") should increase [resource].endValue by 10%':function() {
+    
+    'theMachine.updateCounterButtons("item capacity") should increase [resource].endValue by 10%':function() {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
       conditions.heat.capacityCost = 5;
       conditions.tanks.startValue = 10;
@@ -694,25 +803,106 @@
       theMachine.updateCounterButtons(testCase);
       eq(conditions.heat.endValue, 11);
     },
-    '44) theMachine.workerButtons() reduces resourceSpent ratePerSecond when increasing resource ratePerSecond': function() {
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '+'}};
+    
+    'theMachine.updateCounterButtons("job speed") should decrease resourceSpent.ratePerSecond when increasing resource.ratePerSecond': function() {
+      //tanks rate increasing from 0.5 to 1, heat rate decreases proportionally 
+    },
+    
+    //
+    //theMachine.updateGradientAndValue()
+    //
+    
+    'theMachine.updateGradientAndValue() updates the inner HTML of countUpNameAuto': function() {
+      let countUpNameAuto = 'heatCountUpAnim';
+      conditions.heat.startValue = 0;
+      conditions.heat.endValue = 10;
+      document.getElementById(countUpNameAuto).innerHTML = 'wrong text'
+      theMachine.updateGradientAndValue('heat', countUpNameAuto);
+      eq(document.getElementById(countUpNameAuto).innerHTML, '0 / 10');
+    },
+    
+    'theMachine.updateGradientAndValue() updates the style property of countUpNameAuto with the correct gradient': function() {
+      let countUpNameAuto = 'heatCountUpAnim';
+      conditions.heat.startValue = 5;
+      conditions.heat.endValue = 10;
+      theMachine.updateGradientAndValue('heat', countUpNameAuto);
+      eq(document.getElementById(countUpNameAuto).style.backgroundImage, 'linear-gradient(to right, white, white 50%, rgb(245, 245, 245) 1%)');
+    },
+    
+    //
+    //theMachine.workerButtons()
+    //
+    
+    'theMachine.workerButtons() updates global & resource worker counts': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
       conditions.heat.paused = false;
       conditions.heat.workersAssigned = 0;
+      globalData.globalWorkersAvailable = 5;
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 4);
+      eq(conditions.heat.workersAssigned, 1);
+      
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 5);
+      eq(conditions.heat.workersAssigned, 0);  
+    },
+    
+    'theMachine.workerButtons() cannot exceed resource caps or mins': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 4);
+      eq(conditions.heat.workersAssigned, 1);
+      
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 5);
+      eq(conditions.heat.workersAssigned, 0);  
+    },
+    
+    'theMachine.workerButtons() cannot make global workersAvailable be a negative value': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      conditions.heat.workerCap = 6;
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(globalData.globalWorkersAvailable, 0);
+      eq(conditions.heat.workersAssigned, 5);
+    },
+    
+    'theMachine.workerButtons() update the number of workers in DOM correctly': function() {
+      testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);    
+      
+      eq(document.getElementById('heatWorkerCount').innerHTML, '4/6');
+      eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: 1/5');
+    },
+    
+    
+    'theMachine.workerButtons() reduces resourceSpent ratePerSecond when increasing resource ratePerSecond': function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '+'}};
+      resetConditions();
+      conditions.heat.workersAssigned = 0;
       conditions.heat.startValue = 10;
-      conditions.heat.ratePerSecond = 0.5;
-      conditions.tanks.ratePerSecond = 0.5;
       globalData.globalWorkersAvailable = 5;
       theMachine.workerButtons(testCase);
       eq(conditions.heat.ratePerSecond, 0.4);
       eq(conditions.tanks.ratePerSecond, 0.5);
     },
-    '45) theMachine.workerButtons() increases resourceSpent ratePerSecond when reducing resource ratePerSecond': function() {
+    
+    'theMachine.workerButtons() increases resourceSpent ratePerSecond when reducing resource ratePerSecond': function() {
       let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '-'}};
       theMachine.workerButtons(testCase);
       eq(conditions.heat.ratePerSecond, 0.5);
       eq(conditions.tanks.ratePerSecond, 0.5);
     },
-    '46) theMachine.workerButtons() will not change ratePerSecond is resource === resourceSpent': function() {
+    
+    'theMachine.workerButtons() will not change ratePerSecond is resource === resourceSpent': function() {
       //heat === resource === resourceSpent
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
       theMachine.workerButtons(testCase);
@@ -721,29 +911,26 @@
       theMachine.workerButtons(testCase);
       eq(conditions.heat.ratePerSecond, 0.5);
     },
-    '47) theMachine.workerButtons() it will not animate resource CountUp if resourceSpent startValue is zero': function() {
+    
+    'theMachine.workerButtons() it will not animate resource CountUp if resourceSpent startValue is zero': function() {
       let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: '+'}};
       delete conditions.tanks.tanksCountUpAnim
       theMachine.workerButtons(testCase);
       eq(conditions.tanks.tanksCountUpAnim, undefined);
     },
-    '48) theMachine.workerButtons() it will animate resource CountUp if resource === resourceSpent && startValue is zero': function() {
+    
+    'theMachine.workerButtons() it will animate resource CountUp if resource === resourceSpent && startValue is zero': function() {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
       delete conditions.heat.heatCountUpAnim
       theMachine.workerButtons(testCase);
       eq(typeof(conditions.heat.heatCountUpAnim), 'object');
     },
-    ') theMachine.animateCountUp() will reduce resourceSpent if ratePerSecond is negative if workers are assigned to any resource': function() {
-      fail();
-      /**
-      *1) workerButtons() keeps track of which resource has workers by calling both animations when hitting +/-
-      *2) animateCountUp needs some special cases
-      *  2a) if resourceSpent workers = 0
-      *    2a) effective rate = 0 - (resource.ratePerSecond / 5);
-      *      2a1) this would take effect if resourceSpent is paused or workers = 0;
-      **/
-    },
-    ') resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
+    
+    //
+    //uncategorized / unfinished tests
+    //
+    
+    '*unfinished* resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
       fail();
       /**1) where to check for this?  Probably need to check every second or something?
       *2)check in countUp.js?
@@ -753,9 +940,11 @@
       *    2a2) the counters would need to be restarted if there was enough resourceSpent... would have to be all relevant counters...
       **/
     },
-    ') resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
+    
+    '*unfinished* resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
       fail();
       //see above comments, not sure how to do this yet
     }
+    
   });
 </script>
