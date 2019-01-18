@@ -62,13 +62,16 @@ let theMachine = {
   animateCountUp(resource, countUpName, elemnt) {
     let startValue = conditions[resource].startValue;;
     let endValue;
+    let ratePerSecond;
     
     if (conditions[resource].ratePerSecondBase) {
       //make sure duration has been updated (if ratePerSecondBase => ratePerSecond already has # of workers factored in)
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond);  
+      ratePerSecond = conditions[resource].ratePerSecond;
     } else {
       //make sure duration has been updated
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond * conditions[resource].workersAssigned);
+      ratePerSecond = conditions[resource].ratePerSecond * conditions[resource].workersAssigned;
     }
     
     if (conditions[resource].ratePerSecond < 0) {
@@ -81,13 +84,13 @@ let theMachine = {
       endValue = conditions[resource].endValue;
     }
     
-    //Case 1: it will animate if not paused && there are more than 0 workers assigned
-    if (conditions[resource].paused === false && conditions[resource].duration !== Infinity){
+    //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
+    if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0) || (conditions[resource].ratePerSecond < 0)) {
       try{
       conditions[resource][countUpName].reset();
       } catch (e) {}
       //call a new animation with updated values for automated resources
-      conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: conditions[resource].ratePerSecond * conditions[resource].workersAssigned});
+      conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
       if (!conditions[resource][countUpName].error) {
           window.onload = conditions[resource][countUpName].start();
       } else {
@@ -189,8 +192,8 @@ let theMachine = {
   
   checkStartValue(resource, countUpNameAuto) {
     try {
-      //case 1: if frameVal > startValue it will set startValue = frameVal
-      if (conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue) {
+      //case 1: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
+      if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond > 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
           conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
           conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
         }
@@ -310,8 +313,8 @@ let theMachine = {
   },
     
   renderWhilePaused(resource, countUpNameAuto) {
-    //Case 1: duration is divided by 0 => there's no workers for this resource.
-    if (conditions[resource].duration === Infinity){
+    //Case 1: duration is divided by 0 => there's no workers for this resource || the rate === 0
+    if (conditions[resource].duration === Infinity || conditions[resource].ratePerSecond === 0){
       try {
         conditions[resource][countUpNameAuto].reset();
       } catch (e) {}
@@ -366,7 +369,7 @@ let theMachine = {
         document.getElementById('globalWorkerCount').style.display = 'block'
         document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
         document.getElementById('globalWorkerCount').innerHTML = 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap;
-      } catch (e) {console.log(e);}
+      } catch (e) {}
     } 
     //Case 2: workers are unlocked && counter is paused
     if (globalData.workersUnlocked === true && conditions[resource].paused === true) {
@@ -566,8 +569,13 @@ let theMachine = {
         theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
       }
     }
-    //we're always going to need to animate heat because everything costs heat
-    theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);
+    
+    if (conditions[resource].ratePerSecond === 0) {
+      theMachine.renderWhilePaused(resource, resource + 'CountUpAnim');
+    } else {
+      //we're always going to need to animate heat because everything costs heat
+      theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);
+    }
     
   }
   

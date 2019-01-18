@@ -135,7 +135,7 @@
 
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(conditions.heat.duration, 20);
-      conditions.heat.workersAssigned = 2;
+      conditions.heat.ratePerSecond = 1.0;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(conditions.heat.duration, 10);
     },
@@ -144,33 +144,28 @@
       resetConditions();
       delete conditions.heat.heatCountUpAnim;
       
-      //begin test code;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(typeof(conditions.heat.heatCountUpAnim), 'object');
     },
     
-    'theMachine.animateCountUp() //Case 2a: It will not animate if there are no workers assigned': function() {      
-      //set new conditions for this test;
+    'theMachine.animateCountUp() //Case 2a: It will not animate if there are no workers assigned && ratePerSecond > 0': function() {      
       countUpReset('heat');
       resetConditions();
       conditions.heat.workersAssigned = 0;
       globalData.globalWorkersAvailable = 5;
       delete conditions.heat.heatCountUpAnim;
       
-      //begin test code;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(conditions.heat.heatCountUpAnim, undefined);  
     },
     
      'theMachine.animateCountUp() //Case 2b: It will not animate if the countUp is paused': function() {      
-      //set new conditions for this test;
       countUpReset('heat');
       conditions.heat.paused = true;
       conditions.heat.workersAssigned = 1;
       globalData.globalWorkersAvailable = 4;
       delete conditions.heat.heatCountUpAnim;
       
-      //begin test code;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(conditions.heat.heatCountUpAnim, undefined);
     },
@@ -199,8 +194,6 @@
     },
     
     'theMachine.animateCountUp() if conditions[resource].ratePerSecond is negative, animate a countDown': function() {
-      //startValue = conditions[resource].endValue;
-      //endValue = 0;
       resetConditions();
       conditions.heat.ratePerSecond = -0.5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
@@ -215,6 +208,31 @@
       conditions.heat.ratePerSecond = -0.5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(conditions.heat.duration, 16);
+    },
+    
+    'theMachine.animateCountUp() if (workersAssigned = 0 && ratePerSecond < 0) a resource will continue to go down': function() {
+      resetConditions();
+      conditions.heat.ratePerSecond = -10;
+      conditions.heat.workersAssigned = 0;
+      conditions.heat.startValue = 5;
+      delete conditions.heat.heatCountUpAnim;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(typeof(conditions.heat.heatCountUpAnim), 'object'); 
+    },
+    
+    'theMachine.animateCountUp() if (ratePerSecondBase) will calculate countUp ratePerSecond as [resource].ratePerSecond': function() {
+      resetConditions();
+      delete conditions.heat.ratePerSecondBase;
+      conditions.heat.workersAssigned = 5;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.workersAssigned) + " / second");
+    },
+    
+    'theMachine.animateCountUp() if !(ratePerSecondBase) will calculate countUp ratePerSecond as [resource].ratePerSecond * workersAssigned': function() {
+      resetConditions();
+      conditions.heat.workersAssigned = 5;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond) + " / second");
     },
     
     //
@@ -350,7 +368,8 @@
     //theMachine.checkStartValue()
     //
     
-    'theMachine.checkStartValue() Case 1a: if frameVal > startValue it will set startValue = frameVal':function() {
+    'theMachine.checkStartValue() Case 1a: if frameVal > startValue it will set startValue = frameVal && ratePerSecond > 0':function() {
+      resetConditions();
       conditions.heat.heatCountUpAnim = {};
       conditions.heat.heatCountUpAnim.frameVal = 8;
       conditions.heat.startValue = 7;
@@ -358,7 +377,8 @@
       eq(conditions.heat.startValue, 8);
     },
     
-    'theMachine.checkStartValue() Case 1b: it will do nothing if frameVal < startValue':function() {
+    'theMachine.checkStartValue() Case 1b: it will do nothing if frameVal < startValue && ratePerSecond > 0':function() {
+      resetConditions();
       conditions.heat.heatCountUpAnim = {};
       conditions.heat.heatCountUpAnim.frameVal = 6;
       conditions.heat.startValue = 7;
@@ -380,6 +400,15 @@
       conditions.heat.startValue = 0;
       theMachine.checkStartValue("heat", "heatCountUpAnim");
       eq(conditions.heat.startValue, 0);
+    },
+    
+    'theMachine.checkStartValue() case 3: if (ratePerSecond < 0) will set startValue(a higher number) to frameVal(a lower number)': function() {
+      conditions.heat.heatCountUpAnim = {};
+      conditions.heat.heatCountUpAnim.frameVal = 6;
+      conditions.heat.startValue = 7;
+      conditions.heat.ratePerSecond = -10;
+      theMachine.checkStartValue("heat", "heatCountUpAnim");
+      eq(conditions.heat.startValue, 6);
     },
     
     //
@@ -461,7 +490,7 @@
     //
     
     
-    'theMachine.renderWhilePaused() case 1: conditions[resource].paused === false && duration === infinity (no workers assigned)': function() {
+    'theMachine.renderWhilePaused() case 1a: duration === infinity (no workers assigned)': function() {
       let resource = 'heat';
       countUpReset('heat');
       globalData.workersUnlocked = true;
@@ -474,6 +503,22 @@
       eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
       eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
     },
+    
+    'theMachine.renderWhilePaused() case 1b: ratePerSecond === 0': function() {
+      let resource = 'heat';
+      countUpReset('heat');
+      globalData.workersUnlocked = true;
+      conditions.heat.paused = false;
+      conditions.heat.startValue = 4;
+      conditions.heat.endValue = 10;
+      conditions[resource].duration = 52;
+      conditions.heat.ratePerSecond = 0;
+      theMachine.renderWhilePaused('heat');
+      eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
+      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
+    },
+    
     'theMachine.renderWhilePaused() case 2: conditions[resource].paused === true || globalData.workersUnlocked === false': function() {
       let resource = 'heat';
       countUpReset('heat');
@@ -984,14 +1029,17 @@
       eq(typeof(conditions.heat.heatCountUpAnim), 'object');
     },
     
-    '*unfinished* theMachine.workerButtons() if (workersAssigned = 0 && ratePerSecond < 0) a resource will continue to go down': function() {
-      fail();
+    'theMachine.workerButtons() it will call theMachine.renderWhilePaused() if ratePerSecond is zero': function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      delete conditions.heat.heatCountUpAnim;
+      conditions.heat.ratePerSecond = 0;
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.heatCountUpAnim, undefined);
+      eq(conditions['heat'].counterElement.innerHTML, conditions['heat'].startValue + ' / ' + conditions['heat'].endValue);
+      eq(document.getElementById('heat' + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById('heat' + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
     },
-    
-    '*unfinished* theMachine.workerButtons() if (ratePerSecond < 0) adding a worker will reset startValue(a higher number) to frameVal(a lower number)': function() {
-      fail();
-    },
-    
+
     //
     //uncategorized / unfinished tests
     //
