@@ -76,9 +76,12 @@
     conditions.heat.capacityCost = 5;
     try {
       conditions.heat.heatCountUpAnim.frameVal = 0;
+      conditions.tanks.tanksCountUpAnim.frameVal = 0;
     } catch(e) {
       conditions.heat.heatCountUpAnim = {};
       conditions.heat.heatCountUpAnim.frameVal = 0;
+      conditions.tanks.tanksCountUpAnim = {};
+      conditions.tanks.tanksCountUpAnim.frameVal = 0;
     }
     
     conditions.tanks.ratePerSecond = 0.5;
@@ -667,10 +670,12 @@
     //
     
     'theMachine.updateCounterButtons() "Item Capacity" should only update endValue when not paused':function() {
+      //Test 1
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
       resetConditions();
       conditions.heat.startValue = 10;
-      conditions.tanks.startValue = 10;
+      conditions.tanks.startValue = 100;
+      conditions.tanks.endValue = 100;
       try{
         theMachine.updateCounterButtons(testCase);
       } catch (e) {};
@@ -688,6 +693,24 @@
       eq(conditions.heat.ratePerSecond, 0.5);
       eq(conditions.heat.rateCost, 6);
       eq(conditions.heat.startValue, 10);
+      
+      //Test 2
+      testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
+      resetConditions();
+      conditions.heat.startValue = 10;
+      conditions.tanks.startValue = 100;
+      conditions.tanks.endValue = 100;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.paused = false;
+      try{
+        theMachine.updateCounterButtons(testCase);
+      } catch (e) {};
+      
+      //condition which should change
+      eq(conditions.tanks.endValue, 110);
+      
+      //it should not affect other values
+      eq(document.getElementById('tanks' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.tanks.ratePerSecond) + " / second");
     },
     
     'theMachine.updateCounterButtons() "Item Capacity" should only update options.suffix, Item Cap and endVal when paused':function() {
@@ -721,6 +744,8 @@
     
     'theMachine.updateCounterButtons() "Job Speed" should only update ratePerSecond, startValue and rateCost':function () {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
+      resetConditions();
+      conditions.heat.startValue = 10;
       conditions.heat.paused = false;
       conditions.heat.endValue = 30;
       
@@ -847,6 +872,7 @@
     },
     
     'theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
+      resetConditions();
       conditions.heat.capacityCost = 10;
       conditions.tanks.startValue = 5;
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};

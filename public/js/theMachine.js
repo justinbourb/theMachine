@@ -1,12 +1,5 @@
 /**
 *TODO: 
-*2) add containers (requirement to increase capacity)
-*  2a) reduce heatRatePerSecond by containerPerSecondHeatCost
-*    2a1) somehow balance both counters
-*      2a1a) if (containerPerSecondHeatCost > 0) {
-*               heatRatePerSecond -= containerPerSecondHeatCost
-*               }
-*               numAnim = new Countup //etc, etc
 *3) what to store in  local storage??
 *  3a) I want to be able to continue the game each time browser is opened
 *    3a1) save data on close?  Save any other times or irrelevant? 
@@ -222,7 +215,7 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: -0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 4, wasPageLeft: false, workersAssigned: 1, workerCap: 5 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0.1, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
@@ -488,11 +481,14 @@ let theMachine = {
       
     theMachine.checkStartValue(resourceSpent, resourceSpent + 'CountUpAnim');
     if (conditions[resourceSpent].startValue >= conditions[resource][resourceCost]) {
-      if (resource === resourceSpent) {
+      if (resource === resourceSpent && resource === 'heat') {
         conditions[resource]['ratePerSecond'] += (conditions[resource][valueChanged] * 0.1);
       }
       conditions[resourceSpent].startValue -= conditions[resource][resourceCost];
       conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+      if (resource === 'tanks') {
+        conditions[resource][valueChanged] = parseInt(conditions[resource][valueChanged].toFixed());
+      }
       conditions[resource][resourceCost] += (conditions[resource][resourceCost] * 0.1);
       conditions[resource][level] += 1;
     }
