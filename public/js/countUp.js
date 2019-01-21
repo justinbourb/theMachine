@@ -195,7 +195,10 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       document.getElementById(resource + 'WorkerEfficiency').innerHTML = 'Worker Efficiency: <b>' + conditions[resource].efficiency + '%</b>';
       document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
       document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
-      document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel + ' Heat';
+      document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel;
+      document.getElementById(resource + 'ItemCost').innerHTML = '<b>Cost: </b>' + conditions[resource].capacityCost + ' Tanks';
+      document.getElementById(resource + 'ItemLevel').innerHTML = '<b>Level: </b>' + conditions[resource].capacityLevel;
+      document.getElementById(resource + 'NextItem').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].capacityCost + conditions[resource].capacityCost * 0.1).toFixed(3)).toLocaleString() + ' Tanks';
       
     }
 	};
