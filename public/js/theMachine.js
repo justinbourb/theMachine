@@ -61,6 +61,14 @@ let theMachine = {
     let startValue = conditions[resource].startValue;;
     let endValue;
     let ratePerSecond;
+    let oldFrameVal;
+    
+    try {
+      //.reset() rounds frameVal up to a whole number, for unknown reasons
+      oldFrameVal = conditions[resource][countUpName].frameVal;
+      conditions[resource][countUpName].reset();
+      conditions[resource][countUpName].frameVal = oldFrameVal;
+      } catch (e) { console.log(e) }
     
     if (conditions[resource].ratePerSecondBase) {
       //make sure duration has been updated (if ratePerSecondBase => ratePerSecond already has # of workers factored in)
@@ -83,10 +91,7 @@ let theMachine = {
     }
     
     //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
-    if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0) || (conditions[resource].ratePerSecond < 0)) {
-      try{
-      conditions[resource][countUpName].reset();
-      } catch (e) {}
+    if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && conditions[resource].ratePerSecond !== 0) || (conditions[resource].ratePerSecond < 0)) {
       //call a new animation with updated values for automated resources
       conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
       if (!conditions[resource][countUpName].error) {
@@ -191,7 +196,7 @@ let theMachine = {
   checkStartValue(resource, countUpNameAuto) {
     try {
       //case 1: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
-      if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond > 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
+      if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond >= 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
           conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
           conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
         }
@@ -220,7 +225,7 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0.1, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
@@ -576,13 +581,7 @@ let theMachine = {
       }
     }
     
-    if (conditions[resource].ratePerSecond === 0) {
-      theMachine.renderWhilePaused(resource, resource + 'CountUpAnim');
-    } else {
-      //we're always going to need to animate heat because everything costs heat
-      theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);
-    }
-    
+    theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);    
   }
   
 };
