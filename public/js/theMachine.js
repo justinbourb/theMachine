@@ -45,6 +45,11 @@
 *  1b) move relevant animteCountUp tests to new function
 **/
 
+/**FIXME: updateCounterButtons('job speed') 
+*1) not working with tanks full capacity, automation rate is not updating in collapsible element
+*2) automation rate is not increasing after worker is assigned
+**/
+
 let conditions;
 
 let globalData;
@@ -485,8 +490,13 @@ let theMachine = {
         conditions[resource]['ratePerSecond'] += (conditions[resource][valueChanged] * 0.1);
       }
       conditions[resourceSpent].startValue -= conditions[resource][resourceCost];
+      //if (resource !== resourceSpent && event.target.innerHTML === 'job speed'), reduce resourceSpent.ratePerSecond by increase * workers assigned
+      if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
+        conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
+      }
       conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
-      if (resource === 'tanks') {
+      //updating capacity => endValue can only be a whole number
+      if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource][valueChanged] = parseInt(conditions[resource][valueChanged].toFixed());
       }
       conditions[resource][resourceCost] += (conditions[resource][resourceCost] * 0.1);
@@ -528,9 +538,9 @@ let theMachine = {
         if (conditions[resource].workersAssigned < conditions[resource].workerCap) {
           conditions[resource].workersAssigned += 1;
           globalData.globalWorkersAvailable -= 1;
-          //5:1 ratio of resource rate vs heat drain rate... a lot of resources need need 1:1 would be too drastic.
+          //3:1 ratio of resource rate vs heat drain rate... a lot of resources need need 1:1 would be too drastic.
           if (resource !== resourceSpent) {
-            conditions[resourceSpent].ratePerSecond -= (conditions[resource].ratePerSecond / 5);
+            conditions[resourceSpent].ratePerSecond -= (conditions[resource].ratePerSecond / 3);
           //if resource === resourceSpent increase ratePerSecond by ratePerSecondBase (adding a worker increases rate)
           } else {
             conditions[resourceSpent].ratePerSecond += (conditions[resource].ratePerSecondBase);
@@ -546,7 +556,7 @@ let theMachine = {
         conditions[resource].workersAssigned -= 1;
         globalData.globalWorkersAvailable += 1;
         if (resource !== resourceSpent) {
-          conditions[resourceSpent].ratePerSecond += (conditions[resource].ratePerSecond / 5);
+          conditions[resourceSpent].ratePerSecond += (conditions[resource].ratePerSecond / 3);
         } else {
           conditions[resourceSpent].ratePerSecond -= (conditions[resource].ratePerSecondBase);
         }

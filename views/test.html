@@ -742,6 +742,50 @@
       eq(conditions.heat.startValue, 10);
     },
     
+    'theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
+      resetConditions();
+      conditions.heat.capacityCost = 10;
+      conditions.tanks.startValue = 5;
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.capacityCost, 10);
+      eq(conditions.tanks.startValue, 5);
+    },
+    
+    'theMachine.updateCounterButtons("item capacity") should reduce tanks.startValue by [resource].capacityCost':function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
+      conditions.tanks.capacityCost = 5;
+      conditions.tanks.startValue = 10
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.tanks.startValue, 5);
+    },
+    
+    'theMachine.updateCounterButtons("item capacity") should increase [resource].capacityCost 10%':function() {
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
+      conditions.tanks.startValue = 10;
+      conditions.tanks.capacityCost = 5;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.tanks.capacityCost, 5.5);
+    },
+    
+    'theMachine.updateCounterButtons("item capacity") should increase [resource].endValue by 10%':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      conditions.heat.capacityCost = 5;
+      conditions.tanks.startValue = 10;
+      conditions.heat.endValue = 10;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.endValue, 11);
+    },
+    
+    'theMachine.updateCounterButtons("item capacity") [resource].endValue should only be a whole number (countUp limitation)':function() {
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
+      conditions.heat.capacityCost = 5;
+      conditions.tanks.startValue = 10;
+      conditions.heat.endValue = 11;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.endValue, 12);
+    },
+    
     'theMachine.updateCounterButtons() "Job Speed" should only update ratePerSecond, startValue and rateCost':function () {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Job Speed'}};   
       resetConditions();
@@ -871,43 +915,26 @@
       eq(conditions.heat.ratePerSecond, 0.55);
     },
     
-    'theMachine.updateCounterButtons("item capacity") have no effect if tanks.startValue < [resource].capacityCost':function() {
-      resetConditions();
-      conditions.heat.capacityCost = 10;
-      conditions.tanks.startValue = 5;
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.capacityCost, 10);
-      eq(conditions.tanks.startValue, 5);
-    },
-    
-    'theMachine.updateCounterButtons("item capacity") should reduce tanks.startValue by [resource].capacityCost':function() {
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
-      conditions.tanks.capacityCost = 5;
-      conditions.tanks.startValue = 10
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.tanks.startValue, 5);
-    },
-    
-    'theMachine.updateCounterButtons("item capacity") should increase [resource].capacityCost 10%':function() {
-      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Item Capacity'}};
-      conditions.tanks.startValue = 10;
-      conditions.tanks.capacityCost = 5;
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.tanks.capacityCost, 5.5);
-    },
-    
-    'theMachine.updateCounterButtons("item capacity") should increase [resource].endValue by 10%':function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: 'Item Capacity'}};
-      conditions.heat.capacityCost = 5;
-      conditions.tanks.startValue = 10;
-      conditions.heat.endValue = 10;
-      theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.endValue, 11);
-    },
-    
-    'theMachine.updateCounterButtons("job speed") should decrease resourceSpent.ratePerSecond when increasing resource.ratePerSecond': function() {
+    'theMachine.updateCounterButtons("job speed") if (resource.workersAssigned > 0) it should decrease resourceSpent.ratePerSecond when increasing resource.ratePerSecond': function() {
       //tanks rate increasing from 0.5 to 1, heat rate decreases proportionally 
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      resetConditions();
+      tanks.workersAssigned = 1;
+      conditions.heat.startValue = 10;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.48333333333333334);
+      eq(conditions.tanks.ratePerSecond, 0.55);
+    },
+    
+    'theMachine.updateCounterButtons("job speed") if (resource.workersAssigned = 0) it should not decrease resourceSpent.ratePerSecond when increasing resource.ratePerSecond': function() {
+      //tanks rate increasing from 0.5 to 1, heat rate decreases proportionally 
+      let testCase = {target: {dataset: {resource: "tanks"}, innerHTML: 'Job Speed'}};
+      resetConditions();
+      conditions.tanks.workersAssigned = 0;
+      conditions.heat.startValue = 10;
+      theMachine.updateCounterButtons(testCase);
+      eq(conditions.heat.ratePerSecond, 0.5);
+      eq(conditions.tanks.ratePerSecond, 0.55);
     },
     
     //
@@ -993,7 +1020,7 @@
       conditions.heat.startValue = 10;
       globalData.globalWorkersAvailable = 5;
       theMachine.workerButtons(testCase);
-      eq(conditions.heat.ratePerSecond, 0.4);
+      eq(conditions.heat.ratePerSecond, 0.33333333333333337);
       eq(conditions.tanks.ratePerSecond, 0.5);
     },
     
