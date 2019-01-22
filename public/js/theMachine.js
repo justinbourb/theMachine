@@ -45,10 +45,17 @@
 *  1b) move relevant animteCountUp tests to new function
 **/
 
-/**FIXME: updateCounterButtons('job speed') 
-*1) not working with tanks full capacity, automation rate is not updating in collapsible element
-*2) automation rate is not increasing after worker is assigned
+/**TODO: animateCountUp()
+*1) once heat has reach 0 timers are paused.  Resume timers after heat > 0
+*2) refactor code so it only pauses based on heat
+*  2a) need to make this DRY for other resource types beyond craftUnlockedResources
 **/
+
+/**FIXME: workerButtons()
+*1) if heat === 0, cannot generate other resources (tanks)
+*  1a) this is occuring after tanks is getting paused once heat hits zero
+**/
+
 
 let conditions;
 
@@ -62,13 +69,14 @@ let theMachine = {
     let endValue;
     let ratePerSecond;
     let oldFrameVal;
+    let timeOutId;
     
     try {
       //.reset() rounds frameVal up to a whole number, for unknown reasons
       oldFrameVal = conditions[resource][countUpName].frameVal;
       conditions[resource][countUpName].reset();
       conditions[resource][countUpName].frameVal = oldFrameVal;
-      } catch (e) { console.log(e) }
+      } catch (e) {}
     
     if (conditions[resource].ratePerSecondBase) {
       //make sure duration has been updated (if ratePerSecondBase => ratePerSecond already has # of workers factored in)
@@ -85,6 +93,24 @@ let theMachine = {
       endValue = 0;
       //recalculate duration from startValue down to zero
       conditions[resource].duration = (-conditions[resource].startValue) / (conditions[resource].ratePerSecond);
+      if (conditions.heat.timeOutId) {
+        try {
+          window.clearTimeout(conditions.heat.timeOutId);
+        } catch (e) {}
+      }
+      //after heat runs out, cancel other timers that depend on heat
+      conditions.heat.timeOutId =  window.setTimeout(function() {
+        console.log('heat timer is zero after ' + conditions[resource].duration + ' seconds');
+        globalData.craftUnlockedResources.forEach(function(resource) {
+          try {
+            // theMachine.checkStartValue(resource, resource + 'CountUpAnim');
+            // conditions[resource][resource + 'CountUpAnim'].startVal = conditions[resource].startValue;
+            // conditions[resource][resource + 'CountUpAnim'].reset();
+            conditions[resource][resource + 'CountUpAnim'].pauseResume();
+            
+          } catch (e) {}
+        });
+      }, conditions[resource].duration*1000);
     } else {
       //else countUp
       endValue = conditions[resource].endValue;
@@ -225,7 +251,7 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: -0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 5, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }

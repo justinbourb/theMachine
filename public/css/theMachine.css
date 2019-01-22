@@ -90,6 +90,9 @@ body {
 	text-rendering: optimizeLegibility;
   top: 15px;
 }
+::-webkit-scrollbar { 
+    display: none; 
+}
 .workers {
   font-family: 'Major Mono Display', monospace;
   display: inline-block;
