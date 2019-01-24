@@ -164,8 +164,8 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 	self.printValue = function(value) {
 		var result = self.options.formattingFn(value);
     var resource = target.dataset.resource;
-
-		if (self.d.tagName === 'INPUT') {
+    
+    if (self.d.tagName === 'INPUT') {
 			this.d.value = result;
 		}
 		else if (self.d.tagName === 'text' || self.d.tagName === 'tspan') {
@@ -183,7 +183,11 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
       if (self.frameVal === self.endVal) {
-        document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ 0 + " / second";
+        if (conditions[resource].ratePerSecond < 0) {
+        document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> ' + conditions[resource].ratePerSecond + ' / second';
+        } else {
+          document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00 / second';  
+        }
       } else {
         document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second";
       }
@@ -277,7 +281,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 		self.initialized = false;
 		if (self.initialize()) {
 			cancelAnimationFrame(self.rAF);
-			self.printValue(self.startVal);
+			//self.printValue(self.startVal);
 		}
 	};
   

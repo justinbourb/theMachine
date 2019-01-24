@@ -257,23 +257,25 @@
       eq(conditions.heat.timeOutId, 8);
     },
     
-//     'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
-//       fail('setTimeout does not seem to work with TinyTest(?)');
-//       resetConditions();
-//       conditions.heat.ratePerSecond = -0.5;
-//       conditions.tanks.workersAssigned = 1;
-//       conditions.tanks.paused = false;
-//       theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
-//       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-//       window.setTimeout(function() {
-//         eq(conditions.tanks.tanksCountUpAnim.paused, true);
-//       }, 0);
-      
-//     },
-    
-//     'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is 0': function() {
-//       fail();
-//     },
+//       'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
+//         fail('setTimeout does not seem to work with TinyTest(?)');
+//         resetConditions();
+//         conditions.heat.ratePerSecond = -0.5;
+//         conditions.tanks.workersAssigned = 1;
+//         conditions.tanks.paused = false;
+//         theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
+//         theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+//         window.setTimeout(function() {
+//           eq(conditions.tanks.tanksCountUpAnim.paused, true);
+//         }, 0);
+//       },
+
+//       'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is 0': function() {
+//         fail();
+//       },
+    // 'theMachine.animateCountUp() resets heat.startValue to 0 after heat runs out': function() {
+    //   fail();
+    // },
     // 'theMachine.animateCountUp() resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
     //   fail();
     //   //see above comments, not sure how to do this yet
@@ -406,6 +408,17 @@
       conditions.heat.wasPageLeft = 501;
       theMachine.calculateValues('init', 'craftUnlockedResources');
       eq(conditions.heat.wasPageLeft, false);
+    },
+    
+    //
+    //theMachine.checkStartValue()
+    //
+    'theMachine.cancelAnimation() deletes conditions[resource][countUpAnim].count': function() {
+      //which cancels the animation & prevents duplicate countUps
+      resetConditions();
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      theMachine.cancelAnimation('heat');
+      eq(conditions.heat.heatCountUpAnim.count, undefined);
     },
     
     //
@@ -554,7 +567,7 @@
       conditions[resource].duration = Infinity;
       theMachine.renderWhilePaused('heat');
       eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
-      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00 / second');
       eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
     },
     
@@ -569,8 +582,19 @@
       conditions.heat.ratePerSecond = 0;
       theMachine.renderWhilePaused('heat');
       eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
-      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00 / second');
       eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
+    },
+    
+    'theMachine.renderWhilePaused() case 1c: if duration === infinity && ratePerSecond < 0, display rate to the DOM': function() {
+      resetConditions();
+      conditions.heat.ratePerSecond = -100;
+      conditions.heat.workersAssigned = 0;
+      conditions.heat.duration = Infinity;
+      theMachine.renderWhilePaused('heat');
+      eq(document.getElementById('heat' + 'Rate').innerHTML, '<b>Rate:</b> -100 / second');
+      
+      
     },
     
     'theMachine.renderWhilePaused() case 2: conditions[resource].paused === true || globalData.workersUnlocked === false': function() {
@@ -595,6 +619,7 @@
       eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
       eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
     },
+    
     
     //
     //theMachine.renderWorkers()
@@ -1140,7 +1165,7 @@
       theMachine.workerButtons(testCase);
       eq(conditions.heat.heatCountUpAnim, undefined);
       eq(conditions['heat'].counterElement.innerHTML, conditions['heat'].startValue + ' / ' + conditions['heat'].endValue);
-      eq(document.getElementById('heat' + 'Rate').innerHTML, '<b>Rate:</b> 0.00');
+      eq(document.getElementById('heat' + 'Rate').innerHTML, '<b>Rate:</b> 0.00 / second');
       eq(document.getElementById('heat' + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
     },
     
