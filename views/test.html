@@ -61,9 +61,7 @@
   theMachine.calculateValues('init', 'craftUnlockedResources');
   
   function resetCountUp(resource) {
-    try {
-      conditions[resource][resource + 'CountUpAnim'].reset();
-      } catch (e) {}
+    theMachine.cancelAnimation(resource);
   };
   
   function resetConditions() {
@@ -254,32 +252,28 @@
       conditions.heat.timeOutId = 'some fake value';
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
       eq(typeof(conditions.heat.timeOutId), 'number');
-      eq(conditions.heat.timeOutId, 8);
+      eq(conditions.heat.timeOutId, 6);
     },
     
-//       'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
-//         fail('setTimeout does not seem to work with TinyTest(?)');
-//         resetConditions();
-//         conditions.heat.ratePerSecond = -0.5;
-//         conditions.tanks.workersAssigned = 1;
-//         conditions.tanks.paused = false;
-//         theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
-//         theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-//         window.setTimeout(function() {
-//           eq(conditions.tanks.tanksCountUpAnim.paused, true);
-//         }, 0);
-//       },
-
-//       'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is 0': function() {
-//         fail();
-//       },
-    // 'theMachine.animateCountUp() resets heat.startValue to 0 after heat runs out': function() {
-    //   fail();
-    // },
-    // 'theMachine.animateCountUp() resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
-    //   fail();
-    //   //see above comments, not sure how to do this yet
-    // },    
+    'theMachine.animateCountUp() will not animate a resource if resourceSpent === 0 && resourceSpent.ratePerSecond <= 0': function() {
+      resetConditions();
+      resetCountUp('heat');
+      resetCountUp('tanks');
+      conditions.heat.ratePerSecond = 0;
+      conditions.tanks.workersAssigned = 1;
+      delete conditions.tanks.tanksCountUpAnim;
+      theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.heat.counterElement, 'heat');
+      eq(conditions.tanks.tanksCountUpAnim, undefined);
+      
+      resetConditions();
+      resetCountUp('heat');
+      resetCountUp('tanks');
+      conditions.heat.startValue = 0;
+      conditions.tanks.workersAssigned = 1;
+      delete conditions.tanks.tanksCountUpAnim;
+      theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.heat.counterElement, 'heat');
+      eq(conditions.tanks.tanksCountUpAnim, undefined);
+    },  
     
     //
     //theMachine.automationButton()
@@ -1235,6 +1229,36 @@
     //
     //unfinished tests
     //
+    
+    //      'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is negative': function() {
+//         fail('setTimeout does not seem to work with TinyTest(?)');
+//         resetConditions();
+//         conditions.heat.ratePerSecond = -0.5;
+//         conditions.tanks.workersAssigned = 1;
+//         conditions.tanks.paused = false;
+//         theMachine.animateCountUp('tanks', 'tanksCountUpAnim', conditions.tanks.counterElement);
+//         theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+//         window.setTimeout(function() {
+//           eq(conditions.tanks.tanksCountUpAnim.paused, true);
+//         }, 0);
+//       },
+
+//       'theMachine.animateCountUp() resource CountUp will stop if resourceSpent startValue is zero && ratePerSecond is 0': function() {
+//         fail();
+//       },
+    // 'theMachine.animateCountUp() resets heat.startValue to 0 after heat runs out': function() {
+    //   fail();
+    // },
+    // 'theMachine.animateCountUp() resource CountUp will restart once resourceSpent startValue is greater than zero && ratePerSecond is positive': function() {
+    //   fail();
+    //   //see above comments, not sure how to do this yet
+    // },  
+    
+    /**Scenarios:
+    *1) heat rate < 0 (all heat reliant counters are stopped), +workerButton, heat rate > 0 (restart all heat related counters)
+    *2) paused resource counter returns to old startValue upon resuming.
+    *  2a) tanks 7 > unpaused > tanks 8 pause > innerHTML shows 7 > unpaused innerHTML shows 8
+    *  2b) same issue as above + resource countUp will resume even if heat.startValue === 0
     
   });
 </script>

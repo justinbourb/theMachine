@@ -43,7 +43,8 @@
 *1) break out endValue and duration calculations into a new function that returns endValue, duration
 *  1a) perhaps create this theMachine.calculateValues('animateCountUp);
 *  1b) move relevant animteCountUp tests to new function
-*2) tanks not pausing when heat reaches zero
+*2) line 122 something is wrong with the resourceSpentBoolean logic
+*  2a) automationButton() is acting weirdly..
 **/
 
 /**TODO: animateCountUp()
@@ -69,7 +70,7 @@ let globalData;
 
 let theMachine = {
 
-  animateCountUp(resource, countUpName, elemnt) {
+  animateCountUp(resource, countUpName, elemnt, resourceSpent) {
     let startValue = conditions[resource].startValue;
     let endValue;
     let ratePerSecond;
@@ -100,7 +101,7 @@ let theMachine = {
       //after heat runs out, cancel other timers that depend on heat
       conditions.heat.timeOutId =  window.setTimeout(function() {
         globalData.craftUnlockedResources.forEach(function(resource) {
-          theMachine.cancelAnimation();
+          theMachine.cancelAnimation(resource);
         });
         conditions.heat.startValue = 0;
         delete conditions.heat.heatCountUpAnim;
