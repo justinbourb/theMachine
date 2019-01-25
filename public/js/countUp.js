@@ -247,7 +247,7 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
 
 		// whether to continue
 		if (progress < self.duration) {
-			self.rAF = requestAnimationFrame(self.count);
+      self.rAF = requestAnimationFrame(self.count);
 		} else {
 			if (self.callback) self.callback();
 		}

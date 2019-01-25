@@ -600,16 +600,30 @@ let theMachine = {
       }
     }
     
+    if (conditions[resourceSpent].ratePerSecond < 0) {
+      conditions[resourceSpent].wasRateNegative = true; 
+    }
+    
     theMachine.renderWorkers(resource);
     
-    [resource, resourceSpent].forEach(function(elemnt){
-      theMachine.checkStartValue(elemnt, elemnt + 'CountUpAnim'); 
-    });
-    
-    //if resource is not heat && there is enough heat to animate resource
-    if (resource !== resourceSpent) {
-      if (conditions[resourceSpent].startValue > 0) {
-        theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
+    if (conditions[resourceSpent].ratePerSecond > 0 && conditions[resourceSpent].wasRateNegative === true) {
+      //restart all counters dependant on resourceSpent (including resourceSpent) once resourceSpent generation is positive
+      globalData.craftUnlockedResources.forEach(function(resource) {
+        theMachine.checkStartValue(resource, resource + 'CountUpAnim'); 
+        theMachine.animateCountUp(resource, resource + 'CountUpAnim', conditions[resource].counterElement);
+      })
+      
+      //toggle resourceSpent.wasRateNegative back to false
+      conditions[resourceSpent].wasRateNegative = false;
+    } else {
+      [resource, resourceSpent].forEach(function(elemnt){
+        theMachine.checkStartValue(elemnt, elemnt + 'CountUpAnim'); 
+      });
+      //if resource is not heat && there is enough heat to animate resource
+      if (resource !== resourceSpent) {
+        if (conditions[resourceSpent].startValue > 0) {
+          theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
+        }
       }
     }
     

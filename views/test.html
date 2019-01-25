@@ -41,7 +41,7 @@
   //baseline test values for conditions & globalData
   conditions = (
     {
-      heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 1, workerCap: 1 },
+      heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, wasRateNegative: false, workersAssigned: 1, workerCap: 1 },
       tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
     }
   ); 
@@ -72,6 +72,8 @@
     conditions.heat.workersAssigned = 1;
     conditions.heat.paused = false;
     conditions.heat.capacityCost = 5;
+    conditions.heat.wasRateNegative =  false;
+    
     try {
       conditions.heat.heatCountUpAnim.frameVal = 0;
       conditions.tanks.tanksCountUpAnim.frameVal = 0;
@@ -81,11 +83,14 @@
       conditions.tanks.tanksCountUpAnim = {};
       conditions.tanks.tanksCountUpAnim.frameVal = 0;
     }
-    
+  
     conditions.tanks.ratePerSecond = 0.5;
-    
-    globalData.globalWorkersAvailable = 4;
   };
+  
+  function resetGlobalData() {
+    globalData.craftUnlockedResources = ['heat', 'tanks'];
+    globalData.globalWorkersAvailable = 4;
+  }
     
   tests({
     
@@ -1127,6 +1132,7 @@
       //adding a worker to resourceSpent should increase by the base rate
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
       resetConditions();
+      globalData.globalWorkersAvailable = 10;
       conditions.heat.ratePerSecond = -0.5;
       theMachine.workerButtons(testCase);
       eq(conditions.heat.ratePerSecond, 0);
@@ -1225,6 +1231,50 @@
       theMachine.workerButtons(testCase);
       eq(typeof(conditions.heat.heatCountUpAnim.startTime), 'undefined');      
     },
+    
+    'theMachine.workerButtons() if resourceSpent ratePerSecond becomes / is negative set conditions[resourceSpent].wasRateNegative === true': function() {
+      resetConditions();
+      conditions.heat.ratePerSecond = 0;
+      conditions.heat.wokersAssigned = 1;
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.wasRateNegative, true);
+    },
+    
+    'theMachine.workerButtons() if resourceSpent ratePerSecond > 0 && conditions[resourceSpent].wasRateNegative === true set conditions[resourceSpent].wasRateNegative === false': function() {
+      resetConditions();
+      resetGlobalData();
+      conditions.heat.ratePerSecond = -0.5;
+      conditions.heat.wokersAssigned = 0;
+      conditions.heat.wasRateNegative = true;
+      
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      eq(conditions.heat.ratePerSecond > 0, true);
+      eq(conditions.heat.wasRateNegative, false);
+    },
+    
+    'theMachine.workerButtons() after conditions[resourceSpent].wasRateNegative changes state to true, restart all dependant counters': function() {
+      resetConditions();
+      resetCountUp('heat');
+      resetCountUp('tanks');
+      delete conditions.heat.heatCountUpAnim;
+      delete conditions.tanks.tanksCountUpAnim;
+      conditions.heat.wasRateNegative = true;
+      conditions.heat.startValue = 1;
+      conditions.heat.ratePerSecond = -0.5;
+      conditions.heat.wokersAssigned = 0;
+      conditions.tanks.workersAssigned = 1;
+      
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      
+      eq(conditions.heat.wasRateNegative, false);
+      eq(typeof(conditions.heat.heatCountUpAnim), 'object');
+      eq(typeof(conditions.tanks.tanksCountUpAnim), 'object');
+    }
 
     //
     //unfinished tests
@@ -1259,6 +1309,7 @@
     *2) paused resource counter returns to old startValue upon resuming.
     *  2a) tanks 7 > unpaused > tanks 8 pause > innerHTML shows 7 > unpaused innerHTML shows 8
     *  2b) same issue as above + resource countUp will resume even if heat.startValue === 0
+    **/
     
   });
 </script>
