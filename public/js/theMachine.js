@@ -10,17 +10,15 @@
 *6) create header link to theArmory, Soldiers, Inventor, Hunter, etc
 *  6a) unlocked header based on research
 *7) theMachine.updateCounterButtons() add logic for additional resource costs
-*  7a) crafting capacity costs tanks
 *  7b) crafting workers capacity costs klins
 *  7c) crafting efficiency costs fluid
 *8) theMachine.updateCounterbuttons() add logic for additional pages
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
-*10) Assuming negative resource generation. Based on amount of time passed, halt resources after 
-    requirement resoure hits zero regardless of time passed.
-  10a) example: tanks require heat.  Heat drops to zero after 5 seconds.  Only generation
-    5 seconds worth of tanks regardless of time passed.
+*10) conditions.heat.ratePerSecond funny business... it is increasing, but not decreasing properly.
+*  10a) 0/5 workers and rate has increased from 0.5 to 4.8333 after pause/resume and other button combinations
+*  10b) need to investiage more closely
 **/
 
 /**FIXME:
@@ -39,24 +37,7 @@
 **/
 
 
-/**FIXME: animateCountUp()
-*1) break out endValue and duration calculations into a new function that returns endValue, duration
-*  1a) perhaps create this theMachine.calculateValues('animateCountUp);
-*  1b) move relevant animteCountUp tests to new function
-*2) line 122 something is wrong with the resourceSpentBoolean logic
-*  2a) automationButton() is acting weirdly..
-**/
 
-/**TODO: animateCountUp()
-*1) once heat has reach 0 timers are paused.  Resume timers after heat > 0
-*2) refactor code so it does not only pause based on heat
-*  2a) need to make this DRY for other resource types beyond craftUnlockedResources
-**/
-
-/**FIXME: workerButtons()
-*1) if heat === 0, cannot generate other resources (tanks)
-*  1a) this is occuring after tanks is getting paused once heat hits zero
-**/
 
 /**TODO: test.html
 *1) look up promises
@@ -72,6 +53,7 @@ let theMachine = {
 
   animateCountUp(resource, countUpName, elemnt, resourceSpent) {
     let startValue = conditions[resource].startValue;
+    let resourceRequired = conditions[resource].resourceRequired;
     let endValue;
     let ratePerSecond;
     let timeOutId;
@@ -110,27 +92,33 @@ let theMachine = {
       //else countUp
       endValue = conditions[resource].endValue;
     }
-    
-    //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
-    if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && conditions[resource].ratePerSecond !== 0) || (conditions[resource].ratePerSecond < 0)) {
-      //call a new animation with updated values for automated resources
-      conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
-      if (!conditions[resource][countUpName].error) {
-          window.onload = conditions[resource][countUpName].start();
-      } else {
-          console.error(conditions[resource][countUpName].error);
+    //conditions to check before animation
+    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
+      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
+      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && conditions[resource].ratePerSecond !== 0) || (conditions[resource].ratePerSecond < 0)) {
+        //call a new animation with updated values for automated resources
+        conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
+        if (!conditions[resource][countUpName].error) {
+            window.onload = conditions[resource][countUpName].start();
+        } else {
+            console.error(conditions[resource][countUpName].error);
+        }
+      }
+      else {
+        theMachine.renderWhilePaused(resource, countUpName);
       }
     //Case 2: There are no workers assigned || The countUp is paused
     } else {
-        theMachine.renderWhilePaused(resource, countUpName);
-      }
+      theMachine.renderWhilePaused(resource, countUpName);
+    }
   },
   
   automationButton(event) {
     
     let resource = event.target.dataset.resource; //heat or tanks or fuel, etc
     let countUpNameAuto = resource + 'CountUpAnim';
-    //case 1: stopping automation
+    let resourceRequired = conditions[resource].resourceRequired;
+    //case 1: starting automation
     if (document.getElementById(resource + 'AutomationButton').innerHTML === "Enable Automation" || conditions[resource].paused === true){
       document.getElementById(resource + 'AutomationButton').innerHTML = "Disable Automation";
       document.getElementById(resource + 'Plus').style.display = 'inline-block';
@@ -144,12 +132,24 @@ let theMachine = {
       //check if any resources have been generated manually and start the (updated) counter again
       conditions[resource].paused = false;
       theMachine.pauseResume(resource, countUpNameAuto);
-    //case 2: starting automation
+      if (resource !== resourceRequired) {
+        //increase resourceRequired ratePerSecond by amount previously drained by resource
+        conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond / 3) * conditions[resource].workersAssigned;
+      }
+    //case 2: stopping automation
     } else {
       conditions[resource].paused = true;
       theMachine.renderWhilePaused(resource, countUpNameAuto);
       theMachine.pauseResume(resource, countUpNameAuto);
       theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
+      if (resource !== resourceRequired) {
+        //increase resourceRequired ratePerSecond by amount previously drained by resource
+        conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond / 3) * conditions[resource].workersAssigned;
+      }
+    }
+    //restart resourceRequired with new ratePerSecond information
+    if (resource !== resourceRequired) {
+      theMachine.animateCountUp(resourceRequired, resourceRequired + 'CountUpAnim', conditions[resourceRequired].counterElement);
     }
   },
   
@@ -253,10 +253,10 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: -0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, startValue: 2, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
-          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: -0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
+          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
         }); 
       globalData = (
       {
@@ -346,9 +346,7 @@ let theMachine = {
   renderWhilePaused(resource, countUpNameAuto) {
     //Case 1: duration is divided by 0 => there's no workers for this resource || the rate === 0
     if (conditions[resource].duration === Infinity || conditions[resource].ratePerSecond === 0){
-      try {
-        conditions[resource][countUpNameAuto].reset();
-      } catch (e) {}
+      theMachine.cancelAnimation(resource);
       conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
       document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
       if (conditions[resource].ratePerSecond < 0) {
@@ -387,7 +385,7 @@ let theMachine = {
     
     //if called by renderWorkers countUpNameAuto is not supplied, this if statement prevents errors
     if (countUpNameAuto) {
-      //theMachine.checkStartValue(resource, countUpNameAuto);
+      theMachine.checkStartValue(resource, countUpNameAuto);
       theMachine.updateGradientAndValue(resource, countUpNameAuto);
       theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
     }
@@ -494,15 +492,15 @@ let theMachine = {
     **/   
     let resource = event.target.dataset.resource; //heat or tanks or fuel, etc;
     let countUpNameAuto = resource + 'CountUpAnim';
-    let elemnt = conditions[resource].counterElement;;
-
-    theMachine.checkStartValue(resource, countUpNameAuto);
-    
-    
+    let elemnt = conditions[resource].counterElement;
+    let resourceRequired = conditions[resource].resourceRequired;
     let resourceSpent;
     let resourceCost;
     let valueChanged;
     let level;
+    
+    theMachine.checkStartValue(resource, countUpNameAuto);
+    
     //set unique conditions depending on button pushed
     if (event.target.innerHTML === 'Item Capacity') {
       resourceSpent = 'tanks';
@@ -537,6 +535,7 @@ let theMachine = {
         conditions[resource][valueChanged] = parseInt(conditions[resource][valueChanged].toFixed());
       }
       conditions[resource][resourceCost] += (conditions[resource][resourceCost] * 0.1);
+      conditions[resource][resourceCost] = parseFloat(conditions[resource][resourceCost].toFixed(5));
       conditions[resource][level] += 1;
     }
   
@@ -546,10 +545,9 @@ let theMachine = {
       } catch (e) {}
       
     if (resource !== resourceSpent) {
-        theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);
-      }
-
-    theMachine.animateCountUp(resource, countUpNameAuto, elemnt);
+      theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);
+    }
+    theMachine.animateCountUp(resource, countUpNameAuto, elemnt);    
     
   },
   
@@ -565,7 +563,7 @@ let theMachine = {
     *2) update the resoureSpent rate so it's resource generation can be reduced or increased accordingly.
     **/
     let resource = event.target.dataset.resource;
-    let resourceSpent = 'heat';
+    let resourceRequired = conditions[resource].resourceRequired;
     let countUpName =  resource + 'CountUpAnim';
     //check if adding workers
     if (event.target.innerHTML === '+') {
@@ -576,11 +574,11 @@ let theMachine = {
           conditions[resource].workersAssigned += 1;
           globalData.globalWorkersAvailable -= 1;
           //3:1 ratio of resource rate vs heat drain rate... a lot of resources need need 1:1 would be too drastic.
-          if (resource !== resourceSpent) {
-            conditions[resourceSpent].ratePerSecond -= (conditions[resource].ratePerSecond / 3);
+          if (resource !== resourceRequired) {
+            conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond / 3);
           //if resource === resourceSpent increase ratePerSecond by ratePerSecondBase (adding a worker increases rate)
           } else {
-            conditions[resourceSpent].ratePerSecond += (conditions[resource].ratePerSecondBase);
+            conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecondBase);
           }
         }
       }
@@ -592,21 +590,21 @@ let theMachine = {
       if (conditions[resource].workersAssigned > 0) {
         conditions[resource].workersAssigned -= 1;
         globalData.globalWorkersAvailable += 1;
-        if (resource !== resourceSpent) {
-          conditions[resourceSpent].ratePerSecond += (conditions[resource].ratePerSecond / 3);
+        if (resource !== resourceRequired) {
+          conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond / 3);
         } else {
-          conditions[resourceSpent].ratePerSecond -= (conditions[resource].ratePerSecondBase);
+          conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecondBase);
         }
       }
     }
     
-    if (conditions[resourceSpent].ratePerSecond < 0) {
-      conditions[resourceSpent].wasRateNegative = true; 
+    if (conditions[resourceRequired].ratePerSecond < 0) {
+      conditions[resourceRequired].wasRateNegative = true; 
     }
     
     theMachine.renderWorkers(resource);
     
-    if (conditions[resourceSpent].ratePerSecond > 0 && conditions[resourceSpent].wasRateNegative === true) {
+    if (conditions[resourceRequired].ratePerSecond > 0 && conditions[resourceRequired].wasRateNegative === true) {
       //restart all counters dependant on resourceSpent (including resourceSpent) once resourceSpent generation is positive
       globalData.craftUnlockedResources.forEach(function(resource) {
         theMachine.checkStartValue(resource, resource + 'CountUpAnim'); 
@@ -614,20 +612,20 @@ let theMachine = {
       })
       
       //toggle resourceSpent.wasRateNegative back to false
-      conditions[resourceSpent].wasRateNegative = false;
+      conditions[resourceRequired].wasRateNegative = false;
     } else {
-      [resource, resourceSpent].forEach(function(elemnt){
+      [resource, resourceRequired].forEach(function(elemnt){
         theMachine.checkStartValue(elemnt, elemnt + 'CountUpAnim'); 
       });
       //if resource is not heat && there is enough heat to animate resource
-      if (resource !== resourceSpent) {
-        if (conditions[resourceSpent].startValue > 0) {
+      if (resource !== resourceRequired) {
+        if (conditions[resourceRequired].startValue > 0) {
           theMachine.animateCountUp(resource, countUpName, conditions[resource].counterElement);
         }
       }
     }
     
-    theMachine.animateCountUp(resourceSpent, resourceSpent + 'CountUpAnim', conditions[resourceSpent].counterElement);    
+    theMachine.animateCountUp(resourceRequired, resourceRequired + 'CountUpAnim', conditions[resourceRequired].counterElement);    
   }
   
 };
