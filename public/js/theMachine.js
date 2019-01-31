@@ -22,8 +22,6 @@
 **/
 
 /**FIXME:
-*1) excessive button clicks call animateCountUp and prevent resource counter / CountUp progress
-*  1a) limit clicks to every half second?
 *2) countUp.js printValue() has duplicate code to theMachine.js renderWhilePaused() 
 *   for class='collapsible' child elements DOM manipulation.  
 *   There should be a single source of truth.
@@ -33,7 +31,6 @@
 *      should be removed from countUp.js and called somewhere in theMachine.js or perhaps
 *      collapse.js???  Since this is inside the collapse item, but it's also part of theMachine...
 *3) theMachine.updateCounterButton() should work for other page besides craft (theArmory, Soldier, etc) - make it DRY
-*  3a) combine item capacity and job speed code?  there's a lot of similarity there...
 **/
 
 
@@ -567,6 +564,10 @@ let theMachine = {
     let countUpName =  resource + 'CountUpAnim';
     //check if adding workers
     if (event.target.innerHTML === '+') {
+      //prevent button spam from stopping countUp progress
+      if (globalData.globalWorkersAvailable === 0 || conditions[resource].workersAssigned === conditions[resource].workerCap) {
+        return
+      }
       //check if there's any workers left in global pool
       if (globalData.globalWorkersAvailable > 0) {
         //check if resource cap is not exceeded
@@ -586,6 +587,10 @@ let theMachine = {
     
     //check if subtracting workers
     if (event.target.innerHTML === '-') {
+      //prevent button spam from stopping countUp progress
+      if (conditions[resource].workersAssigned === 0) {
+        return
+      }
       //check if there's any workers left in resource pool
       if (conditions[resource].workersAssigned > 0) {
         conditions[resource].workersAssigned -= 1;
