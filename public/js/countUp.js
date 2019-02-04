@@ -182,14 +182,10 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     
     //displays rate / second if options.ratePerSecond is defined
     if (self.options.ratePerSecond) {
-      if (self.frameVal === self.endVal) {
-        if (conditions[resource].ratePerSecond < 0) {
-        document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> ' + conditions[resource].ratePerSecond + ' / second';
-        } else {
-          document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00 / second';  
-        }
+      if (conditions[resource].ratePerSecond == 0) {
+        document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> 0.00 / second';
       } else {
-        document.getElementById(resource + 'Rate').innerHTML = "<b>Rate:</b> "+ self.options.ratePerSecond + " / second";
+        document.getElementById(resource + 'Rate').innerHTML = '<b>Rate:</b> ' + self.options.ratePerSecond + ' / second';
       }
       var remainingTime = parseFloat(((self.endVal - value)/self.options.ratePerSecond).toFixed(2)).toLocaleString();
       document.getElementById(resource + 'Time').innerHTML = "<b>Time remaining:</b> "+ remainingTime + " seconds";

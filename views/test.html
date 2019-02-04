@@ -230,17 +230,17 @@
     
     'theMachine.animateCountUp() if (ratePerSecondBase) will calculate countUp ratePerSecond as [resource].ratePerSecond': function() {
       resetConditions();
-      delete conditions.heat.ratePerSecondBase;
       conditions.heat.workersAssigned = 5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.workersAssigned) + " / second");
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ conditions.heat.ratePerSecond + " / second");
     },
     
     'theMachine.animateCountUp() if !(ratePerSecondBase) will calculate countUp ratePerSecond as [resource].ratePerSecond * workersAssigned': function() {
       resetConditions();
+      delete conditions.heat.ratePerSecondBase;
       conditions.heat.workersAssigned = 5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond) + " / second");
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.workersAssigned) + " / second");
     },
     
     'theMachine.animateCountUp() will set conditions.heat.timeOutId if heat ratePerSecond < 0': function() {
@@ -1281,9 +1281,10 @@
     },
     
     'theMachine.workerButtons() it will call theMachine.renderWhilePaused() if ratePerSecond is zero': function() {
-      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
       delete conditions.heat.heatCountUpAnim;
-      conditions.heat.ratePerSecond = 0;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.heat.workersAssigned = 1;
       theMachine.workerButtons(testCase);
       eq(conditions.heat.heatCountUpAnim, undefined);
       eq(conditions['heat'].counterElement.innerHTML, conditions['heat'].startValue + ' / ' + conditions['heat'].endValue);
@@ -1396,7 +1397,48 @@
       eq(conditions.heat.wasRateNegative, false);
       eq(typeof(conditions.heat.heatCountUpAnim), 'object');
       eq(typeof(conditions.tanks.tanksCountUpAnim), 'object');
+    },
+    
+    'theMachine.workerButtons("+") will do nothing if (globalData.globalWorkersAvailable === 0 || conditions[resource].workersAssigned === conditions[resource].workerCap)': function() {
+      resetConditions();
+      resetCountUp('heat');
+      delete conditions.heat.heatCountUpAnim;
+      globalData.globalWorkersAvailable = 0;
+      
+      //test 1
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      
+      eq(conditions.heat.heatCountUpAnim, undefined);
+      
+      //test 2
+      globalData.globalWorkersAvailable = 5;
+      conditions.heat.workersAssigned = 5;
+      conditions.heat.workerCap = 5;
+      
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      
+      eq(conditions.heat.heatCountUpAnim, undefined);
+    },
+    
+     'theMachine.workerButtons("-") will do nothing if (conditions[resource].workersAssigned === 0)': function() {
+      resetConditions();
+      resetCountUp('heat');
+      delete conditions.heat.heatCountUpAnim;
+      conditions.heat.workersAssigned = 0;
+      
+      let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '-'}};
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      theMachine.workerButtons(testCase);
+      
+      eq(conditions.heat.heatCountUpAnim, undefined);
     }
+
 
     //
     //unfinished tests

@@ -4,8 +4,7 @@
 *  3a) I want to be able to continue the game each time browser is opened
 *    3a1) save data on close?  Save any other times or irrelevant? 
 *      3a1a) Save data on close completed.  Is this best practice?
-*    3c) each button / attribute should have a level associated with it.
-*        ratePerSecond = {rate: 1, level: 1)
+
 *5) research.html css file and/or align class names to theMachine.css  
 *6) create header link to theArmory, Soldiers, Inventor, Hunter, etc
 *  6a) unlocked header based on research
@@ -16,9 +15,6 @@
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
-*10) conditions.heat.ratePerSecond funny business... it is increasing, but not decreasing properly.
-*  10a) 0/5 workers and rate has increased from 0.5 to 4.8333 after pause/resume and other button combinations
-*  10b) need to investiage more closely
 **/
 
 /**FIXME:
@@ -84,7 +80,7 @@ let theMachine = {
         });
         conditions.heat.startValue = 0;
         delete conditions.heat.heatCountUpAnim;
-      }, conditions[resource].duration*1000);
+      }, conditions[resource].duration * 1000);
     } else {
       //else countUp
       endValue = conditions[resource].endValue;
@@ -92,7 +88,7 @@ let theMachine = {
     //conditions to check before animation
     if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
       //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
-      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && conditions[resource].ratePerSecond !== 0) || (conditions[resource].ratePerSecond < 0)) {
+      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
         //call a new animation with updated values for automated resources
         conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
         if (!conditions[resource][countUpName].error) {
@@ -146,6 +142,7 @@ let theMachine = {
     }
     //restart resourceRequired with new ratePerSecond information
     if (resource !== resourceRequired) {
+      theMachine.checkStartValue(resourceRequired, resourceRequired + 'CountUpAnim');
       theMachine.animateCountUp(resourceRequired, resourceRequired + 'CountUpAnim', conditions[resourceRequired].counterElement);
     }
   },
@@ -250,7 +247,7 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: -0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 0, workerCap: 10 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
