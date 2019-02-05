@@ -199,6 +199,13 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
       document.getElementById(resource + 'ItemCost').innerHTML = '<b>Cost: </b>' + conditions[resource].capacityCost + ' Tanks';
       document.getElementById(resource + 'ItemLevel').innerHTML = '<b>Level: </b>' + conditions[resource].capacityLevel;
       document.getElementById(resource + 'NextItem').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].capacityCost + conditions[resource].capacityCost * 0.1).toFixed(3)).toLocaleString() + ' Tanks';
+      document.getElementById(resource + 'FluidCost').innerHTML = '<b>Cost: </b>' + conditions[resource].fluidCost + ' Fluid';
+      document.getElementById(resource + 'FluidLevel').innerHTML = '<b>Level: </b>' + conditions[resource].fluidLevel;
+      document.getElementById(resource + 'NextFluid').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].fluidCost + conditions[resource].fluidCost * 0.1).toFixed(3)).toLocaleString() + ' Fluid';
+      document.getElementById(resource + 'KlinsCost').innerHTML = '<b>Cost: </b>' + conditions[resource].klinsCost + ' Klins';
+      document.getElementById(resource + 'KlinsLevel').innerHTML = '<b>Level: </b>' + conditions[resource].klinsLevel;
+      document.getElementById(resource + 'NextKlins').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].klinsCost + conditions[resource].klinsCost * 0.1).toFixed(3)).toLocaleString() + ' Klins';
+      document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
       
     }
 	};

@@ -78,6 +78,18 @@ let templates = {
               <div class="smallText" id="{{resource}}ItemLevel">Level: unknown</div>
               <div class="smallText" id="{{resource}}NextItem">Next:  unknown</div>
             </div>
+            <div class="contentFloatRight">
+              <div class="smallText" id="{{resource}}KlinsCost">Cost: unknown Klins</div>
+              <button class="modify-buttons" data-resource="{{resource}}" type="button" onclick="theMachine.updateCounterButtons(event)">Worker Capacity</button>
+              <div class="smallText" id="{{resource}}KlinsLevel">Level: unknown</div>
+              <div class="smallText" id="{{resource}}NextKlins">Next:  unknown</div>
+            </div>
+            <div class="contentFloatRight">
+              <div class="smallText" id="{{resource}}FluidCost">Cost: unknown Fluid</div>
+              <button class="modify-buttons" data-resource="{{resource}}" type="button" onclick="theMachine.updateCounterButtons(event)">Increase Efficiency</button>
+              <div class="smallText" id="{{resource}}FluidLevel">Level: unknown</div>
+              <div class="smallText" id="{{resource}}NextFluid">Next:  unknown</div>
+            </div>
           </div>
         </div>
       </section>

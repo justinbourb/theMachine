@@ -15,6 +15,9 @@
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
+*10) add efficiency updateCounterButtons() tests
+*11) add klins updateCounterButton() tests
+*12) rate does not show as 0 when no workers assigned
 **/
 
 /**FIXME:
@@ -247,15 +250,15 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
-          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
         }); 
       globalData = (
       {
         globalWorkerCap: 5, globalWorkersAvailable: 5, workersUnlocked: true,
-        craftUnlockedResources: ['heat', 'tanks'], 
+        craftUnlockedResources: ['heat', 'tanks', 'klins', 'fluid'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
         theArmoryUnlockedResources: ['workers'],
         theArmoryLockedResources: ['workers'],
@@ -376,6 +379,13 @@ let theMachine = {
     document.getElementById(resource + 'ItemCost').innerHTML = '<b>Cost: </b>' + conditions[resource].capacityCost + ' Tanks';
     document.getElementById(resource + 'ItemLevel').innerHTML = '<b>Level: </b>' + conditions[resource].capacityLevel;
     document.getElementById(resource + 'NextItem').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].capacityCost + conditions[resource].capacityCost * 0.1).toFixed(3)).toLocaleString() + ' Tanks';
+    document.getElementById(resource + 'FluidCost').innerHTML = '<b>Cost: </b>' + conditions[resource].fluidCost + ' Fluid';
+    document.getElementById(resource + 'FluidLevel').innerHTML = '<b>Level: </b>' + conditions[resource].fluidLevel;
+    document.getElementById(resource + 'NextFluid').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].fluidCost + conditions[resource].fluidCost * 0.1).toFixed(3)).toLocaleString() + ' Fluid';
+    document.getElementById(resource + 'KlinsCost').innerHTML = '<b>Cost: </b>' + conditions[resource].KlinsCost + ' Klins';
+    document.getElementById(resource + 'KlinsLevel').innerHTML = '<b>Level: </b>' + conditions[resource].klinsLevel;
+    document.getElementById(resource + 'NextKlins').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].klinsCost + conditions[resource].klinsCost * 0.1).toFixed(3)).toLocaleString() + ' Klins';
+    document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
     
     //if called by renderWorkers countUpNameAuto is not supplied, this if statement prevents errors
     if (countUpNameAuto) {
@@ -512,6 +522,20 @@ let theMachine = {
       }
       level = 'rateLevel';
     }
+    
+    if (event.target.innerHTML === 'Worker Capacity') {
+      resourceSpent = 'klins';
+      resourceCost = 'klinsCost';
+      valueChanged = 'workerCap';
+      level = 'klinsLevel';
+    }
+    
+    if (event.target.innerHTML === 'Increase Efficiency') {
+      resourceSpent = 'fluid';
+      resourceCost = 'fluidCost';
+      valueChanged = 'efficiency';
+      level = 'fluidLevel';
+    }
       
     theMachine.checkStartValue(resourceSpent, resourceSpent + 'CountUpAnim');
     if (conditions[resourceSpent].startValue >= conditions[resource][resourceCost]) {
@@ -523,7 +547,12 @@ let theMachine = {
       if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
         conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
       }
-      conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+      //Worker Capacity increases workerCap by 1, not 10%
+      if (resourceSpent === 'klins') {
+        conditions[resource][valueChanged] += 1;
+      } else {
+        conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+      }
       //updating capacity => endValue can only be a whole number
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource][valueChanged] = parseInt(conditions[resource][valueChanged].toFixed());
