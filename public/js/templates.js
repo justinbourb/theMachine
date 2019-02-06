@@ -114,8 +114,32 @@ let templates = {
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
       <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Explore</button>
-      `
+    `
     document.body.appendChild(footerElement);
+  },
+  
+  renderHeader() {
+    let headerElement = document.getElementById('header_navigation');
+    
+    if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
+      headerElement.innerHTML = `
+      <div style="background: grey; height: 2em; width: 100%;">
+        <h2 style="margin:0;"> Research </h2>
+      </div>
+      `
+    } else {
+    headerElement.innerHTML = `
+      <div style="background: grey; height: 2em; width: 100%;">
+        <a href="/">
+          <img style="height:2em; padding-left: 0.5%" src="https://www.drawing-pencil-sketches.com/images/198xNxhow-to-draw-a-flame.gif.pagespeed.ic.VfDm_nppu7.jpg">
+        </a>
+
+        <a href="/armory" style="height:2em; padding-left: 0.5%">
+          <img style="height:2em" src="https://previews.123rf.com/images/elnurss/elnurss1809/elnurss180903195/109840269-oil-drum-vector-icon.jpg">
+        </a>
+      </div>
+    `
+    }
   }
 };
 

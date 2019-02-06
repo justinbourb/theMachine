@@ -252,8 +252,8 @@ let theMachine = {
         {
           heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
         }); 
       globalData = (
       {
@@ -264,6 +264,8 @@ let theMachine = {
         theArmoryLockedResources: ['workers'],
       });
     }
+    
+    templates.renderHeader();
     
     globalData[whichInit].forEach(function(resource){
       templates.createResourceBarHTML(resource);
