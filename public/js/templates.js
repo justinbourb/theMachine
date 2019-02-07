@@ -131,11 +131,11 @@ let templates = {
     headerElement.innerHTML = `
       <div style="background: grey; height: 2em; width: 100%;">
         <a href="/">
-          <img style="height:2em; padding-left: 0.5%" src="https://www.drawing-pencil-sketches.com/images/198xNxhow-to-draw-a-flame.gif.pagespeed.ic.VfDm_nppu7.jpg">
+          <img style="height:2em; padding-left: 0.5%" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F198xNxhow-to-draw-a-flame.gif.pagespeed.ic.VfDm_nppu7.jpg?1549510167685">
         </a>
 
         <a href="/armory" style="height:2em; padding-left: 0.5%">
-          <img style="height:2em" src="https://previews.123rf.com/images/elnurss/elnurss1809/elnurss180903195/109840269-oil-drum-vector-icon.jpg">
+          <img style="height:2em" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F109840269-oil-drum-vector-icon.jpg?1549510164353">
         </a>
       </div>
     `

@@ -215,6 +215,7 @@ let theMachine = {
     //prevent duplicate countUps by stopping anything that may have been previously running
     try {
       delete conditions[resource][resource + 'CountUpAnim'].count;
+      delete conditions[resource][resource + 'CountUpAnim'].duration;
     } catch (e) {}
   },
   
@@ -250,10 +251,11 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 0, wasPageLeft: false}
         }); 
       globalData = (
       {
@@ -264,8 +266,6 @@ let theMachine = {
         theArmoryLockedResources: ['workers'],
       });
     }
-    
-    templates.renderHeader();
     
     globalData[whichInit].forEach(function(resource){
       templates.createResourceBarHTML(resource);
@@ -343,8 +343,8 @@ let theMachine = {
   },
     
   renderWhilePaused(resource, countUpNameAuto) {
-    //Case 1: duration is divided by 0 => there's no workers for this resource || the rate === 0
-    if (conditions[resource].duration === Infinity || conditions[resource].ratePerSecond === 0){
+    //Case 1: there's no workers for this resource || the rate === 0
+    if (conditions[resource].workersAssigned === 0 || conditions[resource].ratePerSecond === 0){
       theMachine.cancelAnimation(resource);
       conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
       document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
@@ -664,6 +664,7 @@ let theMachine = {
 };
 
 window.onload = function() {
+  templates.renderHeader();
   //on start our counters on the machine page
   //FIXME: expand this logic when adding additional pages that require counters
   if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
@@ -672,4 +673,8 @@ window.onload = function() {
   if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
     theMachine.researchInit(); 
   }
+  if (location.href.split('/').slice(-1)[0].toLowerCase() === 'armory') {
+    theMachine.init('theArmoryUnlockedResources'); 
+  }
+  
 };

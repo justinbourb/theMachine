@@ -26,6 +26,10 @@ app.get("/explore", function (request, response) {
   response.sendFile(__dirname + '/views/explore.html');
 });
 
+app.get("/armory", function (request, response) {
+  response.sendFile(__dirname + '/views/armory.html');
+});
+
 
 
 // listen for requests :)

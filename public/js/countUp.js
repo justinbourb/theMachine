@@ -218,6 +218,10 @@ var CountUp = function(target, startVal, endVal, decimals, duration, options) {
     self.timestamp = Date.now();
     if (!self.startTime) { self.startTime = timestamp; }
 		var progress = timestamp - self.startTime;
+    //break out of count if duration was deleted
+    if (!self.duration) {
+      return
+    }
 		self.remaining = self.duration - progress;
    
 		// to ease or not to ease

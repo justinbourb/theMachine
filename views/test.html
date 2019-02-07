@@ -486,7 +486,7 @@
     },
     
     //
-    //theMachine.checkStartValue()
+    //theMachine.cancelAnimation()
     //
     'theMachine.cancelAnimation() deletes conditions[resource][countUpAnim].count': function() {
       //which cancels the animation & prevents duplicate countUps
@@ -553,6 +553,41 @@
       eq(conditions.heat.startValue, 6);
     },
     
+    'theMachine.checkStartValue() should work on the armory page, currently errors out because it can not read the innerHTML of resourceRequired': function() {
+      fail();
+      /** issue:
+      *1) worker > worker capacity button.click() > tanks is not on this page > cannot read innerHTML of tanks to checkStartValue()
+      *2) need to calculate progression or regression of tanks counter based on wasPageLeft = new startValue
+      **/
+    },
+    
+    //
+    //theMachine.init()
+    //
+    'theMachine.init(theArmoryUnlockedResources) should not render worker resource if globalData.workersUnlocked = false': function() {
+      fail(); 
+    },
+    
+    'theMachine.init(theArmoryUnlockedResources) should render worker resource if globalData.workersUnlocked = true': function() {
+      fail(); 
+    },
+    
+    'theMachine.init(theArmoryUnlockedResources) should render worker resource as manual generation': function() {
+      fail(); 
+    },
+    
+    'theMachine.init(theArmoryUnlockedResources) should hide worker resource automation button': function() {
+      fail(); 
+    },
+    
+    'theMachine.init(theArmoryUnlockedResources) should hide worker resource worker capacity button': function() {
+      fail(); 
+    },
+    
+    'theMachine.init(theArmoryUnlockedResources) should hide worker resource efficiency button': function() {
+      fail(); 
+    },
+        
     //
     //theMachine.manualCounterButton()
     //
@@ -573,6 +608,10 @@
       setTimeout(function() { 
         eq(document.getElementById('heatManual').disabled, false);
       }, 1001);
+    },
+    
+    'theMachine.manualCounterButton(worker) should add a worker to the global pool & global pool cap': function() {
+      fail();
     },
     
     //
@@ -639,7 +678,7 @@
       conditions.heat.paused = false;
       conditions.heat.startValue = 4;
       conditions.heat.endValue = 10;
-      conditions[resource].duration = Infinity;
+      conditions[resource].workersAssigned = 0;
       theMachine.renderWhilePaused('heat');
       eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
       eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00 / second');
