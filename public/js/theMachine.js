@@ -122,7 +122,7 @@ let theMachine = {
       document.getElementById(resource + 'Minus').style.display = 'inline-block';
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
-      document.getElementById(resource + 'WorkerCount').style.visibility = 'visible';
+      document.getElementById(resource + 'WorkerCount').style.display = 'inline-block';
       document.getElementById(resource + 'Manual').style.display = 'none';
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'none'; 
       //check if any resources have been generated manually and start the (updated) counter again
@@ -255,11 +255,11 @@ let theMachine = {
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 0, wasPageLeft: false}
+          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 5, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 5, wasPageLeft: false}
         }); 
       globalData = (
       {
-        globalWorkerCap: 5, globalWorkersAvailable: 5, workersUnlocked: true,
+        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: true,
         craftUnlockedResources: ['heat', 'tanks', 'klins', 'fluid'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
         theArmoryUnlockedResources: ['workers'],
@@ -313,7 +313,14 @@ let theMachine = {
       if (!(conditions[resource].startValue === conditions[resource].endVal)) {
         event.target.disabled = false;
       }
-      }, duration*1000);
+      if (resource === 'workers') {
+        if (globalData.globalWorkersRecruited < globalData.globalWorkerCap) {
+          globalData.globalWorkersAvailable += 1;
+          globalData.globalWorkersRecruited += 1;
+          theMachine.renderWorkers();
+        }
+      }
+    }, duration*1000);
     
     
   },
@@ -362,10 +369,10 @@ let theMachine = {
       document.getElementById(resource + 'Minus').style.display = 'none';
       document.getElementById(resource + 'Rate').style.visibility = 'hidden';
       document.getElementById(resource + 'Time').style.visibility = 'hidden';
-      document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
+      document.getElementById(resource + 'WorkerCount').style.display = 'none';
       document.getElementById(resource + 'Manual').style.display = 'inline';
       document.getElementById(resource + 'Manual').style.visibility = 'visible';
-      document.getElementById(resource + 'Manual').style.width = '48px';
+      // document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
     }
