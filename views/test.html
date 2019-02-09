@@ -300,7 +300,7 @@
       eq(document.getElementById('heat' + 'Minus').style.display, 'inline-block');
       eq(document.getElementById('heat' + 'Rate').style.visibility, 'visible');
       eq(document.getElementById('heat' + 'Time').style.visibility, 'visible');
-      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'visible');
+      eq(document.getElementById('heat' + 'WorkerCount').style.display, 'inline-block');
       eq(document.getElementById('heat' + 'Manual').style.display, 'none');
       eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'none'); 
       eq(conditions.heat.paused, false);
@@ -390,13 +390,61 @@
     'theMachine.calculateResourceGenerationOverTime() calculates resources generation based on time passed': function() {
       //Case 1: it works for positive values
       conditions['heat'].wasPageLeft = Date.now() - 2000;
-      conditions.heat.ratePerSecond = 0.5
+      conditions.heat.ratePerSecond = 0.5;
       let result = theMachine.calculateResourceGenerationOverTime('heat'); 
       eq(result, 1);
       //Case 2: it works for negative values
-      conditions.heat.ratePerSecond = -0.5
+      conditions.heat.ratePerSecond = -0.5;
       result = theMachine.calculateResourceGenerationOverTime('heat');
       eq(result, -1);
+    },
+    
+    'theMachine.calculateResourceGenerationOverTime() considers number of workers assigned when making calculations': function() {
+      //Case 1: it works for positive values
+      conditions['tanks'].wasPageLeft = Date.now() - 2000;
+      conditions.tanks.ratePerSecond = 0.5;
+      conditions.tanks.workersAssigned = 2;
+      let result = theMachine.calculateResourceGenerationOverTime('tanks'); 
+      eq(result, 2);
+      
+      conditions.tanks.workersAssigned = 4;
+      result = theMachine.calculateResourceGenerationOverTime('tanks'); 
+      eq(result, 4);
+    },
+    
+    'theMachine.calculateResourceGenerationOverTime() no progress if (zero workers && positive ratePerSecond)': function() {
+      //Case 1: it works for positive values
+      conditions['tanks'].wasPageLeft = Date.now() - 2000;
+      conditions.tanks.ratePerSecond = 0.5;
+      conditions.tanks.workersAssigned = 0;
+      let result = theMachine.calculateResourceGenerationOverTime('tanks'); 
+      eq(result, 0);
+    },
+    
+    'theMachine.calculateResourceGenerationOverTime() negative progress if (zero workers && negative ratePerSecond)': function() {
+      conditions['tanks'].wasPageLeft = Date.now() - 2000;
+      conditions.tanks.workersAssigned = 0;
+      conditions.tanks.ratePerSecond = -0.5;
+      let result = theMachine.calculateResourceGenerationOverTime('tanks');
+      eq(result, -1);
+    },
+    
+    'theMachine.calculateResourceGenerationOverTime() if (ratePerSecondBase) it will not factor in number of workers': function() {
+      //if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
+      conditions['heat'].wasPageLeft = Date.now() - 2000;
+      conditions.heat.workersAssigned = 0;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.heat.ratePerSecondBase = 0.5;
+      let result = theMachine.calculateResourceGenerationOverTime('heat');
+      eq(result, 1);
+      
+      conditions.heat.workersAssigned = 1;
+      result = theMachine.calculateResourceGenerationOverTime('heat');
+      eq(result, 1);
+      
+      conditions.heat.workersAssigned = 10;
+      result = theMachine.calculateResourceGenerationOverTime('heat');
+      eq(result, 1);
     },
     
     //
@@ -730,10 +778,11 @@
       eq(document.getElementById('heat' + 'Minus').style.display, 'none');
       eq(document.getElementById('heat' + 'Rate').style.visibility, 'hidden');
       eq(document.getElementById('heat' + 'Time').style.visibility, 'hidden');
-      eq(document.getElementById('heat' + 'WorkerCount').style.visibility, 'hidden');
+      eq(document.getElementById('heat' + 'WorkerCount').style.display, 'none');
       eq(document.getElementById('heat' + 'Manual').style.display, 'inline');
       eq(document.getElementById('heat' + 'Manual').style.visibility, 'visible');
-      eq(document.getElementById('heat' + 'Manual').style.width, '48px');
+      //removed? TODO: look this up
+      //eq(document.getElementById('heat' + 'Manual').style.width, '48px');
       eq(document.getElementById('heat' + 'Manual').style.marginLeft, "5%");
       eq(document.getElementById('heat' + 'CountUpAnimManual').style.display, 'block');
     },
@@ -902,6 +951,7 @@
       conditions.tanks.startValue = 100;
       conditions.tanks.endValue = 100;
       conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
       delete conditions.tanks.tanksCountUpAnim;
       theMachine.updateCounterButtons(testCase);
       eq(typeof(conditions.tanks.tanksCountUpAnim), "object");

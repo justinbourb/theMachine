@@ -168,7 +168,16 @@ let theMachine = {
   
   calculateResourceGenerationOverTime(resource) {
     //calculates the amount of progress made after page was left
-    return (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
+    if (conditions[resource].ratePerSecondBase || conditions[resource].ratePerSecond < 0) {
+      /**
+      *1) if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
+      *2) always countDown if negative ratePerSecond
+      **/
+      return (Date.now() - conditions[resource].wasPageLeft) * conditions[resource].ratePerSecond/1000;
+    } else {
+      //everything else needs to consider the number of workersAssigned
+      return (Date.now() - conditions[resource].wasPageLeft) * (conditions[resource].ratePerSecond/1000) * conditions[resource].workersAssigned;
+    }
   },
   
   calculateValues(whichCalculation, whichInit) {
