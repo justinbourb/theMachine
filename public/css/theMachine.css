@@ -17,7 +17,7 @@ body {
 	padding: 0;
 }
 .enableAutomation{
-  width: 10%;
+  width: 6vw;
 }
 .machine-parts{
   margin: 2% 10%;
@@ -78,7 +78,7 @@ body {
   position: relative;
   width: 100%;
 }
-#title h1 {
+#title h1{
   bottom: 0;
 	color: white;
 	font-size: 20px;

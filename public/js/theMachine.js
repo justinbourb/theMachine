@@ -15,6 +15,9 @@
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
+*10) add efficiency updateCounterButtons() tests
+*11) add klins updateCounterButton() tests
+*12) rate does not show as 0 when no workers assigned
 **/
 
 /**FIXME:
@@ -49,7 +52,6 @@ let theMachine = {
     let resourceRequired = conditions[resource].resourceRequired;
     let endValue;
     let ratePerSecond;
-    let timeOutId;
     
     theMachine.cancelAnimation(resource);
     
@@ -86,9 +88,7 @@ let theMachine = {
       endValue = conditions[resource].endValue;
     }
     //conditions to check before animation
-    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
-      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
-      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
+    if (theMachine.progressionCheck(resource)) {
         //call a new animation with updated values for automated resources
         conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
         if (!conditions[resource][countUpName].error) {
@@ -96,14 +96,11 @@ let theMachine = {
         } else {
             console.error(conditions[resource][countUpName].error);
         }
-      }
-      else {
+      //Case 2: There are no workers assigned || The countUp is paused
+      } else {
         theMachine.renderWhilePaused(resource, countUpName);
       }
-    //Case 2: There are no workers assigned || The countUp is paused
-    } else {
-      theMachine.renderWhilePaused(resource, countUpName);
-    }
+    
   },
   
   automationButton(event) {
@@ -119,7 +116,7 @@ let theMachine = {
       document.getElementById(resource + 'Minus').style.display = 'inline-block';
       document.getElementById(resource + 'Rate').style.visibility = 'visible';
       document.getElementById(resource + 'Time').style.visibility = 'visible';
-      document.getElementById(resource + 'WorkerCount').style.visibility = 'visible';
+      document.getElementById(resource + 'WorkerCount').style.display = 'inline-block';
       document.getElementById(resource + 'Manual').style.display = 'none';
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'none'; 
       //check if any resources have been generated manually and start the (updated) counter again
@@ -165,7 +162,13 @@ let theMachine = {
   
   calculateResourceGenerationOverTime(resource) {
     //calculates the amount of progress made after page was left
-    return (Date.now() - conditions[resource].wasPageLeft)*conditions[resource].ratePerSecond/1000;
+    if (conditions[resource].ratePerSecondBase || conditions[resource].ratePerSecond < 0) {
+      //if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
+      return theMachine.formatNumber(((Date.now() - conditions[resource].wasPageLeft) * conditions[resource].ratePerSecond/1000), 2);
+    } else {
+      //everything else needs to consider the number of workersAssigned
+      return theMachine.formatNumber(((Date.now() - conditions[resource].wasPageLeft) * (conditions[resource].ratePerSecond/1000) * conditions[resource].workersAssigned), 2);
+    }
   },
   
   calculateValues(whichCalculation, whichInit) {
@@ -187,7 +190,7 @@ let theMachine = {
         conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
         conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
         //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
-        if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false && conditions[resource].workersAssigned > 0) {
+        if (conditions[resource]['wasPageLeft'] && theMachine.progressionCheck(resource)) {
           //amount of progress made after page was left
           let newStartValue = conditions[resource].startValue + theMachine.calculateResourceGenerationOverTime(resource);
           //check if amount of progress exceeds cap
@@ -212,28 +215,47 @@ let theMachine = {
     //prevent duplicate countUps by stopping anything that may have been previously running
     try {
       delete conditions[resource][resource + 'CountUpAnim'].count;
+      delete conditions[resource][resource + 'CountUpAnim'].duration;
     } catch (e) {}
   },
   
   checkStartValue(resource, countUpNameAuto) {
-    try {
-      //case 1: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
-      if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond >= 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
-          conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
-          conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
-        }
-      //case 2: it will update startValue when the counter is completed or deleted (by reading HTML values)
-    } catch (e) {
-      let checkInnerHTML = parseInt(document.getElementById(countUpNameAuto).innerHTML.split('/')[0].trim());
-      //confirm checkInnerHTML is a number, not NaN
-      if (typeof(checkInnerHTML) === 'number') {
-        //confirm checkInnerHTML > startValue
-        if (checkInnerHTML > conditions[resource].startValue) {
-          conditions[resource].startValue = parseInt(checkInnerHTML); 
+    
+    //case 1: resource is not present on the screen.  i.e. theArmory page does not have heat, tanks, klins or fluid present
+    if (document.getElementById(resource) === null) {
+      //update resource startValue
+      let generation = theMachine.calculateResourceGenerationOverTime(resource);
+      conditions[resource].startValue += generation;
+      //reset wasPageLeft for future calculations
+      conditions[resource].wasPageLeft = Date.now();
+    } else {
+      try {
+        //case 2: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
+        if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond >= 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
+            conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
+            conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
+          }
+        //case 3: it will update startValue when the counter is completed or deleted (by reading HTML values)
+      } catch (e) {
+        let checkInnerHTML = parseInt(document.getElementById(countUpNameAuto).innerHTML.split('/')[0].trim());
+        //confirm checkInnerHTML is a number, not NaN
+        if (typeof(checkInnerHTML) === 'number') {
+          //confirm checkInnerHTML > startValue
+          if (checkInnerHTML > conditions[resource].startValue) {
+            conditions[resource].startValue = parseInt(checkInnerHTML); 
+          }
         }
       }
     }
     
+  },
+  
+  formatNumber(toFormat, decimalPlaces) {
+    /**this function will:
+    *1) round to a specified number of decimal places via .toFixed
+    *2) it will then convert the resulting string into a float (number type in javascript) via parseFloat
+    **/
+    return parseFloat(toFormat.toFixed(decimalPlaces))
   },
   
   init(whichInit) {
@@ -247,24 +269,27 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
-          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#ff6a00", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#96825d", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 1 }
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 5, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 5, wasPageLeft: false}
         }); 
       globalData = (
       {
-        globalWorkerCap: 5, globalWorkersAvailable: 5, workersUnlocked: true,
-        craftUnlockedResources: ['heat', 'tanks'], 
+        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: true,
+        craftUnlockedResources: ['heat', 'tanks', 'klins', 'fluid'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
         theArmoryUnlockedResources: ['workers'],
         theArmoryLockedResources: ['workers'],
       });
     }
     
-    globalData[whichInit].forEach(function(resource){
-      templates.createResourceBarHTML(resource);
-    });
+    if (!(whichInit === 'theArmoryUnlockedResources' && globalData.workersUnlocked === false)) {
+      globalData[whichInit].forEach(function(resource){
+        templates.createResourceBarHTML(resource);
+      });
+    }
     
     theMachine.calculateValues('init', whichInit);
     
@@ -276,6 +301,7 @@ let theMachine = {
     });
     
   },
+  
   manualCounterButton(event) {
 
     let resource = event.target.dataset.resource;
@@ -308,7 +334,14 @@ let theMachine = {
       if (!(conditions[resource].startValue === conditions[resource].endVal)) {
         event.target.disabled = false;
       }
-      }, duration*1000);
+      if (resource === 'workers') {
+        if (globalData.globalWorkersRecruited < globalData.globalWorkerCap) {
+          globalData.globalWorkersAvailable += 1;
+          globalData.globalWorkersRecruited += 1;
+          theMachine.renderWorkers(resource);
+        }
+      }
+    }, duration*1000);
     
     
   },
@@ -336,10 +369,30 @@ let theMachine = {
       } catch(e) {}
     }
   },
+  
+  progressionCheck(resource) {
+    let resourceRequired = conditions[resource].resourceRequired;
+    let ratePerSecond = conditions[resource].ratePerSecond;
+    //conditions to check before animation
+    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
+      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
+      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  },
     
   renderWhilePaused(resource, countUpNameAuto) {
-    //Case 1: duration is divided by 0 => there's no workers for this resource || the rate === 0
-    if (conditions[resource].duration === Infinity || conditions[resource].ratePerSecond === 0){
+    //breakout of function if there is no element (should only happen to workers)
+    if (document.getElementById(resource) === null) {
+      return 
+    }
+    //Case 1: there's no workers for this resource || the rate === 0
+    if (conditions[resource].workersAssigned === 0 || conditions[resource].ratePerSecond === 0){
       theMachine.cancelAnimation(resource);
       conditions[resource].counterElement.innerHTML = conditions[resource].startValue + ' / ' + conditions[resource].endValue;
       document.getElementById(resource + 'Time').innerHTML = '<b>Time Remaining:</b> unknown';
@@ -357,17 +410,17 @@ let theMachine = {
       document.getElementById(resource + 'Minus').style.display = 'none';
       document.getElementById(resource + 'Rate').style.visibility = 'hidden';
       document.getElementById(resource + 'Time').style.visibility = 'hidden';
-      document.getElementById(resource + 'WorkerCount').style.visibility = 'hidden';
+      document.getElementById(resource + 'WorkerCount').style.display = 'none';
       document.getElementById(resource + 'Manual').style.display = 'inline';
       document.getElementById(resource + 'Manual').style.visibility = 'visible';
-      document.getElementById(resource + 'Manual').style.width = '48px';
+      // document.getElementById(resource + 'Manual').style.width = '48px';
       document.getElementById(resource + 'Manual').style.marginLeft = "5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
     }
-    
+
     //collapse child elements related DOM manipulation
     document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + conditions[resource].endValue.toLocaleString() + '</b>';
-    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
+    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + theMachine.formatNumber(conditions[resource].rateCost).toLocaleString() + ' Heat';
     document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
     document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel;
     document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '</b>';
@@ -376,6 +429,13 @@ let theMachine = {
     document.getElementById(resource + 'ItemCost').innerHTML = '<b>Cost: </b>' + conditions[resource].capacityCost + ' Tanks';
     document.getElementById(resource + 'ItemLevel').innerHTML = '<b>Level: </b>' + conditions[resource].capacityLevel;
     document.getElementById(resource + 'NextItem').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].capacityCost + conditions[resource].capacityCost * 0.1).toFixed(3)).toLocaleString() + ' Tanks';
+    document.getElementById(resource + 'FluidCost').innerHTML = '<b>Cost: </b>' + conditions[resource].fluidCost + ' Fluid';
+    document.getElementById(resource + 'FluidLevel').innerHTML = '<b>Level: </b>' + conditions[resource].fluidLevel;
+    document.getElementById(resource + 'NextFluid').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].fluidCost + conditions[resource].fluidCost * 0.1).toFixed(3)).toLocaleString() + ' Fluid';
+    document.getElementById(resource + 'KlinsCost').innerHTML = '<b>Cost: </b>' + conditions[resource].KlinsCost + ' Klins';
+    document.getElementById(resource + 'KlinsLevel').innerHTML = '<b>Level: </b>' + conditions[resource].klinsLevel;
+    document.getElementById(resource + 'NextKlins').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].klinsCost + conditions[resource].klinsCost * 0.1).toFixed(3)).toLocaleString() + ' Klins';
+    document.getElementById(resource + 'WorkerCount').innerHTML = conditions[resource].workersAssigned + '/' + conditions[resource].workerCap;
     
     //if called by renderWorkers countUpNameAuto is not supplied, this if statement prevents errors
     if (countUpNameAuto) {
@@ -405,11 +465,13 @@ let theMachine = {
     }
     
     //Case 3: workers are locked
-    if (globalData.workersUnlocked === false) {
-      document.getElementById(resource + 'AutomationButton').style.display = 'none';
-      document.getElementById(resource + 'Collapsible').style.display = 'none';
-      document.getElementById('globalWorkerCount').style.display = 'none';
-    }
+    try {
+      if (globalData.workersUnlocked === false) {
+        document.getElementById(resource + 'AutomationButton').style.display = 'none';
+        document.getElementById(resource + 'Collapsible').style.display = 'none';
+        document.getElementById('globalWorkerCount').style.display = 'none';
+      }
+    } catch (e) {}
   
   },
   
@@ -512,6 +574,20 @@ let theMachine = {
       }
       level = 'rateLevel';
     }
+    
+    if (event.target.innerHTML === 'Worker Capacity') {
+      resourceSpent = 'klins';
+      resourceCost = 'klinsCost';
+      valueChanged = 'workerCap';
+      level = 'klinsLevel';
+    }
+    
+    if (event.target.innerHTML === 'Increase Efficiency') {
+      resourceSpent = 'fluid';
+      resourceCost = 'fluidCost';
+      valueChanged = 'efficiency';
+      level = 'fluidLevel';
+    }
       
     theMachine.checkStartValue(resourceSpent, resourceSpent + 'CountUpAnim');
     if (conditions[resourceSpent].startValue >= conditions[resource][resourceCost]) {
@@ -523,7 +599,12 @@ let theMachine = {
       if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
         conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
       }
-      conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+      //Worker Capacity increases workerCap by 1, not 10%
+      if (resourceSpent === 'klins') {
+        conditions[resource][valueChanged] += 1;
+      } else {
+        conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+      }
       //updating capacity => endValue can only be a whole number
       if (event.target.innerHTML === 'Item Capacity') {
         conditions[resource][valueChanged] = parseInt(conditions[resource][valueChanged].toFixed());
@@ -633,6 +714,7 @@ let theMachine = {
 };
 
 window.onload = function() {
+  templates.renderHeader();
   //on start our counters on the machine page
   //FIXME: expand this logic when adding additional pages that require counters
   if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
@@ -641,4 +723,8 @@ window.onload = function() {
   if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
     theMachine.researchInit(); 
   }
+  if (location.href.split('/').slice(-1)[0].toLowerCase() === 'armory') {
+    theMachine.init('theArmoryUnlockedResources'); 
+  }
+  
 };
