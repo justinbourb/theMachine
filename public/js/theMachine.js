@@ -164,10 +164,10 @@ let theMachine = {
     //calculates the amount of progress made after page was left
     if (conditions[resource].ratePerSecondBase || conditions[resource].ratePerSecond < 0) {
       //if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
-      return (Date.now() - conditions[resource].wasPageLeft) * conditions[resource].ratePerSecond/1000;
+      return theMachine.formatNumber(((Date.now() - conditions[resource].wasPageLeft) * conditions[resource].ratePerSecond/1000), 2);
     } else {
       //everything else needs to consider the number of workersAssigned
-      return (Date.now() - conditions[resource].wasPageLeft) * (conditions[resource].ratePerSecond/1000) * conditions[resource].workersAssigned;
+      return theMachine.formatNumber(((Date.now() - conditions[resource].wasPageLeft) * (conditions[resource].ratePerSecond/1000) * conditions[resource].workersAssigned), 2);
     }
   },
   
@@ -220,24 +220,42 @@ let theMachine = {
   },
   
   checkStartValue(resource, countUpNameAuto) {
-    try {
-      //case 1: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
-      if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond >= 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
-          conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
-          conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
-        }
-      //case 2: it will update startValue when the counter is completed or deleted (by reading HTML values)
-    } catch (e) {
-      let checkInnerHTML = parseInt(document.getElementById(countUpNameAuto).innerHTML.split('/')[0].trim());
-      //confirm checkInnerHTML is a number, not NaN
-      if (typeof(checkInnerHTML) === 'number') {
-        //confirm checkInnerHTML > startValue
-        if (checkInnerHTML > conditions[resource].startValue) {
-          conditions[resource].startValue = parseInt(checkInnerHTML); 
+    
+    //case 1: resource is not present on the screen.  i.e. theArmory page does not have heat, tanks, klins or fluid present
+    if (document.getElementById(resource) === null) {
+      //update resource startValue
+      let generation = theMachine.calculateResourceGenerationOverTime(resource);
+      conditions[resource].startValue += generation;
+      //reset wasPageLeft for future calculations
+      conditions[resource].wasPageLeft = Date.now();
+    } else {
+      try {
+        //case 2: if (frameVal > startValue && rate > 0) || (frameVal < startValue && rate <0)it will set startValue = frameVal
+        if ((conditions[resource][countUpNameAuto].frameVal > conditions[resource].startValue && conditions[resource].ratePerSecond >= 0) || (conditions[resource][countUpNameAuto].frameVal < conditions[resource].startValue && conditions[resource].ratePerSecond < 0)) {
+            conditions[resource].startValue = conditions[resource][countUpNameAuto].frameVal;
+            conditions[resource][countUpNameAuto].startVal = conditions[resource][countUpNameAuto].frameVal;
+          }
+        //case 3: it will update startValue when the counter is completed or deleted (by reading HTML values)
+      } catch (e) {
+        let checkInnerHTML = parseInt(document.getElementById(countUpNameAuto).innerHTML.split('/')[0].trim());
+        //confirm checkInnerHTML is a number, not NaN
+        if (typeof(checkInnerHTML) === 'number') {
+          //confirm checkInnerHTML > startValue
+          if (checkInnerHTML > conditions[resource].startValue) {
+            conditions[resource].startValue = parseInt(checkInnerHTML); 
+          }
         }
       }
     }
     
+  },
+  
+  formatNumber(toFormat, decimalPlaces) {
+    /**this function will:
+    *1) round to a specified number of decimal places via .toFixed
+    *2) it will then convert the resulting string into a float (number type in javascript) via parseFloat
+    **/
+    return parseFloat(toFormat.toFixed(decimalPlaces))
   },
   
   init(whichInit) {
@@ -283,6 +301,7 @@ let theMachine = {
     });
     
   },
+  
   manualCounterButton(event) {
 
     let resource = event.target.dataset.resource;
@@ -401,7 +420,7 @@ let theMachine = {
 
     //collapse child elements related DOM manipulation
     document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + conditions[resource].endValue.toLocaleString() + '</b>';
-    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
+    document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + theMachine.formatNumber(conditions[resource].rateCost).toLocaleString() + ' Heat';
     document.getElementById(resource + 'NextRate').innerHTML = '<b>Next: </b>' + parseFloat((conditions[resource].rateCost + conditions[resource].rateCost * 0.1).toFixed(3)).toLocaleString() + ' Heat';
     document.getElementById(resource + 'JobLevel').innerHTML = '<b>Level: </b>' + conditions[resource].rateLevel;
     document.getElementById(resource + 'WorkerCap').innerHTML = 'Worker Cap: <b>' + conditions[resource].workerCap + '</b>';

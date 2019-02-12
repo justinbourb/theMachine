@@ -603,34 +603,58 @@
       eq(conditions.heat.startValue, 6);
     },
     
-    'theMachine.checkStartValue() should work on the armory page, currently errors out because it can not read the innerHTML of resourceRequired': function() {
-      fail();
-      /** issue:
-      *1) worker > worker capacity button.click() > tanks is not on this page > cannot read innerHTML of tanks to checkStartValue()
-      *2) need to calculate progression or regression of tanks counter based on wasPageLeft = new startValue
-      **/
+    'theMachine.checkStartValue() should work on the armory page, and not throw an error because it cannot read the innerHTML of resourceRequired': function() {
+      globalData.workersUnlocked = false;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      let elementToRemove = document.getElementById('heat');
+      elementToRemove.remove();
+      elementToRemove = document.getElementById('tanks');
+      elementToRemove.remove();
+      conditions.tanks.wasPageLeft = Date.now() - 2000;
+      conditions.heat.ratePerSecond = 0.5;
+      conditions.tanks.ratePerSecond = 0.5
+      conditions.tanks.startValue = 1;
+      conditions.tanks.workersAssigned = 1;
       
       /**
-      //from within theMachine.UpdateCounterButtons
-      //add this code into checkStartValue???
-      
-      //resourceSpent is not on the screen => we need to check wasPageLeft
-      if (document.getElementId(resourceSpent) === null) {
-        //update resourceSpent startValue
-        conditions[resourceSpent].startValue += theMachine.calculateResourceGenerationOverTime(resourceSpent);
-        //reset wasPageLeft for future calculations
-        conditions[resourceSpent].wasPageLeft = Date.now();
-      } else {
-        theMachine.checkStartValue(resourceSpent, resourceSpent + 'CountUpAnim');
-      }
-      
-      
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
       **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+           
+      theMachine.init('theArmoryUnlockedResources');
+      theMachine.checkStartValue('tanks')
+      eq(conditions.tanks.startValue, 2)
+      
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
+      
+      //re-init craft items deleted in this test
+      theMachine.init('craftUnlockedResources')
+    },
+     
+    //
+    //theMachine.formatNumber()
+    //
+    
+    'theMachine.formatNumber() it should return a float type': function() {
+      // % operator is used to check for the remainder becaues Javascript does not have a float type
+      eq((theMachine.formatNumber(2.5421321, 2) % 1), 0.54);
+    },
+    
+    'theMachine.formatNumber() it should round to the number of decimal places specified': function() {
+      //string manipulation is used to check the length
+      eq((theMachine.formatNumber(2.5421321, 2) % 1).toString().split('.')[1].length, 2);
     },
     
     //
     //theMachine.init()
     //
+    
     'theMachine.init(theArmoryUnlockedResources) should not render worker resource if globalData.workersUnlocked = false': function() {
       globalData.workersUnlocked = false;
       conditions.heat.ratePerSecond = 10;
@@ -649,7 +673,6 @@
       //remove localStorage items to prevent corrupting further tests
       localStorage.removeItem('theMachine');
       localStorage.removeItem('globalData');
-
     },
     
     'theMachine.init(theArmoryUnlockedResources) should render worker resource if globalData.workersUnlocked = true': function() {
