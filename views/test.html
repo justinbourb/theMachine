@@ -42,12 +42,13 @@
   conditions = (
     {
       heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, gradientColors: ["white", "#F5F5F5"], paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, wasRateNegative: false, workersAssigned: 1, workerCap: 1 },
-      tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 }
+      tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, gradientColors: ["orange", "#F5F5F5"], paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+      workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 5, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 5, wasPageLeft: false}
     }
   ); 
   globalData = (
       {
-        globalWorkerCap: 5, globalWorkersAvailable: 5, workersUnlocked: true,
+        globalWorkerCap: 5, globalWorkersAvailable: 5, globalWorkersRecruited: 5, workersUnlocked: true,
         craftUnlockedResources: ['heat', 'tanks'], 
         craftLockedResources: ['klins', 'fluid'],
         theArmoryUnlockedResources: [],
@@ -447,6 +448,7 @@
       eq(result, 1);
     },
     
+    
     //
     //theMachine.calculateValues()
     //
@@ -607,33 +609,153 @@
       *1) worker > worker capacity button.click() > tanks is not on this page > cannot read innerHTML of tanks to checkStartValue()
       *2) need to calculate progression or regression of tanks counter based on wasPageLeft = new startValue
       **/
+      
+      /**
+      //from within theMachine.UpdateCounterButtons
+      //add this code into checkStartValue???
+      
+      //resourceSpent is not on the screen => we need to check wasPageLeft
+      if (document.getElementId(resourceSpent) === null) {
+        //update resourceSpent startValue
+        conditions[resourceSpent].startValue += theMachine.calculateResourceGenerationOverTime(resourceSpent);
+        //reset wasPageLeft for future calculations
+        conditions[resourceSpent].wasPageLeft = Date.now();
+      } else {
+        theMachine.checkStartValue(resourceSpent, resourceSpent + 'CountUpAnim');
+      }
+      
+      
+      **/
     },
     
     //
     //theMachine.init()
     //
     'theMachine.init(theArmoryUnlockedResources) should not render worker resource if globalData.workersUnlocked = false': function() {
-      fail(); 
+      globalData.workersUnlocked = false;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(document.getElementById('workers'), null);
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
+
     },
     
     'theMachine.init(theArmoryUnlockedResources) should render worker resource if globalData.workersUnlocked = true': function() {
-      fail(); 
+      globalData.workersUnlocked = true;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(typeof(document.getElementById('workers')), "object");
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
     },
     
     'theMachine.init(theArmoryUnlockedResources) should render worker resource as manual generation': function() {
-      fail(); 
+      globalData.workersUnlocked = true;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(document.getElementById('workersManual').style.visibility, "visible");
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
     },
     
     'theMachine.init(theArmoryUnlockedResources) should hide worker resource automation button': function() {
-      fail(); 
+      globalData.workersUnlocked = true;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(document.getElementById('workersAutomationButton').style.visibility, "hidden");
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
     },
     
     'theMachine.init(theArmoryUnlockedResources) should hide worker resource worker capacity button': function() {
-      fail(); 
+      globalData.workersUnlocked = true;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(document.getElementById('workersWorkerButton').style.visibility, "hidden");
+      eq(document.getElementById('workersKlinsCost').style.visibility, "hidden");
+      eq(document.getElementById('workersKlinsLevel').style.visibility, "hidden");
+      eq(document.getElementById('workersNextKlins').style.visibility, "hidden");
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
     },
     
     'theMachine.init(theArmoryUnlockedResources) should hide worker resource efficiency button': function() {
-      fail(); 
+      globalData.workersUnlocked = true;
+      conditions.heat.ratePerSecond = 10;
+      globalData.theArmoryUnlockedResources = ['workers'];
+      
+      /**
+      *1) theMachine.init code checks local storage for this information, if not preset it use defaults.
+      *2) defaults override the test conditions so use of localStorage is required.
+      **/
+      theMachine.store('theMachine', conditions);
+      theMachine.store('globalData', globalData);
+      theMachine.init('theArmoryUnlockedResources');
+      
+      eq(document.getElementById('workersEfficiencyButton').style.visibility, "hidden");
+      eq(document.getElementById('workersFluidCost').style.visibility, "hidden");
+      eq(document.getElementById('workersFluidLevel').style.visibility, "hidden");
+      eq(document.getElementById('workersNextFluid').style.visibility, "hidden");
+      
+      //remove localStorage items to prevent corrupting further tests
+      localStorage.removeItem('theMachine');
+      localStorage.removeItem('globalData');
     },
         
     //
@@ -641,6 +763,10 @@
     //
     
     'theMachine.manualCounterButton() creates a manual CountUp element for [resource] provided by the event': function() {
+      //cleanup after testing theMachine.init('theArmoryUnlockedResources');
+      theMachine.init('craftUnlockedResources');
+      
+      //test code
       delete conditions.heat.heatCountUpAnimManual;
       let testCase = {target: {dataset: {resource: "heat"}}};
       theMachine.manualCounterButton(testCase);
@@ -658,13 +784,50 @@
       }, 1001);
     },
 
-    'theMachine.manualCounterButton(worker) should add a worker to the globalWorkersAvailable and globalWorkersRecruited if (globalWorkersRecruited < globalWorkersCap)': function() {
-      fail();
-    },
+    //setTimeout does not work correctly with tinytest
+//     'theMachine.manualCounterButton(worker) should add a worker to the globalWorkersAvailable and globalWorkersRecruited if (globalWorkersRecruited < globalWorkersCap)': function() {
+//       setTimeout(function() {
+//         globalData.globalWorkersRecruited = 5;
+//         globalData.globalWorkersAvailable = 5;
+//         globalData.globalWorkerCap = 10;
+
+//         let testCase = {target: {dataset: {resource: "workers"}}};
+
+//         theMachine.manualCounterButton(testCase);
+//         setTimeout(function() {
+//           eq(globalData.globalWorkersRecruited, 6);
+//           eq(globalData.globalWorkersAvailable, 6);      
+//         }, 4001);
+//       }, 0);
+//     },
     
-    'theMachine.manualCounterButton(worker) should call renderWorkers if adding a worker': function() {
-      fail();
-    },
+    'theMachine.manualCounterButton(worker) should not add a worker to the globalWorkersAvailable and globalWorkersRecruited if (globalWorkersRecruited = globalWorkersCap)': function() {
+        globalData.globalWorkersRecruited = 5;
+        globalData.globalWorkersAvailable = 5;
+        globalData.globalWorkerCap = 5;
+
+        let testCase = {target: {dataset: {resource: "workers"}}};
+
+        theMachine.manualCounterButton(testCase);
+        eq(globalData.globalWorkersRecruited, 5);
+        eq(globalData.globalWorkersAvailable, 5);      
+      },
+
+    //setTimeout does not work correctly with tinytest
+//     'theMachine.manualCounterButton(worker) should call renderWorkers if adding a worker': function() {
+//       setTimeOut(function() {  
+//         globalData.globalWorkersRecruited = 5;
+//         globalData.globalWorkersAvailable = 5;
+//         globalData.globalWorkerCap = 10;
+
+//         let testCase = {target: {dataset: {resource: "workers"}}};
+
+//         theMachine.manualCounterButton(testCase);
+//         setTimeout(function() {
+//           eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: 6/10');
+//         }, 4001);
+//       }, 0);
+//     },
     
     //
     //theMachine.manualCounterButtonStatus()
@@ -686,36 +849,97 @@
     'theMachine.pauseResume() pauses and resumes counter correctly': function() {
       
       //set conditions to test during setTimeout so they will not be overwritten by other tests
-      setTimeout(function() {
-        resetCountUp('heat');
-        resetConditions();
-        conditions.heat.startValue = 9;
-        conditions.heat.endValue = 30;
-        conditions.heat.workersAssigned = 1;
-        conditions.heat.paused = true; //if true, the animation will be paused by pauseResume();
-        //this line will pause any existing CountUp element via countUp.js pauseResume();
-        theMachine.pauseResume('heat', 'heatCountUpAnim');
-        theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-        //check innerHTML because CountUp is not running;
-        eq(conditions.heat.startValue, 9);
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
-      }, 0);
+      resetCountUp('heat');
+      resetConditions();
+      conditions.heat.startValue = 9;
+      conditions.heat.endValue = 30;
+      conditions.heat.workersAssigned = 1;
+      theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
+      conditions.heat.paused = true;
+      theMachine.pauseResume('heat', 'heatCountUpAnim');
+      eq(conditions.heat.heatCountUpAnim.paused, true);
       
-      //no progress is made while paused
-      setTimeout(function() { 
-        eq(conditions.heat.startValue, 9)
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '9 / 30');
-        eq(conditions.heat.heatCountUpAnim.frameVal, 9);
-        conditions.heat.paused = false;
-        theMachine.pauseResume('heat', 'heatCountUpAnim');
-      }, 6000);
-
-      //for some reason this does not trigger a fail in the window when failing, only prints to console
-      setTimeout(function() {
-        //the counter was resumed in last setTimeout, progress should be made
-        eq(document.getElementById('heatCountUpAnim').innerHTML, '12 / 30');
-        eq(conditions.heat.heatCountUpAnim.frameVal, 12);
-      }, 12000);
+      theMachine.pauseResume('heat', 'heatCountUpAnim');
+      eq(conditions.heat.heatCountUpAnim.paused, false);
+      
+    },
+    
+    //
+    //theMachine.progressionCheck()
+    //
+    
+    /**
+    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
+      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
+      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
+      **/
+    'theMachine.progressionCheck() will return false if resourceRequired startValue < 0': function() {
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = 0.5;
+      
+      //failing resourceRequired conditions;
+      conditions.heat.startValue = -5;
+      eq(theMachine.progressionCheck('tanks'), false);
+    },
+    
+    'theMachine.progressionCheck() will return false if resourceRequired startValue === 0 && ratePerSecond = 0': function() {
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = 0.5;
+      
+      //failing resourceRequired conditions;
+      conditions.heat.startValue = 0;
+      conditions.heat.ratePerSecond = 0;
+      eq(theMachine.progressionCheck('tanks'), false);      
+    },
+    
+    'theMachine.progressionCheck() will return false if resourceRequired startValue === 0 && ratePerSecond < 0': function() {
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = 0.5;
+      
+      //failing resourceRequired conditions;
+      conditions.heat.startValue = 0;
+      conditions.heat.ratePerSecond = -0.5;
+      eq(theMachine.progressionCheck('tanks'), false);      
+    },
+    
+    'theMachine.progressionCheck() will return true if resourceRequired conditions are passing and resource rate is negative': function() {
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = -0.5;
+      
+      //passing resourceRequired conditions
+      conditions.heat.startValue = 10;
+      eq(theMachine.progressionCheck('tanks'), true);
+      
+      //passing resource conditions
+      conditions.tanks.paused = true;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = -0.5;
+      eq(theMachine.progressionCheck('tanks'), true);
+      
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 0;
+      conditions.tanks.ratePerSecond = -0.5;
+      eq(theMachine.progressionCheck('tanks'), true);
+    },
+    
+    'theMachine.progressionCheck() will return true if resourceRequired conditions are passing and resource rate is positive and workers are assigned and not paused': function() {
+      //passing resource conditions
+      conditions.tanks.paused = false;
+      conditions.tanks.workersAssigned = 1;
+      conditions.tanks.ratePerSecond = 0.5;
+      
+      //passing resourceRequired conditions
+      conditions.heat.startValue = 10;
+      eq(theMachine.progressionCheck('tanks'), true);
     },
     
     //
@@ -723,7 +947,7 @@
     //
     
     
-    'theMachine.renderWhilePaused() case 1a: duration === infinity (no workers assigned)': function() {
+    'theMachine.renderWhilePaused() case 1a: duration === infinity (no workers assigned) && resource.ratePerSecond >= 0': function() {
       let resource = 'heat';
       resetCountUp('heat');
       globalData.workersUnlocked = true;
@@ -731,9 +955,25 @@
       conditions.heat.startValue = 4;
       conditions.heat.endValue = 10;
       conditions[resource].workersAssigned = 0;
+      conditions.heat.ratePerSecond = 0;
       theMachine.renderWhilePaused('heat');
       eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
       eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> 0.00 / second');
+      eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
+    },
+    
+    'theMachine.renderWhilePaused() case 1a: duration === infinity (no workers assigned) && resource.ratePerSecond < 0': function() {
+      let resource = 'heat';
+      resetCountUp('heat');
+      globalData.workersUnlocked = true;
+      conditions.heat.paused = false;
+      conditions.heat.startValue = 4;
+      conditions.heat.endValue = 10;
+      conditions[resource].workersAssigned = 0;
+      conditions.heat.ratePerSecond = -0.5;
+      theMachine.renderWhilePaused('heat');
+      eq(conditions[resource].counterElement.innerHTML, conditions[resource].startValue + ' / ' + conditions[resource].endValue);
+      eq(document.getElementById(resource + 'Rate').innerHTML, '<b>Rate:</b> -0.5 / second');
       eq(document.getElementById(resource + 'Time').innerHTML, '<b>Time Remaining:</b> unknown');
     },
     
@@ -798,6 +1038,9 @@
       eq(document.getElementById('heatCountUpAnim').innerHTML, '6 / 10');
     },
     
+    'theMachine.renderWhilePaused() should return without throwing an error if document.getElementById(resource) === null': function() {
+      theMachine.renderWhilePaused('fake', 'fakeCountUpAnim');
+    },
     
     //
     //theMachine.renderWorkers()
@@ -829,6 +1072,10 @@
       eq(document.getElementById(resource + 'AutomationButton').style.display, 'none');
       eq(document.getElementById(resource + 'Collapsible').style.display, 'none');
       eq(document.getElementById('globalWorkerCount').style.display, 'none'); 
+    },
+    
+    'theMachine.renderWorkers() should not throw an error if //Case 3: workers are locked && document.getElementById(resource) === null': function() {
+      theMachine.renderWorkers('fake');
     },
     
     //
@@ -1269,6 +1516,8 @@
     
     'theMachine.workerButtons() cannot exceed resource caps or mins': function() {
       let testCase = {target: {dataset: {resource: "heat"}, innerHTML: '+'}};
+      conditions.heat.workerCap = 1;
+      
       theMachine.workerButtons(testCase);
       theMachine.workerButtons(testCase);
       eq(globalData.globalWorkersAvailable, 4);

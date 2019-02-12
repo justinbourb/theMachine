@@ -112,7 +112,6 @@ let templates = {
       document.getElementById(resource + 'NextFluid').style.visibility = 'hidden';
       document.getElementById(resource + 'WorkerButton').style.visibility = 'hidden';
       document.getElementById(resource + 'EfficiencyButton').style.visibility = 'hidden';
-      
     }
   },
   

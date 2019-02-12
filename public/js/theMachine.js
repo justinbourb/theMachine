@@ -52,7 +52,6 @@ let theMachine = {
     let resourceRequired = conditions[resource].resourceRequired;
     let endValue;
     let ratePerSecond;
-    let timeOutId;
     
     theMachine.cancelAnimation(resource);
     
@@ -89,9 +88,7 @@ let theMachine = {
       endValue = conditions[resource].endValue;
     }
     //conditions to check before animation
-    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
-      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
-      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
+    if (theMachine.progressionCheck(resource)) {
         //call a new animation with updated values for automated resources
         conditions[resource][countUpName] = new CountUp(elemnt, startValue, endValue, 0, conditions[resource].duration, {useEasing:false, suffix: ' / '+ conditions[resource].endValue.toLocaleString(), gradientColors: conditions[resource].gradientColors, ratePerSecond: ratePerSecond});
         if (!conditions[resource][countUpName].error) {
@@ -99,14 +96,11 @@ let theMachine = {
         } else {
             console.error(conditions[resource][countUpName].error);
         }
-      }
-      else {
+      //Case 2: There are no workers assigned || The countUp is paused
+      } else {
         theMachine.renderWhilePaused(resource, countUpName);
       }
-    //Case 2: There are no workers assigned || The countUp is paused
-    } else {
-      theMachine.renderWhilePaused(resource, countUpName);
-    }
+    
   },
   
   automationButton(event) {
@@ -169,10 +163,7 @@ let theMachine = {
   calculateResourceGenerationOverTime(resource) {
     //calculates the amount of progress made after page was left
     if (conditions[resource].ratePerSecondBase || conditions[resource].ratePerSecond < 0) {
-      /**
-      *1) if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
-      *2) always countDown if negative ratePerSecond
-      **/
+      //if (ratePerSecondBase) => # of workers already factored in by +/- buttons (theMachine.workerButtons())
       return (Date.now() - conditions[resource].wasPageLeft) * conditions[resource].ratePerSecond/1000;
     } else {
       //everything else needs to consider the number of workersAssigned
@@ -199,7 +190,7 @@ let theMachine = {
         conditions[resource]['counterElement'] = document.getElementById(resource + 'CountUpAnim');
         conditions[resource]['counterElementManual'] = document.getElementById(resource + 'CountUpAnimManual');
         //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
-        if (conditions[resource]['wasPageLeft'] && conditions[resource].paused === false && conditions[resource].workersAssigned > 0) {
+        if (conditions[resource]['wasPageLeft'] && theMachine.progressionCheck(resource)) {
           //amount of progress made after page was left
           let newStartValue = conditions[resource].startValue + theMachine.calculateResourceGenerationOverTime(resource);
           //check if amount of progress exceeds cap
@@ -276,9 +267,11 @@ let theMachine = {
       });
     }
     
-    globalData[whichInit].forEach(function(resource){
-      templates.createResourceBarHTML(resource);
-    });
+    if (!(whichInit === 'theArmoryUnlockedResources' && globalData.workersUnlocked === false)) {
+      globalData[whichInit].forEach(function(resource){
+        templates.createResourceBarHTML(resource);
+      });
+    }
     
     theMachine.calculateValues('init', whichInit);
     
@@ -326,7 +319,7 @@ let theMachine = {
         if (globalData.globalWorkersRecruited < globalData.globalWorkerCap) {
           globalData.globalWorkersAvailable += 1;
           globalData.globalWorkersRecruited += 1;
-          theMachine.renderWorkers();
+          theMachine.renderWorkers(resource);
         }
       }
     }, duration*1000);
@@ -357,8 +350,28 @@ let theMachine = {
       } catch(e) {}
     }
   },
+  
+  progressionCheck(resource) {
+    let resourceRequired = conditions[resource].resourceRequired;
+    let ratePerSecond = conditions[resource].ratePerSecond;
+    //conditions to check before animation
+    if (resource === resourceRequired || conditions[resourceRequired].startValue > 0 || (conditions[resourceRequired].startValue === 0 && conditions[resourceRequired].ratePerSecond > 0)) {
+      //Case 1: it will animate if not paused && there are more than 0 workers assigned || rate < 0
+      if ((conditions[resource].paused === false && conditions[resource].workersAssigned !== 0 && ratePerSecond !== 0) || (ratePerSecond < 0)) {
+        return true
+      } else {
+        return false
+      }
+    } else {
+      return false
+    }
+  },
     
   renderWhilePaused(resource, countUpNameAuto) {
+    //breakout of function if there is no element (should only happen to workers)
+    if (document.getElementById(resource) === null) {
+      return 
+    }
     //Case 1: there's no workers for this resource || the rate === 0
     if (conditions[resource].workersAssigned === 0 || conditions[resource].ratePerSecond === 0){
       theMachine.cancelAnimation(resource);
@@ -385,7 +398,7 @@ let theMachine = {
       document.getElementById(resource + 'Manual').style.marginLeft = "5%";
       document.getElementById(resource + 'CountUpAnimManual').style.display = 'block';
     }
-    
+
     //collapse child elements related DOM manipulation
     document.getElementById(resource + 'ItemCap').innerHTML = 'Item Cap: <b>' + conditions[resource].endValue.toLocaleString() + '</b>';
     document.getElementById(resource + 'JobCost').innerHTML = '<b>Cost: </b>' + parseFloat(conditions[resource].rateCost.toFixed(3)).toLocaleString() + ' Heat';
@@ -433,11 +446,13 @@ let theMachine = {
     }
     
     //Case 3: workers are locked
-    if (globalData.workersUnlocked === false) {
-      document.getElementById(resource + 'AutomationButton').style.display = 'none';
-      document.getElementById(resource + 'Collapsible').style.display = 'none';
-      document.getElementById('globalWorkerCount').style.display = 'none';
-    }
+    try {
+      if (globalData.workersUnlocked === false) {
+        document.getElementById(resource + 'AutomationButton').style.display = 'none';
+        document.getElementById(resource + 'Collapsible').style.display = 'none';
+        document.getElementById('globalWorkerCount').style.display = 'none';
+      }
+    } catch (e) {}
   
   },
   
