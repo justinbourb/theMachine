@@ -133,26 +133,29 @@ let templates = {
   },
   
   renderHeader() {
-    let headerElement = document.getElementById('header_navigation');
-    
-    if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
-      headerElement.innerHTML = `
-      <div style="background: grey; height: 2em; width: 100%;">
-        <h2 style="margin:0;"> Research </h2>
-      </div>
-      `
-    } else {
-    headerElement.innerHTML = `
-      <div style="background: grey; height: 2em; width: 100%;">
-        <a href="/">
-          <img style="height:2em; padding-left: 0.5%" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F198xNxhow-to-draw-a-flame.gif.pagespeed.ic.VfDm_nppu7.jpg?1549510167685">
-        </a>
+    //only render if workers are unlocked
+    if (globalData.workersUnlocked === true) {
+      let headerElement = document.getElementById('header_navigation');
 
-        <a href="/armory" style="height:2em; padding-left: 0.5%">
-          <img style="height:2em" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F109840269-oil-drum-vector-icon.jpg?1549510164353">
-        </a>
-      </div>
-    `
+      if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
+        headerElement.innerHTML = `
+        <div style="background: grey; height: 2em; width: 100%;">
+          <h2 style="margin:0;"> Research </h2>
+        </div>
+        `
+      } else {
+      headerElement.innerHTML = `
+        <div style="background: grey; height: 2em; width: 100%;">
+          <a href="/">
+            <img style="height:2em; padding-left: 0.5%" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F198xNxhow-to-draw-a-flame.gif.pagespeed.ic.VfDm_nppu7.jpg?1549510167685">
+          </a>
+
+          <a href="/armory" style="height:2em; padding-left: 0.5%">
+            <img style="height:2em" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2F109840269-oil-drum-vector-icon.jpg?1549510164353">
+          </a>
+        </div>
+      `
+      }
     }
   }
 };

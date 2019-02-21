@@ -48,6 +48,10 @@ let globalData;
 let theMachine = {
 
   animateCountUp(resource, countUpName, elemnt, resourceSpent) {
+    //it will not try to animate an element that does not exist
+    if (elemnt === null || elemnt.innerHTML === undefined) {
+      return
+    }
     let startValue = conditions[resource].startValue;
     let resourceRequired = conditions[resource].resourceRequired;
     let endValue;
@@ -192,7 +196,8 @@ let theMachine = {
         //checks if page was left while not paused and workers assigned > 0 => we should calculate how much progress was made
         if (conditions[resource]['wasPageLeft'] && theMachine.progressionCheck(resource)) {
           //amount of progress made after page was left
-          let newStartValue = conditions[resource].startValue + theMachine.calculateResourceGenerationOverTime(resource);
+          let generation = theMachine.calculateResourceGenerationOverTime(resource);
+          let newStartValue = conditions[resource].startValue + generation;
           //check if amount of progress exceeds cap
           if (newStartValue > conditions[resource].endValue) {
             //Case 1: Case 1: Resource generation cannot exceed endValue;
@@ -260,7 +265,7 @@ let theMachine = {
   
   init(whichInit) {
     //disabled for testing purposes
-    //theMachine.bindEvents(whichInit);
+    theMachine.bindEvents(whichInit);
     
     //check if any data is stored from a previous session else use defaults
     if (theMachine.store('theMachine').length !== 0){
@@ -269,7 +274,7 @@ let theMachine = {
     } else {
       conditions = (
         {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 100, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 2, wasPageLeft: false, workersAssigned: 1, workerCap: 10 },
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
           fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
@@ -277,10 +282,10 @@ let theMachine = {
         }); 
       globalData = (
       {
-        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: true,
-        craftUnlockedResources: ['heat', 'tanks', 'klins', 'fluid'], 
+        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: false,
+        craftUnlockedResources: ['heat'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
-        theArmoryUnlockedResources: ['workers'],
+        theArmoryUnlockedResources: [],
         theArmoryLockedResources: ['workers'],
       });
     }
@@ -595,15 +600,25 @@ let theMachine = {
         conditions[resource]['ratePerSecond'] += (conditions[resource][valueChanged] * 0.1);
       }
       conditions[resourceSpent].startValue -= conditions[resource][resourceCost];
-      //if (resource !== resourceSpent && event.target.innerHTML === 'job speed'), reduce resourceSpent.ratePerSecond by increase * workers assigned
-      if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
-        conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
+      //workers cannot be automated, therefore it does not affect ratePerSecond
+      if (resource !== 'workers') {
+        //if (resource !== resourceSpent && event.target.innerHTML === 'job speed'), reduce resourceSpent.ratePerSecond by increase * workers assigned
+        if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
+          conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
+        }
       }
       //Worker Capacity increases workerCap by 1, not 10%
       if (resourceSpent === 'klins') {
         conditions[resource][valueChanged] += 1;
       } else {
+        //everything but klins increases by 10%
         conditions[resource][valueChanged] += (conditions[resource][valueChanged] * 0.1);
+        //resource === workers also increases globalData.workerCap by +=1 instead
+        if (resource === 'workers') {
+          globalData.globalWorkerCap += 1;
+          theMachine.renderWorkers(resource);
+          conditions.workers.startValue = globalData.globalWorkersRecruited;
+        }
       }
       //updating capacity => endValue can only be a whole number
       if (event.target.innerHTML === 'Item Capacity') {
@@ -714,7 +729,7 @@ let theMachine = {
 };
 
 window.onload = function() {
-  templates.renderHeader();
+  
   //on start our counters on the machine page
   //FIXME: expand this logic when adding additional pages that require counters
   if (location.href.split('/').slice(-1)[0].toLowerCase() === '') {
@@ -727,4 +742,5 @@ window.onload = function() {
     theMachine.init('theArmoryUnlockedResources'); 
   }
   
+  templates.renderHeader();
 };
