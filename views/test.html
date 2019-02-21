@@ -150,6 +150,10 @@
       globalData.workersUnlocked = false;
     },
     
+    'templates.renderHeader() will always render header on the research page': function() {
+      //jstinytest has no way to test this, can't spoof url
+    },
+    
     //
     //theMachine.animateCountUp()
     //
@@ -1122,7 +1126,6 @@
       conditions.heat.paused = false;
       theMachine.renderWorkers('heat');
       eq(document.getElementById(resource + 'AutomationButton').style.display, 'inline-block');
-      eq(document.getElementById(resource + 'Collapsible').style.display, 'inline-block');
       eq(document.getElementById('globalWorkerCount').style.display, 'block');
       eq(document.getElementById(resource + 'WorkerCount').innerHTML, conditions['heat'].workersAssigned + '/' + conditions['heat'].workerCap);
       eq(document.getElementById('globalWorkerCount').innerHTML, 'Workers: ' + globalData.globalWorkersAvailable + '/' + globalData.globalWorkerCap);
@@ -1146,6 +1149,18 @@
     
     'theMachine.renderWorkers() should not throw an error if //Case 3: workers are locked && document.getElementById(resource) === null': function() {
       theMachine.renderWorkers('fake');
+    },
+    
+    'theMachine.renderWorkers() Case 4: should hide collapsible element if globalData.craftUnlockedResources.indexOf("tanks") = -1': function() {
+      globalData.craftUnlockedResources = ['heat'];
+      theMachine.renderWorkers('heat');
+      eq(document.getElementById('heatCollapsible').style.display, 'none');  
+    },
+    
+    'theMachine.renderWorkers() Case 4: should show collapsible element if globalData.craftUnlockedResources.indexOf("tanks") > -1': function() {
+      globalData.craftUnlockedResources = ['heat', 'tanks'];
+      theMachine.renderWorkers('heat');
+      eq(document.getElementById('heatCollapsible').style.display, 'inline-block');  
     },
     
     //
