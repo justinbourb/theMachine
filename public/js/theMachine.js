@@ -473,8 +473,16 @@ let theMachine = {
     try {
       if (globalData.workersUnlocked === false) {
         document.getElementById(resource + 'AutomationButton').style.display = 'none';
-        document.getElementById(resource + 'Collapsible').style.display = 'none';
         document.getElementById('globalWorkerCount').style.display = 'none';
+      }
+    } catch (e) {}
+    
+    //Case 4: toggle resourceCollapsible element
+    try {
+      if (globalData.craftUnlockedResources.indexOf('tanks') === -1) {
+        document.getElementById(resource + 'Collapsible').style.display = 'none'; 
+      } else {
+        document.getElementById(resource + 'Collapsible').style.display = 'inline-block'; 
       }
     } catch (e) {}
   

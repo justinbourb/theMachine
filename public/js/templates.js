@@ -1,22 +1,9 @@
-let templates = {
-  //TODO: add header script tags to a template
-  
+let templates = {  
   
   createResourceBarHTML(resource) {
     /**
     * this function creates a "resource" based on the html template below
     * must be called with the name of the resource you wish to create
-    **/
-
-    /**TODO:
-    *1) attach to machine parts instead of body
-    *2) figure out why scripts are not working properly for tanks elements
-    *  2a) theMachine scripts should all be DRY and accept any resource name.
-    *3) Can this be improved to read the html in index.html so there's one source of truth?
-    *  3a) replace index.html text with template below so there's one source of truth?
-    *4) createResourceBarHTML based on url (craft page, hunter page, soldier page, scientist page, etc);
-    *  4a) only add craft resourceBars on craft page, etc
-    *    4a1) if (url === craft && research is complete ) { createResourceBarHTML('heat', 'tanks', 'kilns', 'liquid') };
     **/
 
     let targetElement = document.getElementById("The-Machine");
@@ -133,8 +120,11 @@ let templates = {
   },
   
   renderHeader() {
+    /**
+    *This function creates the header naviation
+    **/
     //only render if workers are unlocked
-    if (globalData.workersUnlocked === true) {
+    if (globalData.workersUnlocked === true || location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
       let headerElement = document.getElementById('header_navigation');
 
       if (location.href.split('/').slice(-1)[0].toLowerCase() === 'research') {
