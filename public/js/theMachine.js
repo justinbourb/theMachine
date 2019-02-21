@@ -285,6 +285,7 @@ let theMachine = {
         globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: false,
         craftUnlockedResources: ['heat'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
+        footerUnlocked: false,
         theArmoryUnlockedResources: [],
         theArmoryLockedResources: ['workers'],
       });
@@ -304,6 +305,8 @@ let theMachine = {
       let countUpNameAuto = resource + 'CountUpAnim';
       theMachine.animateCountUp(resource, countUpNameAuto, conditions[resource].counterElement);
     });
+    
+    templates.renderFooter();
     
   },
   
@@ -345,6 +348,10 @@ let theMachine = {
           globalData.globalWorkersRecruited += 1;
           theMachine.renderWorkers(resource);
         }
+      }
+      
+      if (resource === 'heat' && conditions.heat.startValue >= 5 && globalData.footerUnlocked === false) {
+        templates.renderFooter(); 
       }
     }, duration*1000);
     
@@ -499,6 +506,7 @@ let theMachine = {
     
     //update DOM
     theMachine.researchRender();
+    templates.renderFooter();
   },
   
   researchButtons(event){
