@@ -1253,6 +1253,12 @@
       eq(counter, 1);
     },
     
+    'theMachine.researchButtons() will subtract the requirement cost from heat.startValue': function() {
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').click();
+      eq(conditions.heat.startValue, 0);
+    },
+    
     //
     //theMachine.researchRender()
     //

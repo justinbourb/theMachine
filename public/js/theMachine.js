@@ -514,6 +514,8 @@ let theMachine = {
     //this creates bugs when workers is clicked
     let type = event.target.dataset.type;
     let resource = event.target.dataset.resource;
+    let researchCost = parseInt(event.target.dataset.requirement);
+    
     if (!globalData[type].includes(resource)){
      globalData[type].push(resource);
     }
@@ -521,6 +523,8 @@ let theMachine = {
     if (resource === 'workers') {
       globalData.workersUnlocked = true; 
     }
+    
+    conditions.heat.startValue -= researchCost;
     
   },
   
