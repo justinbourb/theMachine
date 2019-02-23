@@ -106,17 +106,21 @@ let templates = {
     /*
     *This function will create links at the bottom of each page aka the footer.
     */
-    
-    let footerElement = document.createElement("footer");
-    
-    footerElement.innerHTML = `
-      <!- css handled by footer.css ->
-      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
-      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
-      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
-      <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Explore</button>
-    `
-    document.body.appendChild(footerElement);
+    if (conditions.heat.startValue >= 5 || globalData.footerUnlocked === true) {
+      
+      globalData.footerUnlocked = true;
+      
+      let footerElement = document.createElement("footer");
+
+      footerElement.innerHTML = `
+        <!- css handled by footer.css ->
+        <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Craft</button>
+        <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Research</button>
+        <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Log</button>
+        <button class="footer-buttons" type="button" onclick="controllers.whichLinkClicked(event)">Explore</button>
+      `
+      document.body.appendChild(footerElement);
+    }
   },
   
   renderHeader() {
@@ -149,6 +153,4 @@ let templates = {
     }
   }
 };
-
-templates.renderFooter();
 

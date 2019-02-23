@@ -52,6 +52,7 @@
         globalWorkerCap: 5, globalWorkersAvailable: 5, globalWorkersRecruited: 5, workersUnlocked: true,
         craftUnlockedResources: ['heat', 'tanks'], 
         craftLockedResources: ['klins', 'fluid'],
+        footerUnlocked: false,
         theArmoryUnlockedResources: [],
         theArmoryLockedResources: ['workers']
       });
@@ -134,6 +135,47 @@
     //templates.renderHeader()
     //
     
+    'templates.renderFooter() will not render if heat.startValue < 5 || globalData.footerUnlocked === false': function() {
+      conditions.heat.startValue = 4;
+      globalData.footerUnlocked = false;
+      try {
+        document.getElementsByTagName('footer')[0].remove()
+      } catch (e) {}
+      templates.renderFooter();
+      eq(document.getElementsByTagName('footer')[0], undefined);
+    },
+    
+    'templates.renderFooter() will render if heat.startValue >= 5 || globalData.footerUnlocked === true': function() {
+      //test1: start === 5 && unlocked === false
+      conditions.heat.startValue = 5;
+      globalData.footerUnlocked = false;
+      try {
+        document.getElementsByTagName('footer')[0].remove()
+      } catch (e) {}
+      templates.renderFooter();
+      eq(document.getElementsByTagName('footer').length, 1);
+      
+      //test2: start > 5 && unlocked === false
+      conditions.heat.startValue = 6;
+      globalData.footerUnlocked = false;
+      document.getElementsByTagName('footer')[0].remove()
+      templates.renderFooter();
+      eq(document.getElementsByTagName('footer').length, 1);
+      
+      //test3: unlocked = true
+      conditions.heat.startValue = 0;
+      globalData.footerUnlocked = true;
+      document.getElementsByTagName('footer')[0].remove()
+      templates.renderFooter();
+      eq(document.getElementsByTagName('footer').length, 1);
+      
+      document.getElementsByTagName('footer')[0].remove()
+    },
+    
+    //
+    //templates.renderHeader()
+    //
+    
     'templates.renderHeader() will not renderHeader if globalData.workersUnlocked = false': function() {
       globalData.workersUnlocked = false;
       document.getElementById("header_navigation").innerHTML = '';
@@ -149,6 +191,7 @@
       //reset conditions for future tests
       globalData.workersUnlocked = false;
     },
+    
     
     'templates.renderHeader() will always render header on the research page': function() {
       //jstinytest has no way to test this, can't spoof url
@@ -840,7 +883,7 @@
       //click the button ==> it should be disabled during manual generation
       document.getElementById('heatManual').click();
       eq(document.getElementById('heatManual').disabled, true);
-      //after manual generation (1000ms), the button is enabled again
+      //after manual generation (4000ms), the button is enabled again
       await new Promise(resolve => {
         setTimeout(function() { 
           resolve('resolved');
@@ -848,8 +891,29 @@
         }, 4001);
       })
     },
-
-    //setTimeout does not work correctly with tinytest
+    
+    'theMachine.manualCounterButton(heat) if heat.startValue >= 5 && globalData.footerUnlocked === false call templates.renderFooter()': async function() {
+      
+      conditions.heat.startValue = 4;
+      globalData.footerUnlocked = false;
+      //footer is in the document twice for some reason... probably not important, just errant test writing
+      try {
+        document.getElementsByTagName('footer')[0].remove()
+      } catch (e) {}
+      try {
+        document.getElementsByTagName('footer')[0].remove()
+      } catch (e) {}
+      document.getElementById('heatManual').click();
+      
+      await new Promise(resolve => {
+        setTimeout(function() { 
+          resolve('resolved');
+        }, 4001);
+      });
+      
+      eq(document.getElementsByTagName('footer').length, 1);
+    },
+    
     'theMachine.manualCounterButton(worker) should add a worker to the globalWorkersAvailable and globalWorkersRecruited if (globalWorkersRecruited < globalWorkersCap)': async function() {
       let testCase = {target: {dataset: {resource: "workers"}}};
 
@@ -1191,6 +1255,33 @@
       eq(counter, 1);
     },
     
+    'theMachine.researchButtons() will subtract the requirement cost from heat.startValue': function() {
+      globalData.craftUnlockedResources = ['heat']
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
+      document.getElementById('tanksResearch').click();
+      eq(conditions.heat.startValue, 0);
+    },
+    
+    'theMachine.researchButtons() should remove item researched from lockedResources list': function() {
+      globalData.craftUnlockedResources = ['heat']
+      globalData.craftLockedResources = ['tanks']
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
+      document.getElementById('tanksResearch').click();
+      
+      eq(globalData.craftLockedResources.length, 0);
+    },
+    
+    'theMachine.researchButtons() will disable a button upon clicking':function() {
+      globalData.craftUnlockedResources = ['heat']
+      globalData.craftLockedResources = ['tanks']
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
+      document.getElementById('tanksResearch').click();
+      eq(document.getElementById('tanksResearch').disabled, true);
+    },
+    
     //
     //theMachine.researchRender()
     //
@@ -1203,7 +1294,8 @@
       *klins - 500 heat
       *fluid - 3000 heat
       */
-      globalData.craftLockedResources = ['tanks', 'klins', 'fluid']
+      globalData.craftLockedResources = ['tanks', 'klins', 'fluid'];
+      globalData.theArmoryLockedResources = ['workers'];
       
       conditions.heat.startValue = 0;
       theMachine.researchRender();
@@ -1239,6 +1331,22 @@
       eq(document.getElementById('workersResearch').style.display, 'inline-block');
       eq(document.getElementById('klinsResearch').style.display, 'inline-block');
       eq(document.getElementById('fluidResearch').style.display, 'inline-block'); 
+      
+    },
+    
+    'theMachine.researchRender() will disable buttons for item in UnlockedResources lists':function () {
+      globalData.theArmoryUnlockedResources = ['workers'];
+      theMachine.researchRender();
+      eq(document.getElementById('workersResearch').disabled, true);
+      
+      globalData.craftUnlockedResources = ['tanks'];
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').disabled, true);
+      
+      document.getElementById('tanksResearch').remove();
+      document.getElementById('workersResearch').remove();
+      document.getElementById('klinsResearch').remove();
+      document.getElementById('fluidResearch').remove();
     },
     
     //
@@ -1956,11 +2064,9 @@
     //   fail();
     //   //see above comments, not sure how to do this yet
     // },  
-    
-    /**Scenarios:
-    * 1)theMachine.updateCounterButtons resource countUp will resume even if heat.startValue === 0 (it should not!)
-    *  1a) make a test for this!
-    **/
-    
+  
   });
+  
+  document.getElementsByTagName('footer')[0].remove()
+  document.getElementsByTagName('footer')[0].remove()
 </script>

@@ -7,17 +7,13 @@
 
 *5) research.html css file and/or align class names to theMachine.css  
 *6) create header link to theArmory, Soldiers, Inventor, Hunter, etc
-*  6a) unlocked header based on research
 *7) theMachine.updateCounterButtons() add logic for additional resource costs
-*  7b) crafting workers capacity costs klins
 *  7c) crafting efficiency costs fluid
 *8) theMachine.updateCounterbuttons() add logic for additional pages
 *  8a) theArmory, Soldiers, Inventor, Hunter, etc
 *9) theMachine.researchButtons() should check for any progress made since leaving the craft page
     to check if requirements are still met
 *10) add efficiency updateCounterButtons() tests
-*11) add klins updateCounterButton() tests
-*12) rate does not show as 0 when no workers assigned
 **/
 
 /**FIXME:
@@ -30,14 +26,6 @@
 *      should be removed from countUp.js and called somewhere in theMachine.js or perhaps
 *      collapse.js???  Since this is inside the collapse item, but it's also part of theMachine...
 *3) theMachine.updateCounterButton() should work for other page besides craft (theArmory, Soldier, etc) - make it DRY
-**/
-
-
-
-
-/**TODO: test.html
-*1) look up promises
-*  1a) test settimout.then tests()? to call tinytest?
 **/
 
 let conditions;
@@ -285,6 +273,7 @@ let theMachine = {
         globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: false,
         craftUnlockedResources: ['heat'], 
         craftLockedResources: ['tanks', 'klins', 'fluid'],
+        footerUnlocked: false,
         theArmoryUnlockedResources: [],
         theArmoryLockedResources: ['workers'],
       });
@@ -304,6 +293,8 @@ let theMachine = {
       let countUpNameAuto = resource + 'CountUpAnim';
       theMachine.animateCountUp(resource, countUpNameAuto, conditions[resource].counterElement);
     });
+    
+    templates.renderFooter();
     
   },
   
@@ -345,6 +336,10 @@ let theMachine = {
           globalData.globalWorkersRecruited += 1;
           theMachine.renderWorkers(resource);
         }
+      }
+      
+      if (resource === 'heat' && conditions.heat.startValue >= 5 && globalData.footerUnlocked === false) {
+        templates.renderFooter(); 
       }
     }, duration*1000);
     
@@ -499,28 +494,38 @@ let theMachine = {
     
     //update DOM
     theMachine.researchRender();
+    templates.renderFooter();
   },
   
   researchButtons(event){
-    //FIXME: workers is part of global data, not a resource.
-    //this creates bugs when workers is clicked
     let type = event.target.dataset.type;
     let resource = event.target.dataset.resource;
+    let lockedType = type.replace('Unlocked', 'Locked');
+    let researchCost = parseInt(event.target.dataset.requirement);
+    let index;
+    
     if (!globalData[type].includes(resource)){
-     globalData[type].push(resource);
+      globalData[type].push(resource);
+      event.target.disabled = true;
+      document.getElementById(resource + 'Div').innerHTML += '&nbsp&nbsp&nbsp&nbsp<b>Completed</b>';
+      index = globalData[lockedType].indexOf(resource);
+      if (index != -1) {
+        globalData[lockedType].splice(index, 1);
+      }
     }
     
     if (resource === 'workers') {
-      globalData.workersUnlocked = true; 
+      globalData.workersUnlocked = true;
     }
     
+    conditions.heat.startValue -= researchCost;    
   },
   
   researchRender(){
     //this function will update the DOM based on the research requirements
     
-    globalData.craftLockedResources.forEach(function(arrayItem) {
-      let elemnt = document.getElementById(arrayItem + 'Research');
+    globalData.craftLockedResources.forEach(function(resource) {
+      let elemnt = document.getElementById(resource + 'Research');
       if (conditions.heat.startValue >= elemnt.dataset.requirement) {
         elemnt.style.display = "inline-block";
       } else {
@@ -528,13 +533,31 @@ let theMachine = {
       }
     });
     
-    globalData.theArmoryLockedResources.forEach(function(arrayItem) {
-      let elemnt = document.getElementById(arrayItem + 'Research');
+    globalData.craftUnlockedResources.forEach(function(resource) {
+      try {
+        let elemnt = document.getElementById(resource + 'Research');
+        elemnt.style.display = "inline-block";
+        elemnt.disabled = true;
+        document.getElementById(resource + 'Div').innerHTML += '&nbsp&nbsp&nbsp&nbsp<b>Completed</b>';
+        } catch (e) {};
+    });
+    
+    globalData.theArmoryLockedResources.forEach(function(resource) {
+      let elemnt = document.getElementById(resource + 'Research');
       if (conditions.heat.startValue >= elemnt.dataset.requirement) {
         elemnt.style.display = "inline-block";
       } else {
         elemnt.style.display = "none"; 
       }
+    });
+
+    globalData.theArmoryUnlockedResources.forEach(function(resource) {
+      try {
+        let elemnt = document.getElementById(resource + 'Research');
+        elemnt.style.display = "inline-block";
+        elemnt.disabled = true;
+        document.getElementById(resource + 'Div').innerHTML += '&nbsp&nbsp&nbsp&nbsp<b>Completed</b>';
+        } catch (e) {};
     });
     
   },
