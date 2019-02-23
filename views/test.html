@@ -14,10 +14,18 @@
         <header id="header">
           <h1>The Machine</h1>
           <div id="researchTests">
-            <button id="tanksResearch" data-type="craftUnlockedResources" data-resource="tanks" data-requirement="5" onclick="theMachine.researchButtons(event)">Research Tanks</button>
-            <button id="workersResearch" data-type="theArmoryUnlockedResources" data-resource="workers" data-requirement="50" onclick="theMachine.researchButtons(event)">Research Workers</button>
-            <button id="klinsResearch" data-type="craftUnlockedResources" data-resource="klins" data-requirement="500" onclick="theMachine.researchButtons(event)">Research Klins</button>
-            <button id="fluidResearch" data-type="craftUnlockedResources" data-resource="fluid" data-requirement="3000" onclick="theMachine.researchButtons(event)">Research Fluid</button>
+            <div class="buttonDiv" id="tanksDiv" style="padding-top:5%;">
+              <button id="tanksResearch" data-type="craftUnlockedResources" data-resource="tanks" data-requirement="5" onclick="theMachine.researchButtons(event)">Research Tanks</button>
+            </div>
+            <div class="buttonDiv" id="workersDiv">
+              <button id="workersResearch" data-type="theArmoryUnlockedResources" data-resource="workers" data-requirement="50" onclick="theMachine.researchButtons(event)">Research Workers</button>
+            </div>
+            <div class="buttonDiv" id="klinsDiv">
+              <button id="klinsResearch" data-type="craftUnlockedResources" data-resource="klins" data-requirement="500" onclick="theMachine.researchButtons(event)">Research Klins</button>
+            </div>
+            <div class="buttonDiv" id="fluidDiv">
+              <button id="fluidResearch" data-type="craftUnlockedResources" data-resource="fluid" data-requirement="3000" onclick="theMachine.researchButtons(event)">Research Fluid</button>
+            </div>
           </div>
         </header>
       </section>
@@ -1296,6 +1304,8 @@
       */
       globalData.craftLockedResources = ['tanks', 'klins', 'fluid'];
       globalData.theArmoryLockedResources = ['workers'];
+      globalData.craftUnlockedResources = ['heat'];
+      globalData.theArmoryUnlockedResources = [];
       
       conditions.heat.startValue = 0;
       theMachine.researchRender();
