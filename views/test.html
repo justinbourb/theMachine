@@ -168,6 +168,8 @@
       document.getElementsByTagName('footer')[0].remove()
       templates.renderFooter();
       eq(document.getElementsByTagName('footer').length, 1);
+      
+      document.getElementsByTagName('footer')[0].remove()
     },
     
     //
@@ -1254,9 +1256,30 @@
     },
     
     'theMachine.researchButtons() will subtract the requirement cost from heat.startValue': function() {
+      globalData.craftUnlockedResources = ['heat']
       conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
       document.getElementById('tanksResearch').click();
       eq(conditions.heat.startValue, 0);
+    },
+    
+    'theMachine.researchButtons() should remove item researched from lockedResources list': function() {
+      globalData.craftUnlockedResources = ['heat']
+      globalData.craftLockedResources = ['tanks']
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
+      document.getElementById('tanksResearch').click();
+      
+      eq(globalData.craftLockedResources.length, 0);
+    },
+    
+    'theMachine.researchButtons() will disable a button upon clicking':function() {
+      globalData.craftUnlockedResources = ['heat']
+      globalData.craftLockedResources = ['tanks']
+      conditions.heat.startValue = 5;
+      document.getElementById('tanksResearch').disabled = false;
+      document.getElementById('tanksResearch').click();
+      eq(document.getElementById('tanksResearch').disabled, true);
     },
     
     //
@@ -1271,7 +1294,8 @@
       *klins - 500 heat
       *fluid - 3000 heat
       */
-      globalData.craftLockedResources = ['tanks', 'klins', 'fluid']
+      globalData.craftLockedResources = ['tanks', 'klins', 'fluid'];
+      globalData.theArmoryLockedResources = ['workers'];
       
       conditions.heat.startValue = 0;
       theMachine.researchRender();
@@ -1307,6 +1331,22 @@
       eq(document.getElementById('workersResearch').style.display, 'inline-block');
       eq(document.getElementById('klinsResearch').style.display, 'inline-block');
       eq(document.getElementById('fluidResearch').style.display, 'inline-block'); 
+      
+    },
+    
+    'theMachine.researchRender() will disable buttons for item in UnlockedResources lists':function () {
+      globalData.theArmoryUnlockedResources = ['workers'];
+      theMachine.researchRender();
+      eq(document.getElementById('workersResearch').disabled, true);
+      
+      globalData.craftUnlockedResources = ['tanks'];
+      theMachine.researchRender();
+      eq(document.getElementById('tanksResearch').disabled, true);
+      
+      document.getElementById('tanksResearch').remove();
+      document.getElementById('workersResearch').remove();
+      document.getElementById('klinsResearch').remove();
+      document.getElementById('fluidResearch').remove();
     },
     
     //
@@ -2024,11 +2064,9 @@
     //   fail();
     //   //see above comments, not sure how to do this yet
     // },  
-    
-    /**Scenarios:
-    * 1)theMachine.updateCounterButtons resource countUp will resume even if heat.startValue === 0 (it should not!)
-    *  1a) make a test for this!
-    **/
-    
+  
   });
+  
+  document.getElementsByTagName('footer')[0].remove()
+  document.getElementsByTagName('footer')[0].remove()
 </script>

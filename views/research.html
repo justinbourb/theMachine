@@ -4,22 +4,26 @@
 		<meta charset="utf-8">
     <title>Armory and Machine clone</title>
 		<link rel="stylesheet" href="css/theMachine.css">
-    <link rel="stylesheet" href="css/collapse.css">
+    <link rel="stylesheet" href="css/research.css">
     <link rel="stylesheet" href="css/footer.css">
     <script async src="js/theMachine.js"></script>
     <script async src="js/templates.js"></script>
     <script async src="js/controllers.js"></script>
   </head>
-  <header_navigation id="header_navigation">
-
-  </header_navigation>
+  <header_navigation id="header_navigation"></header_navigation>
   <body>
     
     <div id="spacer">
-      <div id="content">
+      <div class="buttonDiv" id="tanksDiv" style="padding-top:5%;">
         <button id="tanksResearch" data-type="craftUnlockedResources" data-resource="tanks" data-requirement="5" onclick="theMachine.researchButtons(event)">Research Tanks</button>
+      </div>
+      <div class="buttonDiv" id="workersDiv">
         <button id="workersResearch" data-type="theArmoryUnlockedResources" data-resource="workers" data-requirement="50" onclick="theMachine.researchButtons(event)">Research Workers</button>
+      </div>
+      <div class="buttonDiv" id="klinsDiv">
         <button id="klinsResearch" data-type="craftUnlockedResources" data-resource="klins" data-requirement="500" onclick="theMachine.researchButtons(event)">Research Klins</button>
+      </div>
+      <div class="buttonDiv" id="fluidDiv">
         <button id="fluidResearch" data-type="craftUnlockedResources" data-resource="fluid" data-requirement="3000" onclick="theMachine.researchButtons(event)">Research Fluid</button>
       </div>
     </div>
