@@ -4,12 +4,12 @@ You can view a live demo here: https://tin-random.glitch.me/
 
 Fancy bits:
 1) Written entirely in javascript - no frameworks.
-2) The only javascript library in use is countUp.js, other features are built by hand.
+2) The only javascript library in use is countUp.js, other features are built by hand.  
   2a) resource counters are created via countUp.js using window.requestAnimationFrame()
 3) Templating
 4) Routing
 5) DRY code base
-6) Testing
+6) Testing  
   6a) tests can be accessed by navigating to /tests
 7) Event delegation
 8) It uses window.addEventListener('beforeunload') to record the time the page/game was left.  Resources continue to accumulate in real time (as calculated when the game is reopened).
