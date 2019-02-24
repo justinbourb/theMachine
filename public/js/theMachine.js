@@ -390,16 +390,19 @@ let theMachine = {
     setTimeout(function() {
       conditions[resource].startValue += 1;
       theMachine.updateGradientAndValue(resource, countUpNameAuto);    
-      if (!(conditions[resource].startValue === conditions[resource].endVal)) {
-        event.target.disabled = false;
-      }
       if (resource === 'workers') {
         if (globalData.globalWorkersRecruited < globalData.globalWorkerCap) {
           globalData.globalWorkersAvailable += 1;
           globalData.globalWorkersRecruited += 1;
           theMachine.renderWorkers(resource);
         }
+        if (!(globalData.globalWorkersRecruited === globalData.globalWorkerCap)) {
+          event.target.disabled = false;
+        }
+      } else if (!(conditions[resource].startValue === conditions[resource].endVal)) {
+        event.target.disabled = false;
       }
+      
       
       if (resource === 'heat' && conditions.heat.startValue >= 5 && globalData.footerUnlocked === false) {
         templates.renderFooter(); 
