@@ -900,6 +900,22 @@
       })
     },
     
+    'theMachine.manualCounterButton() correctly disables the resource generation button if the cap is reached': async function() {
+      
+      //click the button ==> it should be disabled during manual generation
+      conditions.heat.startValue = 9;
+      conditions.heat.endValue = 10;
+      document.getElementById('heatManual').click();
+      eq(document.getElementById('heatManual').disabled, true);
+      //after manual generation (4000ms), the button is enabled again
+      await new Promise(resolve => {
+        setTimeout(function() { 
+          resolve('resolved');
+          eq(document.getElementById('heatManual').disabled, true);
+        }, 4001);
+      })
+    },
+    
     'theMachine.manualCounterButton(heat) if heat.startValue >= 5 && globalData.footerUnlocked === false call templates.renderFooter()': async function() {
       
       conditions.heat.startValue = 4;
