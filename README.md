@@ -20,11 +20,11 @@ Full description:
 
 The game start with only one resource, heat.  Heat can only be generated  manually at this point.
 
-The first break point is upon reaching 5 heat.  The footer navigation bar appears and researching your next resource, tanks, is no available.  Upon researching tanks, increasing resource rate and capacity also become available.  At this point resource generation is still manual.
+The first break point is upon reaching 5 heat.  The footer navigation bar appears and researching your next resource, tanks, is now available.  Upon researching tanks, increasing resource rate and capacity also becomes available.  At this point resource generation is still manual.
 
 The second break point is upon reaching 50 heat. Workers research becomes available.  This unlocks automation, the header navigation bar and the creation of additional workers on the armory page (accessed via header navigation bar).  Workers get assigned to resources allowing automated generation over time.  All resources require heat and rate per second will vary based on how many workers are assigned and how much heat is being drained.
 
-One cool feature that gets unlocked behind the scenes is resource generation will continue after you leave the page (up to maximum or down to zero).  There is an algorithm which calculates resource generation over time based on when you left the page. 
+One cool feature that gets unlocked behind the scenes is resource generation will continue after you leave the page (up to maximum or down to zero).  There is an algorithm which calculates resource generation over time based on when you left the page. The second cool feature that gets unlocked behind the scences is resource generation will automatically stop if heat drops to 0 and automatically restart once heat > 0.
 
 The third break point is upon reaching 500 heat.  Klins are unlocked via the research page, which allows increasing the worker capacity of resources.
 
