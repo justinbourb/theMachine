@@ -315,7 +315,7 @@
       resetConditions();
       conditions.heat.workersAssigned = 5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ conditions.heat.ratePerSecond + " / second");
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.efficiency / 100) + " / second");
     },
     
     'theMachine.animateCountUp() if !(ratePerSecondBase) will calculate countUp ratePerSecond as [resource].ratePerSecond * workersAssigned': function() {
@@ -323,7 +323,7 @@
       delete conditions.heat.ratePerSecondBase;
       conditions.heat.workersAssigned = 5;
       theMachine.animateCountUp('heat', 'heatCountUpAnim', conditions.heat.counterElement);
-      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.workersAssigned) + " / second");
+      eq(document.getElementById('heat' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.heat.ratePerSecond * conditions.heat.workersAssigned * conditions.heat.efficiency / 100) + " / second");
     },
     
     'theMachine.animateCountUp() will set conditions.heat.timeOutId if heat ratePerSecond < 0': function() {
@@ -408,7 +408,7 @@
       //tanks.paused = false results in a drain of (rate/3)*workers from heat.rate or 0.5/3*1
       let testCase = {target: {dataset: {resource: "tanks"}}};
       theMachine.automationButton(testCase);
-      eq(conditions.heat.ratePerSecond, 0.5 + (0.5/3*1));
+      eq(conditions.heat.ratePerSecond, 0.5 + 0.5);
     },
     
     'theMachine.automationButton() if (resource is paused), resourceRequired animation is restarted': function() {
@@ -1458,7 +1458,7 @@
       eq(conditions.tanks.endValue, 110);
       
       //it should not affect other values
-      eq(document.getElementById('tanks' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.tanks.ratePerSecond) + " / second");
+      eq(document.getElementById('tanks' + 'Rate').innerHTML, "<b>Rate:</b> "+ (conditions.tanks.ratePerSecond * conditions.tanks.efficiency / 100) + " / second");
     },
     
     'theMachine.updateCounterButtons() "Item Capacity" should only update options.suffix, Item Cap and endVal when paused':function() {
@@ -1705,7 +1705,7 @@
       conditions.tanks.workersAssigned = 1;
       conditions.heat.startValue = 10;
       theMachine.updateCounterButtons(testCase);
-      eq(conditions.heat.ratePerSecond, 0.48333333333333334);
+      eq(conditions.heat.ratePerSecond, 0.45);
       eq(conditions.tanks.ratePerSecond, 0.55);
     },
     
@@ -1822,7 +1822,7 @@
       conditions.heat.startValue = 10;
       globalData.globalWorkersAvailable = 5;
       theMachine.workerButtons(testCase);
-      eq(conditions.heat.ratePerSecond, 0.33333333333333337);
+      eq(conditions.heat.ratePerSecond, 0);
       eq(conditions.tanks.ratePerSecond, 0.5);
     },
     

@@ -32,6 +32,65 @@ let conditions;
 
 let globalData;
 
+function levelUp() {
+  if (conditions.heat.startValue < 5) {
+    conditions.heat.startValue = 5;
+    conditions.heat.endValue = 10;
+    location.reload();
+    return
+  }
+  
+  if (conditions.heat.startValue < 50) {
+    conditions.heat.startValue = 50;
+    conditions.heat.endValue = 50;
+    location.reload();
+    return
+  }
+  
+  if (conditions.heat.startValue < 500) {
+    conditions.heat.startValue = 500;
+    conditions.heat.endValue = 500;
+    location.reload();
+    return
+  }
+  
+  if (conditions.heat.startValue < 5000) {
+    conditions.heat.startValue = 5000;
+    conditions.heat.endValue = 5000;
+    location.reload();
+    return
+  }
+  
+}
+
+function restart() {
+  theMachine.defaultConditions();
+  try {
+    conditions.heat.heatCountUpAnim.frameVal = conditions.heat.startValue;
+  } catch(e) {}
+  try {
+    document.getElementById('heatCountUpAnim').innerHTML = conditions.heat.startValue + ' / ' + conditions.heat.endValue;
+  } catch(e) {}
+  try {
+    conditions.tanks.tanksCountUpAnim.frameVal = conditions.tanks.startValue;
+  } catch(e) {}
+  try {
+    document.getElementById('tanksCountUpAnim').innerHTML = conditions.tanks.startValue + ' / ' + conditions.tanks.endValue;
+  } catch(e) {}
+  try {
+    conditions.klins.klinsCountUpAnim.frameVal = conditions.klins.startValue;
+  } catch(e) {}
+  try {
+    document.getElementById('klinsCountUpAnim').innerHTML = conditions.klins.startValue + ' / ' + conditions.klins.endValue;
+  } catch(e) {}
+  try {
+    conditions.fluid.fluidCountUpAnim.frameVal = conditions.fluid.startValue;
+  } catch(e) {}
+  try {
+    document.getElementById('fluidCountUpAnim').innerHTML = conditions.fluid.startValue + ' / ' + conditions.fluid.endValue;
+  } catch(e) {};
+  location.reload();
+}
 
 let theMachine = {
 
@@ -50,11 +109,11 @@ let theMachine = {
     if (conditions[resource].ratePerSecondBase) {
       //make sure duration has been updated (if ratePerSecondBase => ratePerSecond already has # of workers factored in)
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond);  
-      ratePerSecond = conditions[resource].ratePerSecond;
+      ratePerSecond = conditions[resource].ratePerSecond * conditions[resource].efficiency / 100;
     } else {
       //make sure duration has been updated
       conditions[resource].duration = (conditions[resource].endValue - conditions[resource].startValue) / (conditions[resource].ratePerSecond * conditions[resource].workersAssigned);
-      ratePerSecond = conditions[resource].ratePerSecond * conditions[resource].workersAssigned;
+      ratePerSecond = conditions[resource].ratePerSecond * conditions[resource].workersAssigned * conditions[resource].efficiency / 100;
     }
     
     if (conditions[resource].ratePerSecond < 0) {
@@ -116,7 +175,7 @@ let theMachine = {
       theMachine.pauseResume(resource, countUpNameAuto);
       if (resource !== resourceRequired) {
         //increase resourceRequired ratePerSecond by amount previously drained by resource
-        conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond / 3) * conditions[resource].workersAssigned;
+        conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond) * conditions[resource].workersAssigned;
       }
     //case 2: stopping automation
     } else {
@@ -126,7 +185,7 @@ let theMachine = {
       theMachine.manualCounterButtonStatus(resource, countUpNameAuto);
       if (resource !== resourceRequired) {
         //increase resourceRequired ratePerSecond by amount previously drained by resource
-        conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond / 3) * conditions[resource].workersAssigned;
+        conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond) * conditions[resource].workersAssigned;
       }
     }
     //restart resourceRequired with new ratePerSecond information
@@ -243,6 +302,26 @@ let theMachine = {
     
   },
   
+  defaultConditions() {
+    conditions = (
+        {
+          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.45, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 18.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.25, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 30.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.20, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
+          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 5, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 5, wasPageLeft: false}
+        }); 
+      globalData = (
+      {
+        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: false,
+        craftUnlockedResources: ['heat'], 
+        craftLockedResources: ['tanks', 'klins', 'fluid'],
+        footerUnlocked: false,
+        theArmoryUnlockedResources: [],
+        theArmoryLockedResources: ['workers'],
+      });
+  },
+  
   formatNumber(toFormat, decimalPlaces) {
     /**this function will:
     *1) round to a specified number of decimal places via .toFixed
@@ -260,23 +339,7 @@ let theMachine = {
       conditions = theMachine.store('theMachine');
       globalData = theMachine.store('globalData');
     } else {
-      conditions = (
-        {
-          heat: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 25.12, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["white", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, ratePerSecondBase: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          tanks: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#ff6a00", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: false, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          klins: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#96825d", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          fluid: { capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", efficiency: 27.52, endValue: 10, fluidCost: 7, fluidLevel: 1, gradientColors: ["#e8a01b", "#F5F5F5"], klinsCost: 6, klinsLevel: 1, paused: true, ratePerSecond: 0.5, rateCost: 6, rateLevel: 1, resourceRequired: 'heat', startValue: 0, wasPageLeft: false, workersAssigned: 0, workerCap: 5 },
-          workers: {capacityCost: 5, capacityLevel: 1, counterElement: "", counterElementManual: "", duration: "", endValue: 5, gradientColors: ["#e8a01b", "#F5F5F5"], paused: true, rateCost: 6, rateLevel: 1, ratePerSecond: 0.5, resourceRequired: 'heat', startValue: 5, wasPageLeft: false}
-        }); 
-      globalData = (
-      {
-        globalWorkersAvailable: 5, globalWorkerCap: 5, globalWorkersRecruited: 5, workersUnlocked: false,
-        craftUnlockedResources: ['heat'], 
-        craftLockedResources: ['tanks', 'klins', 'fluid'],
-        footerUnlocked: false,
-        theArmoryUnlockedResources: [],
-        theArmoryLockedResources: ['workers'],
-      });
+      theMachine.defaultConditions();
     }
     
     if (!(whichInit === 'theArmoryUnlockedResources' && globalData.workersUnlocked === false)) {
@@ -635,7 +698,7 @@ let theMachine = {
       if (resource !== 'workers') {
         //if (resource !== resourceSpent && event.target.innerHTML === 'job speed'), reduce resourceSpent.ratePerSecond by increase * workers assigned
         if (resource !== resourceSpent && event.target.innerHTML === 'Job Speed') {
-          conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned / 3;
+          conditions[resourceSpent].ratePerSecond -= conditions[resource].ratePerSecond * 0.1 * conditions[resource].workersAssigned;
         }
       }
       //Worker Capacity increases workerCap by 1, not 10%
@@ -700,7 +763,7 @@ let theMachine = {
           globalData.globalWorkersAvailable -= 1;
           //3:1 ratio of resource rate vs heat drain rate... a lot of resources need need 1:1 would be too drastic.
           if (resource !== resourceRequired) {
-            conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond / 3);
+            conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecond);
           //if resource === resourceSpent increase ratePerSecond by ratePerSecondBase (adding a worker increases rate)
           } else {
             conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecondBase);
@@ -720,7 +783,7 @@ let theMachine = {
         conditions[resource].workersAssigned -= 1;
         globalData.globalWorkersAvailable += 1;
         if (resource !== resourceRequired) {
-          conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond / 3);
+          conditions[resourceRequired].ratePerSecond += (conditions[resource].ratePerSecond);
         } else {
           conditions[resourceRequired].ratePerSecond -= (conditions[resource].ratePerSecondBase);
         }
