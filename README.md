@@ -9,7 +9,7 @@ Fancy bits:
 3) Templating
 4) Routing
 5) DRY code base
-6) Testing  
+6) Testing (139 tests)
   6a) tests can be accessed by navigating to /tests
 7) Event delegation
 8) It uses window.addEventListener('beforeunload') to record the time the page/game was left.  Resources continue to accumulate in real time (as calculated when the game is reopened).
