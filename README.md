@@ -29,3 +29,5 @@ One cool feature that gets unlocked behind the scenes is resource generation wil
 The third break point is upon reaching 500 heat.  Klins are unlocked via the research page, which allows increasing the worker capacity of resources.
 
 The fourth break point is upon reaching 5000 heat.  Fluid is unlocked via the research page, which allows increasing worker efficiency.
+
+![alt text](https://github.com/justinbourb/theMachine/blob/master/codeReview.png)
