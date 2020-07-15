@@ -14,7 +14,8 @@ Fancy bits:
 7) Event delegation
 8) It uses window.addEventListener('beforeunload') to record the time the page/game was left.  Resources continue to accumulate in real time (as calculated when the game is reopened).
 9) Contains at least one example of functional programming
-10) Cheat codes are available to jump to the next breakpoint type levelUp() in the console or if you want a fresh start, type restart()
+10) Cheat codes are available to jump to the next breakpoint type levelUp() in the console or if you want a fresh start, type restart()  
+11) Intentionally minimalist UI (true to the original app)
 
 Full description:
 
