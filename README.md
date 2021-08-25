@@ -26,7 +26,7 @@ The first break point is upon reaching 5 heat.  The footer navigation bar appear
   
 <img src="https://github.com/justinbourb/theMachine/blob/master/images/5_heat.JPG">]  
   
-The second break point is upon reaching 50 heat. Workers research becomes available.  This unlocks automation, the header navigation bar and the creation of additional workers on the armory page (accessed via header navigation bar).  Workers get assigned to resources allowing automated generation over time.  All resources require heat and rate per second will vary based on how many workers are assigned and how much heat is being drained.
+The second break point is upon reaching 50 heat. Workers research becomes available.  This unlocks automation, the header navigation bar and the creation of additional workers on the armory page (accessed via header navigation bar).  Workers get assigned to resources allowing automated generation over time.  All resources require heat and rate per second will vary based on how many workers are assigned and how much heat is being drained.  
 <img src="https://github.com/justinbourb/theMachine/blob/master/images/research_available.JPG">]  
   
 One cool feature that gets unlocked behind the scenes is resource generation will continue after you leave the page (up to maximum or down to zero).  There is an algorithm which calculates resource generation over time based on when you left the page. The second cool feature that gets unlocked behind the scences is resource generation will automatically stop if heat drops to 0 and automatically restart once heat > 0.  
