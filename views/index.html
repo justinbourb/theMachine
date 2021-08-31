@@ -9,7 +9,9 @@
     <link rel="stylesheet" href="css/footer.css">
     <link rel="stylesheet" href="css/headerBar.css">
     <link rel="stylesheet" href="css/theMachine.css">
+    <link rel="stylesheet" href="css/infoButton.css">
     
+    <script async src="js/infoButton.js"></script>
     <script async src="js/countUp.js"></script>
     <script async src="js/templates.js"></script>
     <script async src="js/theMachine.js"></script>
@@ -19,6 +21,16 @@
   <header_navigation id="header_navigation"></header_navigation>
   <section id="title">
     <header id="header">
+      <div id="infoButton">
+        <img style="height:2em; padding-left: 0.5%" src="https://cdn.glitch.com/fc48a9d7-a4e4-4fa2-a9a7-e389e722deb5%2Finfo_button.JPG?v=1630423058816" onmouseover="infoButtonMouseOver(event)" onmouseout="infoButtonMouseOut(event)">
+        <div id="infoButtonText" style="display: none">
+          <p>
+          This is a clone of the Armory & Machine mobile app, recreated as a javascript web app. Armory & Machine is an incremental game, additional content is unlocked as progress is made.
+          The UI is intentionally sparse, true to the original app.  You can view the readme here:
+          <a href="https://github.com/justinbourb/theMachine">https://github.com/justinbourb/theMachine</a>
+          </p>  
+        </div>
+      </div>
       <h1>The Machine</h1>
     </header>
   </section>
