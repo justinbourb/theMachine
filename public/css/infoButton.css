@@ -1,0 +1,10 @@
+#infoButton p {
+  
+  border: 1px solid black;
+  padding-top: 3px;
+  padding-bottom: 3px;
+  width: 25%;
+  z-index: 5;
+  position: absolute;
+  background: white
+}
